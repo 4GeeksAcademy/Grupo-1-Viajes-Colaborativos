@@ -1,7 +1,7 @@
 import enum
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Boolean, Enum, Date, Integer, ForeignKey, Float
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import date
 
 db = SQLAlchemy()
@@ -18,7 +18,7 @@ class User(db.Model):
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
     
-
+    viajeros = relationship("Viajero", back_populates="users")
 
     def serialize(self):
         return {
@@ -39,6 +39,8 @@ class Viaje(db.Model):
     budget: Mapped[float] = mapped_column(Float, nullable=False)
     notes: Mapped[str] = mapped_column(String(150), nullable=False)
 
+    viajeros = relationship("Viajero", back_populates="viajes")
+
 
     def serialize(self):
         return {
@@ -50,4 +52,19 @@ class Viaje(db.Model):
             "ending_date": self.ending_date,
             "budget": self.budget,
             "notes": self.notes,
+        }
+
+
+class Viajero(db.Model):
+    id_user: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"), primary_key=True)
+    id_viaje: Mapped[int] = mapped_column(ForeignKey("viaje.id", ondelete="CASCADE"), primary_key=True)
+
+
+    users = relationship("User", back_populates="viajeros")
+    viajes = relationship("Viaje", back_populates="viajeros")
+
+    def serialize(self):
+        return {
+            "id_user": self.id_user,
+            "id_viaje": self.id_viaje,
         }
