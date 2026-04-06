@@ -1,8 +1,8 @@
 import enum
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean, Enum, Date, Integer, ForeignKey, Float
+from sqlalchemy import String, Boolean, Enum, Date, Integer, ForeignKey, Float, Time
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import date
+from datetime import date, time
 
 db = SQLAlchemy()
 
@@ -25,7 +25,7 @@ class User(db.Model):
             "id": self.id,
             "name": self.name,
             "last_name": self.last_name,
-            "email": self.email,
+            "email": self.email
         }
     
 
@@ -40,6 +40,7 @@ class Viaje(db.Model):
     notes: Mapped[str] = mapped_column(String(150), nullable=False)
 
     viajeros = relationship("Viajero", back_populates="viajes")
+    itinerarios = relationship("Itinerario", back_populates="viajes")
 
 
     def serialize(self):
@@ -51,7 +52,7 @@ class Viaje(db.Model):
             "starting_date": self.starting_date,
             "ending_date": self.ending_date,
             "budget": self.budget,
-            "notes": self.notes,
+            "notes": self.notes
         }
 
 
@@ -66,5 +67,30 @@ class Viajero(db.Model):
     def serialize(self):
         return {
             "id_user": self.id_user,
-            "id_viaje": self.id_viaje,
+            "id_viaje": self.id_viaje
+        }
+    
+
+class Itinerario(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(30), nullable=False)
+    destination: Mapped[str] = mapped_column(String(50), nullable=False)
+    hour: Mapped[time] = mapped_column(Time, nullable=False)
+    starting_date: Mapped[date] = mapped_column(Date(), nullable=False)
+    notes: Mapped[str] = mapped_column(String(150), nullable=False)
+    id_viaje: Mapped[int] = mapped_column(ForeignKey("viaje.id", ondelete="CASCADE"), primary_key=True)
+
+
+    viajes = relationship("Viaje", back_populates="itinerarios")
+
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "destination": self.destination,
+            "hour": self.hour,
+            "starting_date": self.starting_date,
+            "notes": self.notes,
+            "id_viaje": self.id_viaje
         }
