@@ -12,6 +12,14 @@ class StateTypes(enum.Enum):
     ONGOING = "ongoing"
     PLANNING = "planning"
 
+
+class CategoryTypes(enum.Enum):
+    TRANSPORT = "transport"
+    LODGING = "lodging"
+    FOOD = "food"
+    ACTIVITIES = "activities"
+    OTHERS = "others"
+
 # --- MODELS ---
 
 class User(db.Model):
@@ -19,15 +27,16 @@ class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(20), nullable=False)
     last_name: Mapped[str] = mapped_column(String(50), nullable=False)
-    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(
+        String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
     
     # Relationships
-    travelers = relationship("Traveler", back_populates="user")
-    expenses_paid = relationship("Expense", back_populates="payer")
-    messages = relationship("Message", back_populates="author")
-    debts_owed = relationship("Debt", foreign_keys="[Debt.debtor_id]", back_populates="debtor")
-    debts_to_receive = relationship("Debt", foreign_keys="[Debt.creditor_id]", back_populates="creditor")
+    travelers = relationship("Traveler", back_populates="users")
+    expenses_paid = relationship("Expense", back_populates="payers")
+    messages = relationship("Message", back_populates="authors")
+    debts_owed = relationship("Debt", foreign_keys="[Debt.debtor_id]", back_populates="debtors")
+    debts_to_receive = relationship("Debt", foreign_keys="[Debt.creditor_id]", back_populates="creditors")
 
     def serialize(self):
         return {
@@ -42,18 +51,19 @@ class Trip(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(30), nullable=False)
     destination: Mapped[str] = mapped_column(String(50), nullable=False)
-    state: Mapped[StateTypes] = mapped_column(Enum(StateTypes), nullable=False)
+    state: Mapped[StateTypes] = mapped_column(
+        Enum(StateTypes), nullable=False)
     starting_date: Mapped[date] = mapped_column(Date(), nullable=False)
     ending_date: Mapped[date] = mapped_column(Date(), nullable=False)
     budget: Mapped[float] = mapped_column(Float, nullable=False)
     notes: Mapped[str] = mapped_column(String(150), nullable=False)
 
     # Relationships
-    travelers = relationship("Traveler", back_populates="trip")
-    itineraries = relationship("Itinerary", back_populates="trip")
-    expenses = relationship("Expense", back_populates="trip")
-    documents = relationship("Document", back_populates="trip")
-    chat = relationship("Chat", back_populates="trip", uselist=False)
+    travelers = relationship("Traveler", back_populates="trips")
+    itineraries = relationship("Itinerary", back_populates="trips")
+    expenses = relationship("Expense", back_populates="trips")
+    documents = relationship("Document", back_populates="trips")
+    chats = relationship("Chat", back_populates="trips", uselist=False)
 
     def serialize(self):
         return {
@@ -72,8 +82,8 @@ class Traveler(db.Model):
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"), primary_key=True)
     trip_id: Mapped[int] = mapped_column(ForeignKey("trip.id", ondelete="CASCADE"), primary_key=True)
 
-    user = relationship("User", back_populates="travelers")
-    trip = relationship("Trip", back_populates="travelers")
+    users = relationship("User", back_populates="travelers")
+    trips = relationship("Trip", back_populates="travelers")
 
     def serialize(self):
         return {
@@ -91,7 +101,7 @@ class Itinerary(db.Model):
     notes: Mapped[str] = mapped_column(String(150), nullable=False)
     trip_id: Mapped[int] = mapped_column(ForeignKey("trip.id", ondelete="CASCADE"))
 
-    trip = relationship("Trip", back_populates="itineraries")
+    trips = relationship("Trip", back_populates="itineraries")
 
     def serialize(self):
         return {
@@ -109,9 +119,9 @@ class Expense(db.Model):
     trip_id: Mapped[int] = mapped_column(ForeignKey("trip.id", ondelete="CASCADE"))
     payer_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     
-    trip = relationship("Trip", back_populates="expenses")
-    payer = relationship("User", back_populates="expenses_paid")
-    debts = relationship("Debt", back_populates="expense")
+    trips = relationship("Trip", back_populates="expenses")
+    payers = relationship("User", back_populates="expenses_paid")
+    debts = relationship("Debt", back_populates="expenses")
 
     def serialize(self):
         return {"id": self.id, "amount": self.amount, "description": self.description}
@@ -124,9 +134,9 @@ class Debt(db.Model):
     creditor_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     expense_id: Mapped[int] = mapped_column(ForeignKey("expense.id"))
 
-    expense = relationship("Expense", back_populates="debts")
-    debtor = relationship("User", foreign_keys=[debtor_id], back_populates="debts_owed")
-    creditor = relationship("User", foreign_keys=[creditor_id], back_populates="debts_to_receive")
+    expenses = relationship("Expense", back_populates="debts")
+    debtors = relationship("User", foreign_keys=[debtor_id], back_populates="debts_owed")
+    creditors = relationship("User", foreign_keys=[creditor_id], back_populates="debts_to_receive")
 
 class Document(db.Model):
     __tablename__ = 'document'
@@ -135,7 +145,7 @@ class Document(db.Model):
     url: Mapped[str] = mapped_column(String(250), nullable=False)
     trip_id: Mapped[int] = mapped_column(ForeignKey("trip.id", ondelete="CASCADE"))
 
-    trip = relationship("Trip", back_populates="documents")
+    trips = relationship("Trip", back_populates="documents")
 
 class Chat(db.Model):
     __tablename__ = 'chat'
@@ -143,8 +153,8 @@ class Chat(db.Model):
     title: Mapped[str] = mapped_column(String(50), nullable=True) # <-- Título añadido
     trip_id: Mapped[int] = mapped_column(ForeignKey("trip.id", ondelete="CASCADE"))
 
-    trip = relationship("Trip", back_populates="chat")
-    messages = relationship("Message", back_populates="chat")
+    trips = relationship("Trip", back_populates="chats")
+    messages = relationship("Message", back_populates="chats")
 
 class Message(db.Model):
     __tablename__ = 'message'
@@ -154,5 +164,5 @@ class Message(db.Model):
     chat_id: Mapped[int] = mapped_column(ForeignKey("chat.id", ondelete="CASCADE"))
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
 
-    chat = relationship("Chat", back_populates="messages")
-    author = relationship("User", back_populates="messages")
+    chats = relationship("Chat", back_populates="messages")
+    authors = relationship("User", back_populates="messages")
