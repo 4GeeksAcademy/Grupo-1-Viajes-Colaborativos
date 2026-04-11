@@ -12,7 +12,7 @@
 .hero-section {
     padding: 120px 20px 60px 20px;
     text-align: center;
-    background: linear-gradient(rgba(224, 242, 254, 0.7), rgba(255, 255, 255, 0.9)), 
+    background: linear-gradient(rgba(224, 242, 254, 0.4), rgba(255, 255, 255, 0.4)), 
                 url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80');
     background-size: cover;
     background-position: center;
