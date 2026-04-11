@@ -1,0 +1,171 @@
+/* src/front/styles/LandingPage.css */
+
+/* Contenedor principal: Evita que el contenido se salga de la pantalla en móviles */
+.landing-container {
+    width: 100%;
+    overflow-x: hidden;
+    background-color: #ffffff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* 1. HERO SECTION (Fondo de nubes y botones) */
+.hero-section {
+    padding: 120px 20px 60px 20px;
+    text-align: center;
+    background: linear-gradient(rgba(224, 242, 254, 0.7), rgba(255, 255, 255, 0.9)), 
+                url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80');
+    background-size: cover;
+    background-position: center;
+    min-height: 85vh; /* Ocupa casi toda la pantalla del celular */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-section h1 {
+    font-size: 2.4rem; /* Tamaño ideal para celular */
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    color: #1e293b;
+}
+
+.hero-section p {
+    font-size: 1rem;
+    color: #475569;
+    margin-bottom: 32px;
+    padding: 0 10px;
+}
+
+.hero-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.btn-start {
+    background-color: #3b82f6;
+    color: white;
+    padding: 16px;
+    border-radius: 14px;
+    font-weight: 700;
+    border: none;
+    font-size: 1rem;
+    width: 100%;
+}
+
+.btn-demo {
+    background-color: #f1f5f9;
+    color: #1e293b;
+    padding: 16px;
+    border-radius: 14px;
+    font-weight: 700;
+    border: none;
+    font-size: 1rem;
+    width: 100%;
+}
+
+/* 2. STATS CARD (Los 3 números) */
+.stats-card {
+    background: white;
+    margin: -40px 20px 40px 20px; /* Sube y se monta sobre el Hero */
+    padding: 20px 10px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 10;
+}
+
+.stat-item {
+    text-align: center;
+    flex: 1;
+}
+
+.stat-number {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #3b82f6;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.divider {
+    width: 1px;
+    height: 40px;
+    background-color: #e2e8f0;
+}
+
+/* 3. FEATURES (Las tarjetas de Itinerario, Gastos, etc.) */
+.features-section {
+    padding: 20px 20px 40px 20px;
+}
+
+.features-section h2 {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 24px;
+    color: #1e293b;
+}
+
+.feature-card {
+    background: #f8fafc;
+    padding: 24px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+}
+
+.feature-card .icon {
+    font-size: 2rem;
+    margin-bottom: 12px;
+}
+
+.feature-card h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #1e293b;
+}
+
+.feature-card p {
+    color: #475569;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* 4. FOOTER / CALL TO ACTION FINAL */
+.cta-footer {
+    background-color: #1e293b;
+    color: white;
+    padding: 50px 20px;
+    text-align: center;
+}
+
+.cta-footer h3 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin-bottom: 24px;
+}
+
+.btn-final {
+    background-color: white;
+    color: #1e293b;
+    width: 100%;
+    padding: 16px;
+    border-radius: 14px;
+    font-weight: 700;
+    border: none;
+    font-size: 1rem;
+}

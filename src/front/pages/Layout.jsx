@@ -1,15 +1,21 @@
-import { Outlet } from "react-router-dom/dist"
-import ScrollToTop from "../components/ScrollToTop"
-import { Navbar } from "../components/Navbar"
-import { Footer } from "../components/Footer"
+import React from "react";
+import { Outlet } from "react-router-dom"; // Outlet es donde se cargan las páginas como LandingPage o Home
+import { Navbar } from "../components/Navbar"; // Verifica que la "N" coincida con tu archivo
+import { Footer } from "../components/Footer";
+import ScrollToTop from "../components/ScrollToTop";
 
-// Base component that maintains the navbar and footer throughout the page and the scroll to top functionality.
 export const Layout = () => {
     return (
-        <ScrollToTop>
-            <Navbar />
+        <div>
+            <ScrollToTop>
+                {/* El Navbar ahora aparecerá en todas tus rutas automáticamente */}
+                <Navbar />
+                
+                {/* Aquí es donde React Router inyecta la LandingPage o el Home */}
                 <Outlet />
-            <Footer />
-        </ScrollToTop>
-    )
-}
+                
+                <Footer />
+            </ScrollToTop>
+        </div>
+    );
+};
