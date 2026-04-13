@@ -1,0 +1,11 @@
+:root {
+    --brand-orange: #FF7A59;
+    --brand-navy: #1E3A5F;
+    --brand-teal: #2EC4B6;
+    --bg-light: #F8FAFC;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--brand-navy);
+}

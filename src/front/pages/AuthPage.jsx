@@ -1,9 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom"; // <-- Importamos useLocation
 import "../styles/AuthPage.css";
 
 export const AuthPage = () => {
-    // Estado para controlar qué pestaña está activa (true = Login, false = Registro)
+    const location = useLocation();
     const [isLogin, setIsLogin] = useState(true);
+
+    // Este efecto vigila de dónde viene el usuario para abrir la pestaña correcta
+    useEffect(() => {
+        if (location.state?.tab === "register") {
+            setIsLogin(false);
+        } else if (location.state?.tab === "login") {
+            setIsLogin(true);
+        }
+    }, [location]); // Se ejecuta cada vez que cambia la navegación
 
     return (
         <div className="auth-wrapper">
@@ -11,18 +21,20 @@ export const AuthPage = () => {
                 {/* PESTAÑAS (TABS) */}
                 <div className="auth-tabs">
                     <button 
+                        type="button" /* <--- AÑADE ESTO AQUÍ */
                         className={`tab-btn ${isLogin ? "active" : ""}`} 
                         onClick={() => setIsLogin(true)}
                     >
                         Inicia sesión
                     </button>
                     <button 
+                        type="button" /* <--- AÑADE ESTO AQUÍ */
                         className={`tab-btn ${!isLogin ? "active" : ""}`} 
                         onClick={() => setIsLogin(false)}
                     >
                         Regístrate
                     </button>
-                </div>
+</div>
 
                 {/* CONTENIDO DEL FORMULARIO */}
                 <div className="auth-body">
