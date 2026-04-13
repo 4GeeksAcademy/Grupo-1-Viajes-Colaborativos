@@ -3,10 +3,13 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Boolean, Enum, Date, Integer, ForeignKey, Float, Time, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import date, time, datetime
+from werkzeug.security import check_password_hash, generate_password_hash
 
 db = SQLAlchemy()
 
 # --- ENUMS ---
+
+
 class StateTypes(enum.Enum):
     FINISHED = "finished"
     ONGOING = "ongoing"
@@ -22,6 +25,7 @@ class CategoryTypes(enum.Enum):
 
 # --- MODELS ---
 
+
 class User(db.Model):
     __tablename__ = 'user'
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -30,13 +34,21 @@ class User(db.Model):
     email: Mapped[str] = mapped_column(
         String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
-    
+
     # Relationships
     travelers = relationship("Traveler", back_populates="users")
     expenses_paid = relationship("Expense", back_populates="payers")
     messages = relationship("Message", back_populates="authors")
-    debts_owed = relationship("Debt", foreign_keys="[Debt.debtor_id]", back_populates="debtors")
-    debts_to_receive = relationship("Debt", foreign_keys="[Debt.creditor_id]", back_populates="creditors")
+    debts_owed = relationship(
+        "Debt", foreign_keys="[Debt.debtor_id]", back_populates="debtors")
+    debts_to_receive = relationship(
+        "Debt", foreign_keys="[Debt.creditor_id]", back_populates="creditors")
+
+    def set_password(self, password: str) -> None:
+        self.password = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        return check_password_hash(self.password, password)
 
     def serialize(self):
         return {
@@ -45,6 +57,7 @@ class User(db.Model):
             "last_name": self.last_name,
             "email": self.email
         }
+
 
 class Trip(db.Model):
     __tablename__ = 'trip'
@@ -77,10 +90,13 @@ class Trip(db.Model):
             "notes": self.notes
         }
 
+
 class Traveler(db.Model):
     __tablename__ = 'traveler'
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"), primary_key=True)
-    trip_id: Mapped[int] = mapped_column(ForeignKey("trip.id", ondelete="CASCADE"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey(
+        "user.id", ondelete="CASCADE"), primary_key=True)
+    trip_id: Mapped[int] = mapped_column(ForeignKey(
+        "trip.id", ondelete="CASCADE"), primary_key=True)
 
     users = relationship("User", back_populates="travelers")
     trips = relationship("Trip", back_populates="travelers")
@@ -91,6 +107,7 @@ class Traveler(db.Model):
             "trip_id": self.trip_id
         }
 
+
 class Itinerary(db.Model):
     __tablename__ = 'itinerary'
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -99,7 +116,8 @@ class Itinerary(db.Model):
     hour: Mapped[time] = mapped_column(Time, nullable=False)
     starting_date: Mapped[date] = mapped_column(Date(), nullable=False)
     notes: Mapped[str] = mapped_column(String(150), nullable=False)
-    trip_id: Mapped[int] = mapped_column(ForeignKey("trip.id", ondelete="CASCADE"))
+    trip_id: Mapped[int] = mapped_column(
+        ForeignKey("trip.id", ondelete="CASCADE"))
 
     trips = relationship("Trip", back_populates="itineraries")
 
@@ -111,20 +129,23 @@ class Itinerary(db.Model):
             "trip_id": self.trip_id
         }
 
+
 class Expense(db.Model):
     __tablename__ = 'expense'
     id: Mapped[int] = mapped_column(primary_key=True)
     amount: Mapped[float] = mapped_column(Float, nullable=False)
     description: Mapped[str] = mapped_column(String(100), nullable=False)
-    trip_id: Mapped[int] = mapped_column(ForeignKey("trip.id", ondelete="CASCADE"))
+    trip_id: Mapped[int] = mapped_column(
+        ForeignKey("trip.id", ondelete="CASCADE"))
     payer_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    
+
     trips = relationship("Trip", back_populates="expenses")
     payers = relationship("User", back_populates="expenses_paid")
     debts = relationship("Debt", back_populates="expenses")
 
     def serialize(self):
         return {"id": self.id, "amount": self.amount, "description": self.description}
+
 
 class Debt(db.Model):
     __tablename__ = 'debt'
@@ -135,33 +156,43 @@ class Debt(db.Model):
     expense_id: Mapped[int] = mapped_column(ForeignKey("expense.id"))
 
     expenses = relationship("Expense", back_populates="debts")
-    debtors = relationship("User", foreign_keys=[debtor_id], back_populates="debts_owed")
-    creditors = relationship("User", foreign_keys=[creditor_id], back_populates="debts_to_receive")
+    debtors = relationship("User", foreign_keys=[
+                           debtor_id], back_populates="debts_owed")
+    creditors = relationship("User", foreign_keys=[
+                             creditor_id], back_populates="debts_to_receive")
+
 
 class Document(db.Model):
     __tablename__ = 'document'
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(50), nullable=False)
     url: Mapped[str] = mapped_column(String(250), nullable=False)
-    trip_id: Mapped[int] = mapped_column(ForeignKey("trip.id", ondelete="CASCADE"))
+    trip_id: Mapped[int] = mapped_column(
+        ForeignKey("trip.id", ondelete="CASCADE"))
 
     trips = relationship("Trip", back_populates="documents")
+
 
 class Chat(db.Model):
     __tablename__ = 'chat'
     id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str] = mapped_column(String(50), nullable=True) # <-- Título añadido
-    trip_id: Mapped[int] = mapped_column(ForeignKey("trip.id", ondelete="CASCADE"))
+    title: Mapped[str] = mapped_column(
+        String(50), nullable=True)  # <-- Título añadido
+    trip_id: Mapped[int] = mapped_column(
+        ForeignKey("trip.id", ondelete="CASCADE"))
 
     trips = relationship("Trip", back_populates="chats")
     messages = relationship("Message", back_populates="chats")
+
 
 class Message(db.Model):
     __tablename__ = 'message'
     id: Mapped[int] = mapped_column(primary_key=True)
     content: Mapped[str] = mapped_column(String(500), nullable=False)
-    date_time: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    chat_id: Mapped[int] = mapped_column(ForeignKey("chat.id", ondelete="CASCADE"))
+    date_time: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow)
+    chat_id: Mapped[int] = mapped_column(
+        ForeignKey("chat.id", ondelete="CASCADE"))
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
 
     chats = relationship("Chat", back_populates="messages")
