@@ -1,0 +1,213 @@
+/* Contenedor principal (Fondo azul muy clarito) */
+.auth-wrapper {
+    min-height: 100vh; /* Ocupa el 100% de la altura de la pantalla */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* Aplicamos el mismo fondo que en la Landing */
+    background: linear-gradient(rgba(224, 242, 254, 0.2), rgba(255, 255, 255, 0.2)), 
+                url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* Mantiene el fondo fijo al hacer scroll */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* La tarjeta blanca */
+.auth-card {
+    background: rgba(255, 255, 255, 0.95); /* Blanco ligeramente transparente */
+    backdrop-filter: blur(5px); /* Efecto de desenfoque detrás de la tarjeta */
+    width: 100%;
+    max-width: 450px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Pestañas */
+.auth-tabs {
+    display: flex;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 20px;
+    background: none;
+    border: none;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.tab-btn.active {
+    color: #0d6efd;
+    border-bottom: 3px solid #0d6efd;
+}
+
+/* Cuerpo de la tarjeta */
+.auth-body {
+    padding: 30px 40px;
+    text-align: center;
+}
+
+.auth-body h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 10px;
+}
+
+.auth-subtitle {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 30px;
+}
+
+/* Formularios e Inputs */
+/* Formularios e Inputs */
+.auth-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    width: 100%; /* Fuerza a que ocupe todo el ancho de la tarjeta */
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #495057;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.input-with-icon {
+    position: relative;
+    width: 100%; /* Esto evita que la caja se encoja */
+}
+
+.input-with-icon i {
+    position: absolute;
+    left: 15px;
+    top: 50%; /* Centra el icono verticalmente de forma exacta */
+    transform: translateY(-50%);
+    color: #adb5bd;
+}
+
+.input-with-icon input {
+    width: 100%;
+    box-sizing: border-box; /* CRUCIAL: Evita que el relleno interior rompa el ancho total */
+    padding: 12px 12px 12px 40px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.input-with-icon input:focus {
+    border-color: #0d6efd;
+}
+
+/* Enlace de contraseña y botón principal */
+.forgot-password {
+    text-align: right;
+    margin-top: -10px;
+    margin-bottom: 20px;
+}
+
+.forgot-password a {
+    font-size: 0.85rem;
+    color: #0d6efd;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.btn-submit {
+    width: 100%;
+    background-color: #2b6cb0;
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-submit:hover {
+    background-color: #1e4e8c;
+}
+
+/* Separador "O continúa con" */
+.auth-divider {
+    margin: 30px 0;
+    position: relative;
+    text-align: center;
+}
+
+.auth-divider::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 1px;
+    background-color: #eaeaea;
+    z-index: 1;
+}
+
+.auth-divider span {
+    background: white;
+    padding: 0 15px;
+    color: #adb5bd;
+    font-size: 0.8rem;
+    position: relative;
+    z-index: 2;
+}
+
+/* Botones sociales */
+.social-login {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-social {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+    background: white;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    font-weight: 600;
+    color: #495057;
+    cursor: pointer;
+}
+
+/* Texto de abajo (Fuera de la tarjeta) */
+.auth-footer-text {
+    margin-top: 25px;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.toggle-link {
+    color: #0d6efd;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}

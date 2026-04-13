@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import "../styles/Navbar.css"; // Asegúrate de que la ruta sea correcta
+import { Link, useNavigate } from "react-router-dom"; // 1. Añadimos useNavigate
+import "../styles/Navbar.css";
 
 export const Navbar = () => {
     const [menuOpen, setMenuOpen] = useState(false);
+    const navigate = useNavigate(); // 2. Lo inicializamos
 
     return (
         <nav className="navbar-expedition">
             <div className="nav-container">
-                {/* Lado izquierdo: Botón hamburguesa + Logo */}
                 <div className="nav-left">
                     <button className="menu-btn" onClick={() => setMenuOpen(!menuOpen)}>
                         <i className="fa-solid fa-bars-staggered"></i>
@@ -18,20 +18,24 @@ export const Navbar = () => {
                     </Link>
                 </div>
 
-                {/* Lado derecho: Círculo de perfil */}
                 <div className="nav-right">
-                    <div className="profile-icon">
+                    {/* 3. Le ponemos un onClick al ícono circular de perfil para que te lleve al login y añadimos cursor: pointer en css o style */}
+                    <div 
+                        className="profile-icon" 
+                        onClick={() => navigate("/login")}
+                        style={{ cursor: "pointer" }} 
+                    >
                         <i className="fa-solid fa-user"></i>
                     </div>
                 </div>
             </div>
 
-            {/* Menú desplegable que aparece al hacer click */}
+            {/* Menú desplegable */}
             {menuOpen && (
                 <div className="dropdown-menu-mobile">
+                    {/* Asegúrate de que las rutas sean correctas aquí también */}
                     <Link to="/home" onClick={() => setMenuOpen(false)}>Mis Viajes</Link>
-                    <Link to="/demo" onClick={() => setMenuOpen(false)}>Demo</Link>
-                    <Link to="/login" onClick={() => setMenuOpen(false)}>Cerrar Sesión</Link>
+                    <Link to="/login" onClick={() => setMenuOpen(false)}>Iniciar Sesión</Link>
                 </div>
             )}
         </nav>
