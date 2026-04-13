@@ -1,10 +1,14 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; // 1. Añadimos useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/Navbar.css";
+
+// 1. IMPORTAMOS TU LOGO AQUÍ
+// IMPORTANTE: Cambia "tu-logo.png" por el nombre exacto de tu archivo y asegúrate de que esté en esa carpeta.
+import logoExpedition from "../assets/img/EXPEDITION-LOGO.png";
 
 export const Navbar = () => {
     const [menuOpen, setMenuOpen] = useState(false);
-    const navigate = useNavigate(); // 2. Lo inicializamos
+    const navigate = useNavigate();
 
     return (
         <nav className="navbar-expedition">
@@ -13,17 +17,18 @@ export const Navbar = () => {
                     <button className="menu-btn" onClick={() => setMenuOpen(!menuOpen)}>
                         <i className="fa-solid fa-bars-staggered"></i>
                     </button>
+                    
+                    {/* 2. REEMPLAZAMOS EL TEXTO POR LA ETIQUETA <img> */}
                     <Link to="/" className="nav-logo">
-                        Expedition
+                        <img src={logoExpedition} alt="Expedition Logo" className="logo-img" />
                     </Link>
                 </div>
 
                 <div className="nav-right">
-                    {/* 3. Le ponemos un onClick al ícono circular de perfil para que te lleve al login y añadimos cursor: pointer en css o style */}
                     <div 
                         className="profile-icon" 
-                        onClick={() => navigate("/login")}
-                        style={{ cursor: "pointer" }} 
+                        onClick={() => navigate("/login", { state: { tab: "login", key: Date.now() } })}
+                        style={{ cursor: "pointer" }}
                     >
                         <i className="fa-solid fa-user"></i>
                     </div>
@@ -33,7 +38,6 @@ export const Navbar = () => {
             {/* Menú desplegable */}
             {menuOpen && (
                 <div className="dropdown-menu-mobile">
-                    {/* Asegúrate de que las rutas sean correctas aquí también */}
                     <Link to="/home" onClick={() => setMenuOpen(false)}>Mis Viajes</Link>
                     <Link to="/login" onClick={() => setMenuOpen(false)}>Iniciar Sesión</Link>
                 </div>

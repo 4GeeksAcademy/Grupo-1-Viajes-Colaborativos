@@ -1,130 +1,156 @@
-/* src/front/styles/LandingPage.css */
-
 /* Contenedor principal: Evita que el contenido se salga de la pantalla en móviles */
 .landing-container {
     width: 100%;
     overflow-x: hidden;
-    background-color: #ffffff;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg-light, #F8FAFC);
+    font-family: 'Poppins', sans-serif; /* Nueva tipografía principal */
 }
 
-/* 1. HERO SECTION (Fondo de nubes y botones) */
+/* =========================================
+   1. HERO SECTION (Mobile First)
+   ========================================= */
 .hero-section {
-    padding: 120px 20px 60px 20px;
-    text-align: center;
-    background: linear-gradient(rgba(224, 242, 254, 0.2), rgba(255, 255, 255, 0.2)), 
-                url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80');
+    /* Filtro turquesa semitransparente sobre la imagen */
+    background: linear-gradient(rgba(46, 196, 182, 0.8), rgba(46, 196, 182, 0.6)), 
+                url('../assets/img/fondo-landing.jpg'); /* <-- Ruta a tu imagen local */
     background-size: cover;
     background-position: center;
-    min-height: 85vh; /* Ocupa casi toda la pantalla del celular */
+    min-height: 100vh; /* Ocupa toda la pantalla en móvil */
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    padding: 100px 20px 40px 20px; /* Padding reducido para celular */
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.hero-content {
+    width: 100%;
 }
 
 .hero-section h1 {
-    font-size: 2.4rem; /* Tamaño ideal para celular */
+    font-size: 2.3rem; /* Tamaño adaptado a celular */
     font-weight: 800;
     line-height: 1.1;
     margin-bottom: 16px;
-    color: #1e293b;
+    color: white; 
+    word-wrap: break-word;
+}
+
+.text-highlight {
+    color: var(--brand-orange, #FF7A59); 
 }
 
 .hero-section p {
     font-size: 1rem;
-    color: #475569;
-    margin-bottom: 32px;
-    padding: 0 10px;
+    font-weight: 600;
+    color: var(--brand-navy, #1E3A5F); 
+    margin-bottom: 30px;
+    max-width: 100%;
+    padding: 0;
 }
 
 .hero-buttons {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Apilados en móvil */
     gap: 12px;
     width: 100%;
 }
 
-.btn-start {
-    background-color: #3b82f6;
-    color: white;
-    padding: 16px;
-    border-radius: 14px;
+.btn-start, .btn-demo {
+    width: 100%; /* Ocupan todo el ancho en móvil */
+    padding: 14px 20px;
+    border-radius: 30px; /* Bordes de píldora */
     font-weight: 700;
+    font-size: 1.05rem;
+    text-align: center;
     border: none;
-    font-size: 1rem;
-    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.btn-start {
+    background-color: var(--brand-navy, #1E3A5F); 
+    color: white;
+}
+
+.btn-start:hover {
+    background-color: #132742; 
 }
 
 .btn-demo {
-    background-color: #f1f5f9;
-    color: #1e293b;
-    padding: 16px;
-    border-radius: 14px;
-    font-weight: 700;
-    border: none;
-    font-size: 1rem;
-    width: 100%;
+    background-color: white; 
+    color: var(--brand-navy, #1E3A5F);
 }
 
-/* 2. STATS CARD (Los 3 números) */
-.stats-card {
-    background: white;
-    margin: -40px 20px 40px 20px; /* Sube y se monta sobre el Hero */
-    padding: 20px 10px;
-    border-radius: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+.btn-demo:hover {
+    background-color: #f1f5f9;
+}
+
+/* =========================================
+   2. STATS SECTION (Integrado en el Hero - Móvil)
+   ========================================= */
+.stats-wrapper {
+    margin-top: 40px;
+    width: 100%;
     position: relative;
     z-index: 10;
 }
 
+.stats-container {
+    display: flex;
+    justify-content: flex-start;
+    gap: 30px; /* Separación reducida para móvil */
+    margin-bottom: 15px;
+}
+
 .stat-item {
-    text-align: center;
-    flex: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 6px; 
 }
 
 .stat-number {
-    display: block;
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     font-weight: 800;
-    color: #3b82f6;
+    color: white; 
 }
 
 .stat-label {
-    font-size: 0.7rem;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+    color: var(--brand-navy, #1E3A5F); 
+    font-weight: 600;
 }
 
-.divider {
-    width: 1px;
-    height: 40px;
-    background-color: #e2e8f0;
+.hero-bottom-text {
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    font-style: italic;
 }
 
-/* 3. FEATURES (Las tarjetas de Itinerario, Gastos, etc.) */
+/* =========================================
+   3. FEATURES (Tarjetas)
+   ========================================= */
 .features-section {
-    padding: 20px 20px 40px 20px;
+    padding: 40px 20px;
 }
 
 .features-section h2 {
     text-align: center;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 800;
     margin-bottom: 24px;
-    color: #1e293b;
+    color: var(--brand-navy, #1E3A5F); 
 }
 
 .feature-card {
-    background: #f8fafc;
+    background: white;
     padding: 24px;
     border-radius: 16px;
     margin-bottom: 16px;
     border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .feature-card .icon {
@@ -136,7 +162,7 @@
     font-size: 1.2rem;
     font-weight: 700;
     margin-bottom: 8px;
-    color: #1e293b;
+    color: var(--brand-navy, #1E3A5F); 
 }
 
 .feature-card p {
@@ -145,27 +171,171 @@
     line-height: 1.5;
 }
 
-/* 4. FOOTER / CALL TO ACTION FINAL */
+/* =========================================
+   4. FOOTER / CALL TO ACTION
+   ========================================= */
 .cta-footer {
-    background-color: #1e293b;
+    background-color: var(--brand-navy, #1E3A5F); 
     color: white;
     padding: 50px 20px;
     text-align: center;
 }
 
 .cta-footer h3 {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     font-weight: 800;
     margin-bottom: 24px;
 }
 
 .btn-final {
-    background-color: white;
-    color: #1e293b;
+    background-color: var(--brand-orange, #FF7A59); 
+    color: white;
     width: 100%;
     padding: 16px;
     border-radius: 14px;
     font-weight: 700;
     border: none;
-    font-size: 1rem;
+    font-size: 1.05rem;
+    transition: background-color 0.3s ease;
+}
+
+.btn-final:hover {
+    background-color: #e56a4d;
+}
+
+/* =========================================
+   ADAPTACIÓN PARA ESCRITORIO (PC/Tablets)
+   ========================================= */
+@media (min-width: 768px) {
+    /* Hero en PC */
+    .hero-section {
+        padding: 140px 20px 20px 40px;
+        min-height: 85vh;
+    }
+    
+    .hero-section h1 {
+        font-size: 3.2rem;
+        max-width: 600px;
+    }
+    
+    .hero-section p {
+        font-size: 1.15rem;
+        max-width: 500px;
+    }
+    
+    /* Botones uno al lado del otro en PC */
+    .hero-buttons {
+        flex-direction: row;
+        max-width: 500px;
+    }
+    
+    .btn-start, .btn-demo {
+        width: auto;
+        padding: 12px 30px;
+    }
+
+    /* Stats con más separación en PC */
+    .stats-container {
+        gap: 50px;
+    }
+
+    .stat-number {
+        font-size: 1.8rem;
+    }
+
+    .hero-bottom-text {
+        font-size: 1.1rem;
+    }
+
+    /* Opcional: Si quieres que los features se pongan en columnas en PC */
+    .features-section {
+        padding: 60px 40px;
+    }
+    
+    .btn-final {
+        width: auto;
+        padding: 16px 40px;
+    }
+}
+
+
+/* =========================================
+   ADAPTACIÓN PARA ESCRITORIO (PC/Tablets)
+   ========================================= */
+@media (min-width: 768px) {
+    /* Hero en PC con Degradado Direccional */
+    .hero-section {
+        /* Fíjate en el "to right": oscuro a la izq, transparente a la der */
+        background: linear-gradient(to right, rgba(46, 196, 182, 0.95) 0%, rgba(46, 196, 182, 0.6) 50%, rgba(46, 196, 182, 0.1) 100%), 
+                    url('../assets/img/fondo-landing.jpg');
+        background-size: cover;
+        background-position: center;
+        min-height: 100vh;
+        padding: 160px 0 60px 0; /* Quitamos el padding lateral para controlarlo por dentro */
+        align-items: center; /* Centramos los contenedores internos */
+    }
+
+    /* CONTENEDORES ALINEADOS (La "línea invisible" con el Navbar) */
+    .hero-content, .stats-wrapper {
+        width: 100%;
+        max-width: 1200px; /* Exactamente el mismo ancho que tu Navbar */
+        margin: 0 auto;
+        padding: 0 20px; /* Exactamente el mismo padding que tu Navbar */
+    }
+
+    .stats-wrapper {
+        margin-top: 50px;
+    }
+    
+    /* Textos Imponentes */
+    .hero-section h1 {
+        font-size: 5rem; /* Letras gigantes */
+        font-weight: 800;
+        letter-spacing: -2px; /* Letras más juntitas */
+        line-height: 1.05;
+        max-width: 850px;
+    }
+    
+    .hero-section p {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-top: 20px;
+        margin-bottom: 40px;
+        max-width: 650px;
+    }
+    
+    .hero-buttons {
+        flex-direction: row;
+        max-width: 600px;
+        gap: 20px;
+    }
+    
+    .btn-start, .btn-demo {
+        width: auto;
+        padding: 14px 35px;
+        font-size: 1.15rem;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+    }
+
+    .stat-label {
+        font-size: 1.3rem;
+    }
+
+    .hero-bottom-text {
+        font-size: 1.2rem;
+        max-width: 500px;
+        margin-top: 15px;
+    }
+
+    .features-section {
+        padding: 60px 40px;
+    }
+    
+    .btn-final {
+        width: auto;
+        padding: 16px 40px;
+    }
 }

@@ -9,7 +9,6 @@ export const LandingPage = () => {
         <div className="landing-container">
             {/* Aquí llamamos a los componentes */}
             <Hero />
-            <Stats />
             <Features />
 
             {/* CALL TO ACTION FINAL (Este es pequeñito, lo podemos dejar aquí o separarlo luego) */}
@@ -19,4 +18,4 @@ export const LandingPage = () => {
             </section>
         </div>
     );
-};
+}; 

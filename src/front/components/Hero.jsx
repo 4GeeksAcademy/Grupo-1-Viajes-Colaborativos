@@ -1,26 +1,32 @@
 import React from "react";
-import { useNavigate } from "react-router-dom"; // 1. Importamos el hook de navegación
+import { useNavigate } from "react-router-dom";
+import { Stats } from "./Stats";
 
 export const Hero = () => {
-    const navigate = useNavigate(); // 2. Lo inicializamos
+    const navigate = useNavigate();
 
     return (
         <section className="hero-section">
             <div className="hero-content">
-                <h1>Expande tus horizontes con EXPEDITION</h1>
+                <h1>Viaja en grupo <br/><span className="text-highlight">sin complicaciones</span></h1>
+                
+                {/* Texto actualizado al diseño */}
                 <p>
-                    Planifica viajes sin complicaciones. Gestiona gastos, itinerarios y más.
+                    Organiza destinos, gastos y decisiones con tus amigos en un solo lugar.
                 </p>
+                
                 <div className="hero-buttons">
-                    {/* 3. Le añadimos el evento onClick a los botones */}
-                    <button className="btn-start" onClick={() => navigate("/login")}>
-                        Empieza gratis
+                    {/* Botones actualizados */}
+                    <button className="btn-start" onClick={() => navigate("/login", { state: { tab: "register" } })}>
+                        Comienza GRATIS
                     </button>
                     <button className="btn-demo" onClick={() => navigate("/demo")}>
-                        Ver demo
+                        Explorar cómo funciona
                     </button>
                 </div>
             </div>
+            
+            <Stats />
         </section>
     );
 };
