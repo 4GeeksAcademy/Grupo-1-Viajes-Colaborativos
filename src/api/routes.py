@@ -78,3 +78,24 @@ def sign_in():
 
     return build_auth_response(user, 200, "Sign in successful")
 
+@api.route("/sign-up", methods=["POST"])
+@api.route("/signup", methods=["POST"])
+@api.route("/register", methods=["POST"])
+def sign_up():
+    data = get_json_payload()
+    name, email, password = validate_credentials(data, require_name=True)
+
+    existing_user = User.query.filter_by(email=email).one_or_none()
+    if existing_user is not None:
+        raise APIException("Ya existe un usuario con registrado con este correo", status_code=409)
+
+    new_user = User(
+        email=email,
+        name=name
+    )
+    new_user.set_password(password)
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    return build_auth_response(new_user, 201, "Usuario creado correctamente")
