@@ -69,7 +69,7 @@ class Trip(db.Model):
     starting_date: Mapped[date] = mapped_column(Date(), nullable=False)
     ending_date: Mapped[date] = mapped_column(Date(), nullable=False)
     budget: Mapped[float] = mapped_column(Float, nullable=False)
-    notes: Mapped[str] = mapped_column(String(150), nullable=False)
+    notes: Mapped[str] = mapped_column(String(150), nullable=True)
 
     # Relationships
     travelers = relationship("Traveler", back_populates="trips")
@@ -89,6 +89,16 @@ class Trip(db.Model):
             "budget": self.budget,
             "notes": self.notes
         }
+    
+    def serialize_common_trips(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "state": self.state.value,
+            "starting_date": str(self.starting_date),
+            "ending_date": str(self.ending_date),
+        }
+
 
 
 class Traveler(db.Model):
@@ -105,6 +115,16 @@ class Traveler(db.Model):
         return {
             "user_id": self.user_id,
             "trip_id": self.trip_id
+        }
+    
+    def serialize_trip(self):
+        return {
+            "trip_id": self.trip_id
+        }
+    
+    def serialize_user(self):
+        return {
+            "user_id": self.user_id
         }
 
 

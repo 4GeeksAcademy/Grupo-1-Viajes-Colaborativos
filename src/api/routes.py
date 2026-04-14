@@ -8,7 +8,7 @@ from flask_jwt_extended import (
     jwt_required
 )
 
-from api.models import db, User
+from api.models import db, User, Trip, Traveler, Itinerary, Expense, Debt, Document, Chat, Message
 from api.utils import APIException
 
 
@@ -78,6 +78,7 @@ def sign_in():
 
     return build_auth_response(user, 200, "Sign in successful")
 
+
 @api.route("/sign-up", methods=["POST"])
 @api.route("/signup", methods=["POST"])
 @api.route("/register", methods=["POST"])
@@ -87,7 +88,8 @@ def sign_up():
 
     existing_user = User.query.filter_by(email=email).one_or_none()
     if existing_user is not None:
-        raise APIException("Ya existe un usuario con registrado con este correo", status_code=409)
+        raise APIException(
+            "Ya existe un usuario con registrado con este correo", status_code=409)
 
     new_user = User(
         email=email,
@@ -99,3 +101,18 @@ def sign_up():
     db.session.commit()
 
     return build_auth_response(new_user, 201, "Usuario creado correctamente")
+
+
+
+@api.route("/travels", methods=["GET"])
+@api.route("/trips", methods=["GET"])
+@jwt_required
+def travels():
+    user = get_current_user()
+    trips_by_traveler = Traveler.query.filter_by(user_id=user.id).all()
+    trip_ids = [t.trip_id for t in trips_by_traveler]
+    trips = Trip.query.filter(Trip.id.in_(trip_ids))
+
+    return jsonify({
+        "viajes": [trip.serialize_common_trips() for trip in trips]
+    }), 200
