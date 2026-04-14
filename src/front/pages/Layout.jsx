@@ -8,12 +8,8 @@ export const Layout = () => {
     return (
         <div>
             <ScrollToTop>
-                {/* El Navbar ahora aparecerá en todas tus rutas automáticamente */}
                 <Navbar />
-                
-                {/* Aquí es donde React Router inyecta la LandingPage o el Home */}
-                <Outlet />
-                
+                <Outlet /> {/* AQUÍ se inyectan las páginas */}
                 <Footer />
             </ScrollToTop>
         </div>
