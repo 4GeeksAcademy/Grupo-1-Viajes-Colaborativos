@@ -1,4 +1,4 @@
-/* Contenedor principal */
+/* Contenedor principal corregido */
 .auth-wrapper {
     min-height: 100vh;
     display: flex;
@@ -7,11 +7,12 @@
     justify-content: center;
     /* Fondo idéntico al de la Landing Page */
     background: linear-gradient(rgba(46, 196, 182, 0.8), rgba(46, 196, 182, 0.6)), 
-                url('../assets/img/fondo-login.jpg'); /* <-- Ruta a tu imagen local */
+                url('../assets/img/fondo-login.jpg'); 
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    padding: 20px;
+    /* Aumentamos el padding superior a 100px para librar el Navbar (que mide 90px) */
+    padding: 100px 20px 40px 20px; 
     box-sizing: border-box;
     font-family: 'Poppins', sans-serif;
 }
@@ -225,4 +226,35 @@
     font-weight: 700;
     cursor: pointer;
     text-decoration: none;
+}
+
+/* =========================================
+   ADAPTACIÓN PARA MÓVILES (Responsive)
+   ========================================= */
+@media (max-width: 500px) {
+    /* Reducimos el relleno interno de la tarjeta para que respire */
+    .auth-body {
+        padding: 30px 20px; 
+    }
+
+    /* Hacemos las pestañas un pelín más pequeñas */
+    .tab-btn {
+        padding: 15px 10px;
+        font-size: 0.95rem;
+    }
+
+    /* Aseguramos que el texto del input NO se monte encima del icono */
+    .input-with-icon input {
+        padding-left: 45px !important; 
+    }
+    
+    /* El botón y los textos sociales un poco más compactos */
+    .btn-submit {
+        padding: 12px;
+        font-size: 1rem;
+    }
+    
+    .btn-social {
+        font-size: 0.9rem;
+    }
 }
