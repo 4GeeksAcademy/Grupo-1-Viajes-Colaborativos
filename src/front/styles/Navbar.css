@@ -1,6 +1,6 @@
 .navbar-expedition {
     width: 100%;
-    height: 90px; /* Antes era 70px, le damos más espacio para que el logo respire */
+    height: 90px; 
     background-color: transparent; 
     position: absolute;
     top: 0;
@@ -18,8 +18,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative; /* Importante para el centrado */
 }
 
+/* =========================================
+   IZQUIERDA Y LOGO RESTAURADO A TU MEDIDA
+   ========================================= */
 .nav-left {
     display: flex;
     align-items: center;
@@ -27,26 +31,77 @@
 }
 
 .logo-img {
-    height: 200px; /* ¡Casi el doble de grande! Súbelo a 85px si aún lo quieres mayor */
+    height: 200px; /* <--- TU MEDIDA ORIGINAL RESTAURADA */
     width: auto;
-    max-width: 250px; /* Evita que crezca descontroladamente en pantallas raras */
+    max-width: 250px; 
     display: block;
     object-fit: contain;
 }
+
 .nav-logo {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--brand-navy, #1E3A5F); /* Azul Marino */
     text-decoration: none;
-    letter-spacing: -1px;
 }
 
 .menu-btn {
     background: none;
     border: none;
     font-size: 1.3rem;
-    color: var(--brand-navy, #1E3A5F); /* Azul Marino */
+    color: var(--brand-navy, #1E3A5F); 
     cursor: pointer;
+}
+
+/* =========================================
+   CENTRO (Enlaces)
+   ========================================= */
+.nav-center {
+    display: flex;
+    gap: 30px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%); /* Centrado matemático perfecto */
+}
+
+.nav-link {
+    text-decoration: none;
+    /* APLICAMOS EL AZUL DEL LOGO Y NEGRITA */
+    color: var(--brand-navy, #1E3A5F); 
+    font-size: 1rem;
+    font-weight: 700; /* NEGRITA */
+    padding-bottom: 5px;
+    border-bottom: 2px solid transparent; 
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--brand-orange, #FF7A59); /* Cambia a naranja al pasar el mouse */
+}
+
+.nav-link.active {
+    color: var(--brand-navy, #1E3A5F);
+    font-weight: 800; /* Extra negrita si estás en esa página */
+    border-bottom: 2px solid var(--brand-navy, #1E3A5F); 
+}
+
+/* =========================================
+   DERECHA (Logout y Perfil)
+   ========================================= */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.logout-text {
+    font-size: 0.95rem;
+    /* APLICAMOS EL AZUL DEL LOGO Y NEGRITA */
+    color: var(--brand-navy, #1E3A5F);
+    font-weight: 700; /* NEGRITA */
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.logout-text:hover {
+    color: var(--brand-orange, #FF7A59); /* Cambia a naranja al pasar el mouse */
 }
 
 .profile-icon {
@@ -57,8 +112,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--brand-navy, #1E3A5F); /* Azul Marino */
-    border: 2px solid var(--brand-teal, #2EC4B6); /* Borde Turquesa */
+    color: var(--brand-navy, #1E3A5F); 
+    border: 2px solid var(--brand-teal, #2EC4B6); 
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     transition: all 0.3s;
 }
@@ -68,7 +123,9 @@
     color: white;
 }
 
-/* Estilo del menú que se despliega */
+/* =========================================
+   MENÚ DESPLEGABLE MÓVIL
+   ========================================= */
 .dropdown-menu-mobile {
     position: absolute;
     top: 75px;
@@ -85,13 +142,60 @@
 
 .dropdown-menu-mobile a {
     text-decoration: none;
-    color: var(--brand-navy, #1E3A5F); /* Azul Marino */
+    color: var(--brand-navy, #1E3A5F); 
     font-weight: 600;
     padding: 10px;
-    border-bottom: 1px solid #f1f5f9;
-    transition: color 0.3s;
+    border-radius: 8px;
+    transition: background-color 0.3s;
 }
 
 .dropdown-menu-mobile a:hover {
-    color: var(--brand-orange, #FF7A59); /* Naranja al hacer hover */
+    background-color: #f1f5f9;
+    color: var(--brand-orange, #FF7A59); 
+}
+
+/* =========================================
+   ADAPTACIÓN RESPONSIVA
+   ========================================= */
+.desktop-only {
+    display: none; 
+}
+
+@media (min-width: 900px) {
+    .desktop-only {
+        display: flex; 
+    }
+
+    .menu-btn {
+        display: none; 
+    }
+}
+
+/* =========================================
+   MODO LOGIN (Aseguramos Azul y Negrita también aquí)
+   ========================================= */
+.navbar-login-mode .nav-link,
+.navbar-login-mode .logout-text {
+    /* APLICAMOS EL AZUL DEL LOGO Y NEGRITA PARA EL LOGIN */
+    color: var(--brand-navy, #1E3A5F); 
+    font-weight: 700; /* NEGRITA */
+    text-shadow: none; /* Quitamos la sombra para que el azul se vea súper nítido */
+    opacity: 1;
+}
+
+.navbar-login-mode .nav-link:hover,
+.navbar-login-mode .logout-text:hover {
+    color: var(--brand-orange, #FF7A59); /* Naranja al pasar el ratón */
+}
+
+.navbar-login-mode .nav-link.active {
+    color: var(--brand-navy, #1E3A5F);
+    font-weight: 800; /* Extra negrita */
+    border-bottom: 2px solid var(--brand-navy, #1E3A5F); /* Línea azul debajo */
+}
+
+/* El botón de menú móvil lo mantenemos blanco en el login para que resalte sobre el fondo */
+.navbar-login-mode .menu-btn {
+    color: #ffffff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
