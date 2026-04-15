@@ -132,3 +132,10 @@ def travels():
     return jsonify({
         "viajes": [trip.serialize_common_trips() for trip in trips]
     }), 200
+
+@api.route("/profile", methods=["GET"])
+@api.route("/me", methods=["GET"])
+@jwt_required()
+def me():
+    user = get_current_user()
+    return jsonify({"user": user.serialize()}), 200
