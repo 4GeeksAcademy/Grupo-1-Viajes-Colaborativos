@@ -8,7 +8,9 @@ from flask_jwt_extended import (
     jwt_required
 )
 
-from api.models import db, User, Trip, Traveler, Itinerary, Expense, Debt, Document, Chat, Message
+import enum
+
+from api.models import db, User, Trip, Traveler, Itinerary, Expense, Debt, Document, Chat, Message, StateTypes, CategoryTypes
 from api.utils import APIException
 
 
@@ -108,10 +110,24 @@ def sign_up():
 @api.route("/trips", methods=["GET"])
 @jwt_required
 def travels():
+    data = get_json_payload()
+    state_param = data.get("state")
+
     user = get_current_user()
     trips_by_traveler = Traveler.query.filter_by(user_id=user.id).all()
     trip_ids = [t.trip_id for t in trips_by_traveler]
-    trips = Trip.query.filter(Trip.id.in_(trip_ids))
+
+    filters = [Trip.id.in_(trip_ids)]
+
+    if state_param:
+        try:
+            state_enum = StateTypes(state_param)
+            filters.append(Trip.state == state_enum)
+        except ValueError:
+            raise ValueError(f"Invalid state: {state_param}", status_code=400)
+
+
+    trips = Trip.query.filter(*filters)
 
     return jsonify({
         "viajes": [trip.serialize_common_trips() for trip in trips]
