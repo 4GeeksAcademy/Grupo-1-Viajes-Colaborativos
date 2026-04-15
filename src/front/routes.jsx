@@ -13,6 +13,7 @@ import { LandingPage } from "./pages/LandingPage";
 import { AuthPage } from "./pages/AuthPage"; // <-- Importamos la nueva página de Login/Registro
 import { MyTrips } from "./pages/MyTrips";
 import { NewTrip } from "./pages/NewTrip";
+import { TripDetails } from "./pages/TripDetails";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -36,6 +37,8 @@ export const router = createBrowserRouter(
 
             {/* Ruta para el sistema de Autenticación (newtrip) */}
             <Route path="/new-trip" element={<NewTrip />} />
+
+            <Route path="/trip/:id" element={<TripDetails />} />
 
             {/* Cambiamos el path de Home a "/home" para que no choque con la Landing Page */}
             <Route path="/home" element={<Home />} />
