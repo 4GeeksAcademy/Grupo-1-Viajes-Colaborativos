@@ -6,8 +6,13 @@ export const TripDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    // Pestañas internas (Lo pongo por defecto en gastos para que pruebes más rápido)
-    const [activeTab, setActiveTab] = useState("gastos");
+    // 1. ESTADOS DE NAVEGACIÓN
+    const [activeTab, setActiveTab] = useState("itinerario");
+
+    // 2. ESTADOS PARA ITINERARIO (GDV-35)
+    const [selectedActivity, setSelectedActivity] = useState(null); 
+    const [isEditingActivity, setIsEditingActivity] = useState(false); 
+    const [tempActivityData, setTempActivityData] = useState(null);   
 
     const trip = {
         id: id,
@@ -18,18 +23,40 @@ export const TripDetails = () => {
         budget: { total: 800, spent: 345 },
         companions: ["Ana", "Carlos"],
         itinerary: [
-            { day: 1, date: "12 Sept", title: "Llegada y Check-in", desc: "Vuelo de mañana. Tarde libre por Alfama." },
-            { day: 2, date: "13 Sept", title: "Ruta de los Miradores", desc: "Tour fotográfico y cena con Fado." },
-            { day: 3, date: "14 Sept", title: "Excursión a Sintra", desc: "Tren temprano para ver el Palacio da Pena." }
+            { 
+                day: 1, date: "12 Sept", time: "10:30", title: "Llegada y Check-in", 
+                location: "Aeropuerto de Lisboa / Hotel Altis", desc: "Vuelo de mañana. Tarde libre por Alfama.",
+                notes: "Recordar pedir el código de la puerta por WhatsApp al dueño del AirBnb."
+            },
+            { 
+                day: 2, date: "13 Sept", time: "11:00", title: "Ruta de los Miradores", 
+                location: "Miradouro de Santa Luzia", desc: "Tour fotográfico y cena con Fado.",
+                notes: "Llevar calzado cómodo, hay muchas cuestas empedradas."
+            }
         ]
     };
 
+    // === FUNCIONES ITINERARIO ===
+    const openActivityModal = (activity) => {
+        setSelectedActivity(activity);
+        setTempActivityData({ ...activity });
+        setIsEditingActivity(false);
+    };
+
+    const handleActivityChange = (e) => {
+        setTempActivityData({ ...tempActivityData, [e.target.name]: e.target.value });
+    };
+
+    const saveActivityChanges = () => {
+        setSelectedActivity(tempActivityData); 
+        setIsEditingActivity(false);
+        alert("Actividad actualizada");
+    };
+
     // =========================================
-    // NUEVO: LÓGICA DEL MODAL DE GASTOS (Estilo Splitwise)
+    // 3. LÓGICA DE GASTOS
     // =========================================
     const [showExpenseModal, setShowExpenseModal] = useState(false);
-    
-    // Lista completa de personas en el viaje (Tú + los compañeros)
     const allParticipants = ["Yo", ...trip.companions];
 
     const [expenseData, setExpenseData] = useState({
@@ -37,47 +64,30 @@ export const TripDetails = () => {
         amount: "",
         category: "Comida",
         paidBy: "Yo",
-        splitMethod: "equally", // Puede ser 'equally' (todos) o 'custom' (algunos)
-        splitWith: allParticipants // Por defecto, todos están seleccionados
+        splitMethod: "equally",
+        splitWith: allParticipants
     });
 
-    // Maneja los inputs de texto normales
     const handleExpenseChange = (e) => {
         setExpenseData({ ...expenseData, [e.target.name]: e.target.value });
     };
 
-    // Maneja los checkboxes de la división personalizada
     const handleCheckboxChange = (participant) => {
         setExpenseData((prev) => {
             const isSelected = prev.splitWith.includes(participant);
-            // Si ya estaba, lo quitamos. Si no estaba, lo añadimos.
             const newSplitWith = isSelected 
                 ? prev.splitWith.filter(p => p !== participant)
                 : [...prev.splitWith, participant];
-            
             return { ...prev, splitWith: newSplitWith };
         });
     };
 
-    // Guarda el gasto y cierra el modal
     const handleExpenseSubmit = (e) => {
         e.preventDefault();
-        
-        // Pequeña validación
-        if (expenseData.splitMethod === "custom" && expenseData.splitWith.length === 0) {
-            alert("Debes seleccionar al menos a una persona para dividir el gasto.");
-            return;
-        }
-
-        console.log("Gasto registrado:", expenseData);
-        alert(`¡Gasto de ${expenseData.amount}€ guardado con éxito!`);
-        
+        console.log("Gasto guardado:", expenseData);
+        alert(`¡Gasto de ${expenseData.amount}€ guardado!`);
         setShowExpenseModal(false);
-        // Reseteamos el formulario
-        setExpenseData({ 
-            description: "", amount: "", category: "Comida", 
-            paidBy: "Yo", splitMethod: "equally", splitWith: allParticipants 
-        });
+        setExpenseData({ description: "", amount: "", category: "Comida", paidBy: "Yo", splitMethod: "equally", splitWith: allParticipants });
     };
 
     return (
@@ -95,7 +105,6 @@ export const TripDetails = () => {
             </div>
 
             <div className="trip-content-container">
-                
                 <div className="main-column">
                     <div className="content-tabs">
                         <button className={activeTab === "itinerario" ? "active" : ""} onClick={() => setActiveTab("itinerario")}>Itinerario</button>
@@ -108,10 +117,11 @@ export const TripDetails = () => {
                             <h2>Plan de Viaje</h2>
                             <div className="timeline">
                                 {trip.itinerary.map((item, index) => (
-                                    <div key={index} className="timeline-item">
+                                    <div key={index} className="timeline-item clickable" onClick={() => openActivityModal(item)}>
                                         <div className="timeline-dot"></div>
                                         <div className="timeline-content">
                                             <span className="day-badge">Día {item.day} - {item.date}</span>
+                                            <span className="time-tag">{item.time}</span>
                                             <h3>{item.title}</h3>
                                             <p>{item.desc}</p>
                                         </div>
@@ -126,19 +136,7 @@ export const TripDetails = () => {
                         <div className="empty-state">
                             <i className="fa-solid fa-wallet"></i>
                             <h3>Aún no hay gastos registrados</h3>
-                            <p>Añade tus primeros tickets para llevar el control.</p>
-                            {/* NUEVO: Botón que abre el modal */}
-                            <button className="btn-action" onClick={() => setShowExpenseModal(true)}>
-                                Añadir Gasto
-                            </button>
-                        </div>
-                    )}
-
-                    {activeTab === "documentos" && (
-                        <div className="empty-state">
-                            <i className="fa-solid fa-file-pdf"></i>
-                            <h3>Carpeta vacía</h3>
-                            <p>Sube tus billetes de avión y reservas de hotel aquí.</p>
+                            <button className="btn-action" onClick={() => setShowExpenseModal(true)}>Añadir Gasto</button>
                         </div>
                     )}
                 </div>
@@ -158,84 +156,99 @@ export const TripDetails = () => {
                     <div className="summary-card friends-card">
                         <h3><i className="fa-solid fa-users"></i> Viajeros</h3>
                         <ul className="friends-list">
-                            <li><div className="avatar">Yo</div> Tú (Organizador)</li>
-                            {trip.companions.map((friend, i) => (
-                                <li key={i}><div className="avatar friend-avatar">{friend.charAt(0)}</div> {friend}</li>
-                            ))}
+                            <li><div className="avatar">Yo</div> Tú</li>
+                            {trip.companions.map((f, i) => <li key={i}><div className="avatar friend-avatar">{f.charAt(0)}</div> {f}</li>)}
                         </ul>
-                        <button className="btn-invite"><i className="fa-solid fa-user-plus"></i> Invitar amigo</button>
                     </div>
                 </div>
-
             </div>
 
-            {/* =========================================
-                NUEVO: MODAL DE GASTOS 
-                ========================================= */}
+            {/* MODAL DETALLE/EDICIÓN ITINERARIO */}
+            {selectedActivity && (
+                <div className="modal-overlay" onClick={() => setSelectedActivity(null)}>
+                    <div className="modal-content activity-detail-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="activity-modal-header">
+                            <span className="day-badge">Día {tempActivityData.day}</span>
+                            <button className="btn-close-modal" onClick={() => setSelectedActivity(null)}>&times;</button>
+                        </div>
+                        {isEditingActivity ? (
+                            <div className="activity-edit-form">
+                                <div className="input-group full-width"><label>Título</label><input type="text" name="title" value={tempActivityData.title} onChange={handleActivityChange} /></div>
+                                <div className="expense-row">
+                                    <div className="input-group"><label>Hora</label><input type="time" name="time" value={tempActivityData.time} onChange={handleActivityChange} /></div>
+                                    <div className="input-group"><label>Ubicación</label><input type="text" name="location" value={tempActivityData.location} onChange={handleActivityChange} /></div>
+                                </div>
+                                <div className="input-group full-width"><label>Descripción</label><textarea name="desc" rows="3" value={tempActivityData.desc} onChange={handleActivityChange}></textarea></div>
+                                <div className="modal-actions-itinerary">
+                                    <button className="btn-modal-cancel" onClick={() => setIsEditingActivity(false)}>Cancelar</button>
+                                    <button className="btn-modal-confirm" onClick={saveActivityChanges}>Guardar</button>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="activity-main-info">
+                                    <h2>{selectedActivity.title}</h2>
+                                    <div className="info-row"><i className="fa-regular fa-clock"></i> {selectedActivity.time}</div>
+                                    <div className="info-row"><i className="fa-solid fa-location-dot"></i> {selectedActivity.location}</div>
+                                </div>
+                                <div className="activity-description"><h4>Descripción</h4><p>{selectedActivity.desc}</p></div>
+                                <div className="modal-actions-itinerary">
+                                    <button className="btn-edit-activity" onClick={() => setIsEditingActivity(true)}>Editar</button>
+                                    <button className="btn-modal-confirm" onClick={() => setSelectedActivity(null)}>Cerrar</button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL GASTOS ACTUALIZADO PARA CHECKBOX CUSTOM */}
             {showExpenseModal && (
                 <div className="modal-overlay">
                     <div className="modal-content">
                         <h3>Añadir Nuevo Gasto</h3>
-                        <p>Registra un ticket y decide cómo dividirlo.</p>
-                        
                         <form onSubmit={handleExpenseSubmit} className="expense-form">
-                            
-                            {/* Primera fila: Qué y Cuánto */}
                             <div className="input-group full-width">
                                 <label>Descripción</label>
-                                <input type="text" name="description" value={expenseData.description} onChange={handleExpenseChange} placeholder="Ej. Cena, Entradas museo..." required />
+                                <input type="text" name="description" value={expenseData.description} onChange={handleExpenseChange} required />
                             </div>
-
                             <div className="expense-row">
-                                <div className="input-group">
-                                    <label>Importe (€)</label>
-                                    <input type="number" name="amount" value={expenseData.amount} onChange={handleExpenseChange} placeholder="0.00" min="0.01" step="0.01" required />
-                                </div>
+                                <div className="input-group"><label>Importe (€)</label><input type="number" name="amount" value={expenseData.amount} onChange={handleExpenseChange} required /></div>
                                 <div className="input-group">
                                     <label>Categoría</label>
                                     <select name="category" value={expenseData.category} onChange={handleExpenseChange}>
-                                        <option value="Comida">Comida y Bebida</option>
-                                        <option value="Transporte">Transporte</option>
-                                        <option value="Alojamiento">Alojamiento</option>
-                                        <option value="Actividades">Actividades</option>
-                                        <option value="Otros">Otros</option>
+                                        <option value="Comida">Comida</option><option value="Transporte">Transporte</option><option value="Otros">Otros</option>
                                     </select>
                                 </div>
                             </div>
-
-                            {/* Segunda fila: Lógica de Splitwise */}
-                            <div className="expense-row split-logic-row">
+                            <div className="expense-row">
                                 <div className="input-group">
                                     <label>¿Quién pagó?</label>
                                     <select name="paidBy" value={expenseData.paidBy} onChange={handleExpenseChange}>
-                                        {allParticipants.map((p, i) => (
-                                            <option key={i} value={p}>{p}</option>
-                                        ))}
+                                        {allParticipants.map((p, i) => <option key={i} value={p}>{p}</option>)}
                                     </select>
                                 </div>
                                 <div className="input-group">
                                     <label>¿Cómo se divide?</label>
                                     <select name="splitMethod" value={expenseData.splitMethod} onChange={handleExpenseChange}>
-                                        <option value="equally">Partes iguales (Todos)</option>
-                                        <option value="custom">Personalizado...</option>
+                                        <option value="equally">Partes iguales</option><option value="custom">Personalizado</option>
                                     </select>
                                 </div>
                             </div>
-
-                            {/* Si elige "Personalizado", mostramos los checkboxes */}
+                            
+                            {/* AQUÍ ESTÁ EL CAMBIO PARA EL CHECKBOX ELEGANTE */}
                             {expenseData.splitMethod === "custom" && (
                                 <div className="custom-split-container">
-                                    <label className="split-label-title">Selecciona quién participa en este gasto:</label>
                                     <div className="checkbox-grid">
-                                        {allParticipants.map((participant, index) => (
-                                            <label key={index} className="checkbox-label">
+                                        {allParticipants.map((p, i) => (
+                                            <label key={i} className="checkbox-label">
                                                 <input 
                                                     type="checkbox" 
-                                                    checked={expenseData.splitWith.includes(participant)}
-                                                    onChange={() => handleCheckboxChange(participant)}
+                                                    checked={expenseData.splitWith.includes(p)} 
+                                                    onChange={() => handleCheckboxChange(p)} 
                                                 />
-                                                <span className="custom-checkbox"></span>
-                                                {participant}
+                                                <div className="custom-checkbox"></div>
+                                                {p}
                                             </label>
                                         ))}
                                     </div>
@@ -250,7 +263,6 @@ export const TripDetails = () => {
                     </div>
                 </div>
             )}
-
         </div>
     );
 };

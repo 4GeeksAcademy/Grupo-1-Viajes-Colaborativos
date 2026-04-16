@@ -1,12 +1,21 @@
 /* =========================================
-   1. CONTENEDOR GENERAL Y CABECERA (HERO)
-   ========================================= */
+    1. VARIABLES Y RESET (Respetando tus colores)
+    ========================================= */
+:root {
+    --brand-navy: #1E3A5F;
+    --brand-teal: #2EC4B6;
+    --brand-orange: #FF7A59;
+}
+
 .trip-details-wrapper {
     min-height: 100vh;
     font-family: 'Poppins', sans-serif;
-    background-color: #f8fafc; /* Fondo claro para que resalte la cabecera */
+    background-color: #f8fafc;
 }
 
+/* =========================================
+    2. CABECERA (HERO SECTION)
+    ========================================= */
 .trip-hero {
     height: 400px;
     background-size: cover;
@@ -45,7 +54,7 @@
 }
 
 .hero-badge {
-    background: var(--brand-teal, #2EC4B6);
+    background: var(--brand-teal);
     color: white;
     padding: 5px 12px;
     border-radius: 20px;
@@ -69,22 +78,22 @@
 }
 
 /* =========================================
-   2. ESTRUCTURA DE DOS COLUMNAS
-   ========================================= */
+    3. ESTRUCTURA DE DOS COLUMNAS (LAYOUT)
+    ========================================= */
 .trip-content-container {
     max-width: 1200px;
-    margin: -30px auto 50px auto; /* El -30px hace que se monte un poco sobre la foto */
+    margin: -30px auto 50px auto; 
     padding: 0 20px;
     display: grid;
-    grid-template-columns: 2fr 1fr; /* Columna izq el doble de ancha que la derecha */
+    grid-template-columns: 2fr 1fr; 
     gap: 30px;
     position: relative;
     z-index: 10;
 }
 
 /* =========================================
-   3. COLUMNA IZQUIERDA (Pestañas e Itinerario)
-   ========================================= */
+    4. COLUMNA IZQUIERDA (Pestañas e Itinerario)
+    ========================================= */
 .main-column {
     background: white;
     border-radius: 16px;
@@ -111,7 +120,7 @@
 }
 
 .content-tabs button.active {
-    color: var(--brand-navy, #1E3A5F);
+    color: var(--brand-navy);
 }
 
 .content-tabs button.active::after {
@@ -121,7 +130,7 @@
     left: 0;
     width: 100%;
     height: 3px;
-    background: var(--brand-orange, #FF7A59);
+    background: var(--brand-orange);
     border-radius: 3px 3px 0 0;
 }
 
@@ -139,26 +148,49 @@
     position: relative;
 }
 
+.timeline-item.clickable {
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.timeline-item.clickable:hover {
+    background: #f8fafc;
+    transform: translateX(5px);
+}
+
 .timeline-dot {
     width: 14px;
     height: 14px;
-    background: var(--brand-teal, #2EC4B6);
+    background: var(--brand-teal);
     border-radius: 50%;
     position: absolute;
     left: -28px;
-    top: 5px;
+    top: 20px;
     box-shadow: 0 0 0 4px white;
 }
 
 .day-badge {
     font-size: 0.8rem;
     font-weight: 700;
-    color: var(--brand-orange, #FF7A59);
+    color: var(--brand-orange);
     text-transform: uppercase;
 }
 
+.time-tag {
+    display: inline-block;
+    background: #e2e8f0;
+    color: #475569;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-left: 10px;
+}
+
 .timeline-content h3 {
-    color: var(--brand-navy, #1E3A5F);
+    color: var(--brand-navy);
     margin: 5px 0;
     font-size: 1.2rem;
 }
@@ -169,27 +201,9 @@
     margin: 0;
 }
 
-/* Estados Vacíos (Documentos y Gastos sin datos) */
-.empty-state {
-    text-align: center;
-    padding: 50px 20px;
-    color: #94a3b8;
-}
-
-.empty-state i {
-    font-size: 3rem;
-    margin-bottom: 15px;
-    color: #cbd5e1;
-}
-
-.empty-state h3 {
-    color: var(--brand-navy, #1E3A5F);
-    margin-bottom: 5px;
-}
-
 /* =========================================
-   4. COLUMNA DERECHA (Widgets Resumen)
-   ========================================= */
+    5. COLUMNA DERECHA (WIDGETS Y CARDS)
+    ========================================= */
 .side-column {
     display: flex;
     flex-direction: column;
@@ -204,7 +218,7 @@
 }
 
 .summary-card h3 {
-    color: var(--brand-navy, #1E3A5F);
+    color: var(--brand-navy);
     margin: 0 0 20px 0;
     font-size: 1.1rem;
     display: flex;
@@ -213,10 +227,10 @@
 }
 
 .summary-card h3 i {
-    color: var(--brand-teal, #2EC4B6);
+    color: var(--brand-teal);
 }
 
-/* Presupuesto */
+/* Presupuesto Widget */
 .budget-numbers {
     display: flex;
     justify-content: space-between;
@@ -230,7 +244,7 @@
 
 .budget-numbers h4 {
     font-size: 1.5rem;
-    color: var(--brand-navy, #1E3A5F);
+    color: var(--brand-navy);
     margin: 0;
 }
 
@@ -244,10 +258,11 @@
 
 .progress-bar-fill {
     height: 100%;
-    background: var(--brand-orange, #FF7A59);
+    background: var(--brand-orange);
+    transition: width 0.5s ease;
 }
 
-/* Amigos */
+/* Amigos / Viajeros Widget */
 .friends-list {
     list-style: none;
     padding: 0;
@@ -260,13 +275,13 @@
     gap: 10px;
     margin-bottom: 12px;
     font-weight: 500;
-    color: var(--brand-navy, #1E3A5F);
+    color: var(--brand-navy);
 }
 
 .avatar {
     width: 35px;
     height: 35px;
-    background: var(--brand-teal, #2EC4B6);
+    background: var(--brand-teal);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -280,7 +295,9 @@
     background: #cbd5e1;
 }
 
-/* Botones genéricos de acción */
+/* =========================================
+    6. BOTONES GENERALES
+    ========================================= */
 .btn-action, .btn-invite, .btn-add-day {
     width: 100%;
     padding: 12px;
@@ -288,75 +305,143 @@
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s;
 }
 
 .btn-action, .btn-add-day {
     background: #f1f5f9;
-    color: var(--brand-navy, #1E3A5F);
+    color: var(--brand-navy);
     margin-top: 20px;
 }
 
 .btn-invite {
     background: transparent;
     border: 1px dashed #cbd5e1;
-    color: var(--brand-teal, #2EC4B6);
+    color: var(--brand-teal);
 }
 
-.btn-action:hover, .btn-invite:hover, .btn-add-day:hover {
+.btn-action:hover, .btn-add-day:hover {
     background: #e2e8f0;
 }
 
-
 /* =========================================
-   5. EL MODAL (Ventanita de Nuevo Gasto)
-   ========================================= */
+    7. MODALES (GENERAL Y GASTOS)
+    ========================================= */
 .modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
     background: rgba(15, 23, 42, 0.7);
     backdrop-filter: blur(4px);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: flex; justify-content: center; align-items: center;
     z-index: 9999;
-    animation: fadeIn 0.3s ease;
 }
 
 .modal-content {
     background: white;
     width: 90%;
     max-width: 500px;
-    
-    /* NUEVO: Limitamos la altura al 90% de la pantalla y permitimos scroll */
     max-height: 90vh;
     overflow-y: auto; 
-    
     border-radius: 16px;
     padding: 35px;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-    animation: slideUp 0.3s ease;
 }
 
 .modal-content h3 {
     margin: 0 0 5px 0;
     font-size: 1.4rem;
-    color: var(--brand-navy, #1E3A5F);
+    color: var(--brand-navy);
 }
 
-.modal-content p {
-    color: #64748b;
-    font-size: 0.95rem;
-    margin-bottom: 20px;
+.input-group {
+    margin-bottom: 15px;
 }
 
-.expense-form {
+.input-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--brand-navy);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.input-group input, .input-group select, .input-group textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    background: #f8fafc;
+    box-sizing: border-box;
+}
+
+/* FIX: Input de hora con formato fijo */
+input[type="time"] {
+    min-height: 45px;
+    cursor: pointer;
+}
+
+/* =========================================
+    8. DETALLE Y EDICIÓN DE ACTIVIDAD (GDV-35)
+    ========================================= */
+.activity-detail-modal { max-width: 480px; }
+
+.activity-modal-header {
     display: flex;
-    flex-direction: column;
-    gap: 15px;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.btn-close-modal {
+    background: none; border: none; font-size: 1.8rem; color: #94a3b8; cursor: pointer;
+}
+
+.activity-main-info h2 {
+    color: var(--brand-navy);
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+}
+
+.info-row {
+    display: flex; align-items: center; gap: 10px; color: #64748b; margin-bottom: 8px;
+}
+
+.info-row i { color: var(--brand-teal); width: 20px; text-align: center; }
+
+.modal-divider { border: 0; border-top: 1px solid #f1f5f9; margin: 20px 0; }
+
+.notes-box {
+    background: #fffbeb; border-left: 4px solid #fcd34d; padding: 15px;
+    color: #92400e; font-style: italic; border-radius: 4px;
+}
+
+.modal-actions-itinerary {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.btn-modal-cancel {
+    flex: 1; background: transparent; border: 1px solid #cbd5e1; color: #64748b;
+    padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
+}
+
+.btn-modal-confirm {
+    flex: 1; background: var(--brand-teal); color: white; border: none;
+    padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
+}
+
+.btn-edit-activity {
+    flex: 1; background: #f1f5f9; color: #475569; border: none;
+    padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
+}
+
+/* Estilos para el formulario de edición */
+.activity-edit-form textarea {
+    resize: none;
 }
 
 .expense-row {
@@ -364,211 +449,108 @@
     gap: 15px;
 }
 
-.expense-row .input-group {
-    flex: 1;
-}
-
-/* Inputs del formulario de gastos */
-.input-group label {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--brand-navy, #1E3A5F);
-    margin-bottom: 8px;
-    text-transform: uppercase;
-}
-
-.input-group input[type="text"], 
-.input-group input[type="number"], 
-.input-group select {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid #ced4da;
-    border-radius: 10px;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.95rem;
-    box-sizing: border-box;
-    transition: all 0.3s;
-    background: #f8fafc;
-}
-
-.input-group input:focus, 
-.input-group select:focus {
-    outline: none;
-    border-color: var(--brand-teal, #2EC4B6);
-    background: white;
-    box-shadow: 0 0 0 0.2rem rgba(46, 196, 182, 0.15);
-}
-
 /* =========================================
-   6. CHECKBOXES ESTILO SPLITWISE
-   ========================================= */
+    9. SPLITWISE / GASTOS ESPECIALES (Personalizado)
+    ========================================= */
 .custom-split-container {
     background: #f1f5f9;
     padding: 15px;
     border-radius: 10px;
     border: 1px solid #e2e8f0;
-    margin-top: 5px;
-    animation: fadeIn 0.3s ease;
-}
-
-.split-label-title {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--brand-navy, #1E3A5F);
-    margin-bottom: 10px;
-    display: block;
 }
 
 .checkbox-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Dos columnas para los nombres */
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
 }
 
+/* NUEVA LÓGICA DE CHECKBOX PERSONALIZADO (Sin check rojo) */
 .checkbox-label {
     display: flex;
     align-items: center;
     cursor: pointer;
     font-size: 0.95rem;
     color: #475569;
-    font-weight: 500;
+    gap: 10px;
 }
 
+/* Escondemos el check nativo del navegador */
 .checkbox-label input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
+    display: none;
 }
 
+/* Cuadro base del checkbox */
 .custom-checkbox {
-    height: 18px;
-    width: 18px;
+    height: 20px;
+    width: 20px;
     background-color: white;
     border: 2px solid #cbd5e1;
-    border-radius: 4px;
-    margin-right: 10px;
+    border-radius: 6px;
     position: relative;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
+/* Cambio de color al estar marcado */
 .checkbox-label input:checked ~ .custom-checkbox {
-    background-color: var(--brand-teal, #2EC4B6);
-    border-color: var(--brand-teal, #2EC4B6);
+    background-color: var(--brand-teal);
+    border-color: var(--brand-teal);
 }
 
-.custom-checkbox:after {
-    content: "";
-    position: absolute;
+/* Icono de Check blanco interno */
+.custom-checkbox::after {
+    content: "\f00c"; /* Icono Check de FontAwesome */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: white;
+    font-size: 11px;
     display: none;
-    left: 5px;
-    top: 2px;
-    width: 4px;
-    height: 8px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
 }
 
-.checkbox-label input:checked ~ .custom-checkbox:after {
+.checkbox-label input:checked ~ .custom-checkbox::after {
     display: block;
 }
 
-/* Botones dentro del modal */
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 15px;
+/* =========================================
+    10. ESTADOS VACÍOS
+    ========================================= */
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: #94a3b8;
 }
 
-.btn-modal-cancel, .btn-modal-confirm {
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    color: #cbd5e1;
 }
-
-.btn-modal-cancel {
-    background: transparent;
-    border: 1px solid #cbd5e1;
-    color: #64748b;
-}
-
-.btn-modal-cancel:hover {
-    background: #e2e8f0;
-}
-
-.btn-modal-confirm {
-    background: var(--brand-teal, #2EC4B6);
-    color: white;
-    border: none;
-}
-
-.btn-modal-confirm:hover {
-    background: #25a195;
-}
-
-/* Animaciones del modal */
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
 
 /* =========================================
-   7. ADAPTACIONES PARA MÓVIL (Media Queries)
-   ========================================= */
-
-/* Tablets y móviles en horizontal */
+    11. RESPONSIVE DESIGN (MEDIA QUERIES)
+    ========================================= */
 @media (max-width: 900px) {
     .trip-content-container {
-        grid-template-columns: 1fr; /* Pasa a una sola columna */
+        grid-template-columns: 1fr;
         margin-top: 20px;
     }
-    
     .hero-content h1 {
         font-size: 2.2rem;
     }
-    
-    .btn-back-light {
-        top: 80px;
-    }
 }
 
-/* Móviles en vertical (Teléfonos) */
 @media (max-width: 500px) {
-    /* 1. Hacemos la foto de cabecera un poco más pequeña */
-    .trip-hero {
-        height: 300px;
-    }
-    .hero-content h1 {
-        font-size: 1.8rem;
-    }
-
-    /* 2. Reducimos el "relleno" blanco de las tarjetas para ganar espacio real */
-    .main-column, .summary-card {
-        padding: 20px 15px;
-    }
-
-    /* 3. Ajustamos las pestañas para que no se aplasten */
-    .content-tabs {
-        gap: 10px;
-        justify-content: space-between;
-    }
-    .content-tabs button {
-        font-size: 0.9rem; /* Letra un poco más pequeña */
-        padding: 8px 0;
-    }
-
-    /* 4. Ajustes del Modal de gastos */
-    .expense-row {
-        flex-direction: column;
-        gap: 10px;
-    }
-    .checkbox-grid {
-        grid-template-columns: 1fr; 
-    }
-    .modal-content {
-        padding: 25px 20px; /* Menos borde interno en el modal */
-    }
+    .trip-hero { height: 300px; }
+    .main-column, .summary-card { padding: 20px 15px; }
+    .hero-content h1 { font-size: 1.8rem; }
+    .expense-row { flex-direction: column; gap: 0; }
+    .content-tabs { gap: 10px; justify-content: space-between; }
+    .content-tabs button { font-size: 0.9rem; }
 }
+
+/* Animaciones */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
