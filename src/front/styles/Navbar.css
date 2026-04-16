@@ -4,7 +4,8 @@
     background-color: transparent; 
     position: absolute;
     top: 0;
-    z-index: 1000;
+    /* ¡NUEVO! Le damos el número más alto posible para que gane a la tarjeta de login */
+    z-index: 9999; 
     display: flex;
     align-items: center;
     font-family: 'Poppins', sans-serif;
@@ -138,6 +139,7 @@
     flex-direction: column;
     gap: 12px;
     box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    z-index: 9999;
 }
 
 .dropdown-menu-mobile a {

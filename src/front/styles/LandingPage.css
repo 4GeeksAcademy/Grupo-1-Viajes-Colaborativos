@@ -1,26 +1,25 @@
-/* Contenedor principal: Evita que el contenido se salga de la pantalla en móviles */
+/* Contenedor principal */
 .landing-container {
     width: 100%;
     overflow-x: hidden;
     background-color: var(--bg-light, #F8FAFC);
-    font-family: 'Poppins', sans-serif; /* Nueva tipografía principal */
+    font-family: 'Poppins', sans-serif;
 }
 
 /* =========================================
    1. HERO SECTION (Mobile First)
    ========================================= */
 .hero-section {
-    /* Filtro turquesa semitransparente sobre la imagen */
     background: linear-gradient(rgba(46, 196, 182, 0.8), rgba(46, 196, 182, 0.6)), 
-                url('../assets/img/fondo-landing.jpg'); /* <-- Ruta a tu imagen local */
+                url('../assets/img/fondo-landing.jpg');
     background-size: cover;
     background-position: center;
-    min-height: 100vh; /* Ocupa toda la pantalla en móvil */
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
-    padding: 100px 20px 40px 20px; /* Padding reducido para celular */
+    padding: 100px 20px 40px 20px;
     text-align: left;
     box-sizing: border-box;
 }
@@ -30,7 +29,7 @@
 }
 
 .hero-section h1 {
-    font-size: 2.3rem; /* Tamaño adaptado a celular */
+    font-size: 2.3rem;
     font-weight: 800;
     line-height: 1.1;
     margin-bottom: 16px;
@@ -53,15 +52,15 @@
 
 .hero-buttons {
     display: flex;
-    flex-direction: column; /* Apilados en móvil */
+    flex-direction: column;
     gap: 12px;
     width: 100%;
 }
 
 .btn-start, .btn-demo {
-    width: 100%; /* Ocupan todo el ancho en móvil */
+    width: 100%;
     padding: 14px 20px;
-    border-radius: 30px; /* Bordes de píldora */
+    border-radius: 30px;
     font-weight: 700;
     font-size: 1.05rem;
     text-align: center;
@@ -88,7 +87,7 @@
 }
 
 /* =========================================
-   2. STATS SECTION (Integrado en el Hero - Móvil)
+   2. STATS SECTION
    ========================================= */
 .stats-wrapper {
     margin-top: 40px;
@@ -100,7 +99,7 @@
 .stats-container {
     display: flex;
     justify-content: flex-start;
-    gap: 30px; /* Separación reducida para móvil */
+    gap: 30px;
     margin-bottom: 15px;
 }
 
@@ -133,42 +132,59 @@
    3. FEATURES (Tarjetas)
    ========================================= */
 .features-section {
-    padding: 40px 20px;
+    padding: 60px 20px;
+    /* Limitamos el ancho y centramos toda la sección */
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .features-section h2 {
     text-align: center;
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     font-weight: 800;
-    margin-bottom: 24px;
+    margin-bottom: 40px;
     color: var(--brand-navy, #1E3A5F); 
+}
+
+/* NUEVO: Contenedor para alinear las tarjetas */
+.features-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .feature-card {
     background: white;
-    padding: 24px;
+    padding: 30px;
     border-radius: 16px;
-    margin-bottom: 16px;
     border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05); /* Sombra más moderna */
+    transition: transform 0.3s ease;
+    /* Centramos el texto de las tarjetas para que se vea más limpio */
+    text-align: center; 
+}
+
+.feature-card:hover {
+    transform: translateY(-5px); /* Efecto hover elegante */
 }
 
 .feature-card .icon {
-    font-size: 2rem;
-    margin-bottom: 12px;
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    display: block; /* Asegura el centrado */
 }
 
 .feature-card h3 {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     color: var(--brand-navy, #1E3A5F); 
 }
 
 .feature-card p {
     color: #475569;
-    font-size: 0.95rem;
-    line-height: 1.5;
+    font-size: 1rem;
+    line-height: 1.6;
 }
 
 /* =========================================
@@ -177,12 +193,12 @@
 .cta-footer {
     background-color: var(--brand-navy, #1E3A5F); 
     color: white;
-    padding: 50px 20px;
+    padding: 60px 20px;
     text-align: center;
 }
 
 .cta-footer h3 {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     font-weight: 800;
     margin-bottom: 24px;
 }
@@ -191,12 +207,16 @@
     background-color: var(--brand-orange, #FF7A59); 
     color: white;
     width: 100%;
+    max-width: 300px; /* Evita que el botón sea exageradamente ancho en PC */
+    margin: 0 auto;
+    display: block;
     padding: 16px;
     border-radius: 14px;
     font-weight: 700;
     border: none;
-    font-size: 1.05rem;
+    font-size: 1.1rem;
     transition: background-color 0.3s ease;
+    cursor: pointer;
 }
 
 .btn-final:hover {
@@ -207,91 +227,32 @@
    ADAPTACIÓN PARA ESCRITORIO (PC/Tablets)
    ========================================= */
 @media (min-width: 768px) {
-    /* Hero en PC */
+    
     .hero-section {
-        padding: 140px 20px 20px 40px;
-        min-height: 85vh;
-    }
-    
-    .hero-section h1 {
-        font-size: 3.2rem;
-        max-width: 600px;
-    }
-    
-    .hero-section p {
-        font-size: 1.15rem;
-        max-width: 500px;
-    }
-    
-    /* Botones uno al lado del otro en PC */
-    .hero-buttons {
-        flex-direction: row;
-        max-width: 500px;
-    }
-    
-    .btn-start, .btn-demo {
-        width: auto;
-        padding: 12px 30px;
-    }
-
-    /* Stats con más separación en PC */
-    .stats-container {
-        gap: 50px;
-    }
-
-    .stat-number {
-        font-size: 1.8rem;
-    }
-
-    .hero-bottom-text {
-        font-size: 1.1rem;
-    }
-
-    /* Opcional: Si quieres que los features se pongan en columnas en PC */
-    .features-section {
-        padding: 60px 40px;
-    }
-    
-    .btn-final {
-        width: auto;
-        padding: 16px 40px;
-    }
-}
-
-
-/* =========================================
-   ADAPTACIÓN PARA ESCRITORIO (PC/Tablets)
-   ========================================= */
-@media (min-width: 768px) {
-    /* Hero en PC con Degradado Direccional */
-    .hero-section {
-        /* Fíjate en el "to right": oscuro a la izq, transparente a la der */
         background: linear-gradient(to right, rgba(46, 196, 182, 0.95) 0%, rgba(46, 196, 182, 0.6) 50%, rgba(46, 196, 182, 0.1) 100%), 
                     url('../assets/img/fondo-landing.jpg');
         background-size: cover;
         background-position: center;
         min-height: 100vh;
-        padding: 160px 0 60px 0; /* Quitamos el padding lateral para controlarlo por dentro */
-        align-items: center; /* Centramos los contenedores internos */
+        padding: 160px 0 60px 0; 
+        align-items: center; 
     }
 
-    /* CONTENEDORES ALINEADOS (La "línea invisible" con el Navbar) */
     .hero-content, .stats-wrapper {
         width: 100%;
-        max-width: 1200px; /* Exactamente el mismo ancho que tu Navbar */
+        max-width: 1200px; 
         margin: 0 auto;
-        padding: 0 20px; /* Exactamente el mismo padding que tu Navbar */
+        padding: 0 20px; 
     }
 
     .stats-wrapper {
         margin-top: 50px;
     }
     
-    /* Textos Imponentes */
     .hero-section h1 {
-        font-size: 5rem; /* Letras gigantes */
+        font-size: 5rem; 
         font-weight: 800;
-        letter-spacing: -2px; /* Letras más juntitas */
+        letter-spacing: -2px; 
         line-height: 1.05;
         max-width: 850px;
     }
@@ -330,12 +291,20 @@
         margin-top: 15px;
     }
 
-    .features-section {
-        padding: 60px 40px;
+    /* NUEVO: Las Features se convierten en cuadrícula en PC */
+    .features-section h2 {
+        font-size: 2.5rem;
+        margin-bottom: 50px;
     }
-    
-    .btn-final {
-        width: auto;
-        padding: 16px 40px;
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Crea 3 columnas iguales */
+        gap: 30px; /* Separación entre las tarjetas */
+    }
+
+    .cta-footer h3 {
+        font-size: 2.5rem;
+        margin-bottom: 30px;
     }
 }
