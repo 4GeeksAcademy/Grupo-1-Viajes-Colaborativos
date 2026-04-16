@@ -4,10 +4,10 @@ import "../styles/MyTrips.css";
 
 export const MyTrips = () => {
     // 1. HERRAMIENTAS DE REACT
-    const navigate = useNavigate(); // Nos permite cambiar de página mediante código
-    const [activeFilter, setActiveFilter] = useState("Todos"); // Guarda qué botón de filtro está activo
+    const navigate = useNavigate(); 
+    const [activeFilter, setActiveFilter] = useState("Todos"); 
 
-    // 2. BASE DE DATOS FAKE (Más adelante esto vendrá de Python/Base de datos)
+    // 2. BASE DE DATOS FAKE (Ampliamos a 7 viajes para probar el diseño)
     const trips = [
         {
             id: 1,
@@ -40,7 +40,33 @@ export const MyTrips = () => {
             status: "Pasados",
             image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=500&q=80",
             featured: false,
+        },
+        // --- NUEVOS VIAJES DE PRUEBA ---
+        {
+            id: 5,
+            title: "Ruta por Japón",
+            date: "10 - 25 Abril",
+            status: "En curso",
+            image: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=500&q=80",
+            featured: false,
+        },
+        {
+            id: 6,
+            title: "Aventura en los Alpes",
+            date: "Diciembre 2024",
+            status: "Planificando",
+            image: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=500&q=80",
+            featured: false,
+        },
+        {
+            id: 7,
+            title: "Roadtrip California",
+            date: "Agosto 2022",
+            status: "Pasados",
+            image: "https://images.unsplash.com/photo-1449034446853-66c86144b0ad?auto=format&fit=crop&w=500&q=80",
+            featured: false,
         }
+        
     ];
 
     // 3. DATOS DE SUGERENCIAS
@@ -51,9 +77,7 @@ export const MyTrips = () => {
         { title: "Dubai Futurista", image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=400&q=80" }
     ];
 
-    // 4. LA MAGIA DEL FILTRADO (¡LO QUE FALTABA!)
-    // Comprueba qué filtro está activo. Si es "Todos", guarda todos los viajes. 
-    // Si no, filtra el array para que solo queden los que coincidan con el estado seleccionado.
+    // 4. LA MAGIA DEL FILTRADO
     const filteredTrips = activeFilter === "Todos" 
         ? trips 
         : trips.filter(trip => trip.status === activeFilter);
@@ -69,7 +93,6 @@ export const MyTrips = () => {
                         <h1>Mis Viajes</h1>
                         <p>Gestiona tus próximas aventuras y recuerdos pasados.</p>
                     </div>
-                    {/* Al hacer clic, nos lleva a la página del formulario que acabamos de crear */}
                     <button className="btn-new-trip" onClick={() => navigate("/new-trip")}>
                         <i className="fa-solid fa-plus"></i> Crear nuevo viaje
                     </button>
@@ -77,14 +100,11 @@ export const MyTrips = () => {
 
                 {/* --- BOTONES DE FILTRO --- */}
                 <div className="trip-filters">
-                    {/* Generamos los botones dinámicamente desde un arreglo */}
                     {["Todos", "En curso", "Planificando", "Pasados"].map(filter => (
                         <button 
                             key={filter} 
                             type="button"
-                            // Si el filtro actual es igual a este botón, le pone la clase 'active' (se rellena de blanco)
                             className={`btn-filter ${activeFilter === filter ? "active" : ""}`}
-                            // Al hacer clic, actualiza el estado de React
                             onClick={() => setActiveFilter(filter)}
                         >
                             {filter}
@@ -94,13 +114,11 @@ export const MyTrips = () => {
 
                 {/* --- CUADRÍCULA DE MIS VIAJES --- */}
                 <div className="trips-grid">
-                    {/* IMPORTANTE: Ahora mapeamos 'filteredTrips' en lugar del 'trips' original */}
                     {filteredTrips.map((trip) => (
                         <div key={trip.id} className={`trip-card ${trip.featured ? "featured-card" : ""}`}>
                             
                             <div className="trip-img-container">
                                 <img src={trip.image} alt={trip.title} />
-                                {/* Genera la clase de color basada en el estado (ej: 'en-curso') */}
                                 <span className={`status-badge ${trip.status.replace(/\s+/g, '-').toLowerCase()}`}>
                                     {trip.status}
                                 </span>
@@ -110,11 +128,9 @@ export const MyTrips = () => {
                                 <h3>{trip.title}</h3>
                                 <p><i className="fa-regular fa-calendar"></i> {trip.date}</p>
                                 
-                                {/* Si el viaje está "En curso", muestra la barra de progreso */}
                                 {trip.status === "En curso" && (
                                     <div className="trip-progress">
                                         <div className="progress-bar"><div className="progress-fill"></div></div>
-                                        {/* Botón para ir a ver los detalles específicos de este viaje (Paso 2 pendiente) */}
                                         <span className="link-details" onClick={() => navigate(`/trip/${trip.id}`)}>
                                             Ver detalles <i className="fa-solid fa-chevron-right"></i>
                                         </span>
@@ -125,7 +141,7 @@ export const MyTrips = () => {
                         </div>
                     ))}
 
-                    {/* --- TARJETA DE "EXPLORAR" (Siempre al final de la cuadrícula) --- */}
+                    {/* --- TARJETA DE "EXPLORAR" --- */}
                     <div className="trip-card explore-card">
                         <div className="explore-content">
                             <div className="compass-icon">
