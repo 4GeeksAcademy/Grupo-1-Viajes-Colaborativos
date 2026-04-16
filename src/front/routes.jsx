@@ -14,6 +14,7 @@ import { AuthPage } from "./pages/AuthPage"; // <-- Importamos la nueva página 
 import { MyTrips } from "./pages/MyTrips";
 import { NewTrip } from "./pages/NewTrip";
 import { TripDetails } from "./pages/TripDetails";
+import { Profile } from "./pages/Profile";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -39,6 +40,8 @@ export const router = createBrowserRouter(
             <Route path="/new-trip" element={<NewTrip />} />
 
             <Route path="/trip/:id" element={<TripDetails />} />
+
+            <Route path="/profile" element={<Profile />} />
 
             {/* Cambiamos el path de Home a "/home" para que no choque con la Landing Page */}
             <Route path="/home" element={<Home />} />
