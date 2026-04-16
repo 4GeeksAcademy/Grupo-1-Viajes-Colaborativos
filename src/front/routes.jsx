@@ -1,5 +1,4 @@
 // Import necessary components and functions from react-router-dom.
-
 import {
     createBrowserRouter,
     createRoutesFromElements,
@@ -39,7 +38,8 @@ export const router = createBrowserRouter(
             {/* Ruta para el sistema de Autenticación (newtrip) */}
             <Route path="/new-trip" element={<NewTrip />} />
 
-            <Route path="/trip/:id" element={<TripDetails />} />
+            {/* ¡AQUÍ ESTÁ LA CORRECCIÓN! Cambiamos /trip/ por /trip-details/ */}
+            <Route path="/trip-details/:id" element={<TripDetails />} />
 
             <Route path="/profile" element={<Profile />} />
 
