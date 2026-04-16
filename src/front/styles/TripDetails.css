@@ -1,13 +1,12 @@
-/* Contenedor general */
+/* =========================================
+   1. CONTENEDOR GENERAL Y CABECERA (HERO)
+   ========================================= */
 .trip-details-wrapper {
     min-height: 100vh;
     font-family: 'Poppins', sans-serif;
     background-color: #f8fafc; /* Fondo claro para que resalte la cabecera */
 }
 
-/* =========================================
-   HERO BANNER (Cabecera con foto)
-   ========================================= */
 .trip-hero {
     height: 400px;
     background-size: cover;
@@ -70,11 +69,11 @@
 }
 
 /* =========================================
-   ESTRUCTURA DE DOS COLUMNAS
+   2. ESTRUCTURA DE DOS COLUMNAS
    ========================================= */
 .trip-content-container {
     max-width: 1200px;
-    margin: -30px auto 50px auto; /* El -30px hace que se monte un poco sobre la foto (efecto moderno) */
+    margin: -30px auto 50px auto; /* El -30px hace que se monte un poco sobre la foto */
     padding: 0 20px;
     display: grid;
     grid-template-columns: 2fr 1fr; /* Columna izq el doble de ancha que la derecha */
@@ -84,7 +83,7 @@
 }
 
 /* =========================================
-   COLUMNA IZQUIERDA (Pestañas e Itinerario)
+   3. COLUMNA IZQUIERDA (Pestañas e Itinerario)
    ========================================= */
 .main-column {
     background: white;
@@ -170,7 +169,7 @@
     margin: 0;
 }
 
-/* Estados Vacíos */
+/* Estados Vacíos (Documentos y Gastos sin datos) */
 .empty-state {
     text-align: center;
     padding: 50px 20px;
@@ -189,7 +188,7 @@
 }
 
 /* =========================================
-   COLUMNA DERECHA (Widgets)
+   4. COLUMNA DERECHA (Widgets Resumen)
    ========================================= */
 .side-column {
     display: flex;
@@ -308,9 +307,219 @@
     background: #e2e8f0;
 }
 
+
 /* =========================================
-   RESPONSIVE PARA MÓVILES
+   5. EL MODAL (Ventanita de Nuevo Gasto)
    ========================================= */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 500px;
+    
+    /* NUEVO: Limitamos la altura al 90% de la pantalla y permitimos scroll */
+    max-height: 90vh;
+    overflow-y: auto; 
+    
+    border-radius: 16px;
+    padding: 35px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.3s ease;
+}
+
+.modal-content h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.4rem;
+    color: var(--brand-navy, #1E3A5F);
+}
+
+.modal-content p {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+}
+
+.expense-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.expense-row {
+    display: flex;
+    gap: 15px;
+}
+
+.expense-row .input-group {
+    flex: 1;
+}
+
+/* Inputs del formulario de gastos */
+.input-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--brand-navy, #1E3A5F);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.input-group input[type="text"], 
+.input-group input[type="number"], 
+.input-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    transition: all 0.3s;
+    background: #f8fafc;
+}
+
+.input-group input:focus, 
+.input-group select:focus {
+    outline: none;
+    border-color: var(--brand-teal, #2EC4B6);
+    background: white;
+    box-shadow: 0 0 0 0.2rem rgba(46, 196, 182, 0.15);
+}
+
+/* =========================================
+   6. CHECKBOXES ESTILO SPLITWISE
+   ========================================= */
+.custom-split-container {
+    background: #f1f5f9;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    margin-top: 5px;
+    animation: fadeIn 0.3s ease;
+}
+
+.split-label-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--brand-navy, #1E3A5F);
+    margin-bottom: 10px;
+    display: block;
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas para los nombres */
+    gap: 10px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #475569;
+    font-weight: 500;
+}
+
+.checkbox-label input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.custom-checkbox {
+    height: 18px;
+    width: 18px;
+    background-color: white;
+    border: 2px solid #cbd5e1;
+    border-radius: 4px;
+    margin-right: 10px;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.checkbox-label input:checked ~ .custom-checkbox {
+    background-color: var(--brand-teal, #2EC4B6);
+    border-color: var(--brand-teal, #2EC4B6);
+}
+
+.custom-checkbox:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 5px;
+    top: 2px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-label input:checked ~ .custom-checkbox:after {
+    display: block;
+}
+
+/* Botones dentro del modal */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-modal-cancel, .btn-modal-confirm {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-modal-cancel {
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    color: #64748b;
+}
+
+.btn-modal-cancel:hover {
+    background: #e2e8f0;
+}
+
+.btn-modal-confirm {
+    background: var(--brand-teal, #2EC4B6);
+    color: white;
+    border: none;
+}
+
+.btn-modal-confirm:hover {
+    background: #25a195;
+}
+
+/* Animaciones del modal */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+
+/* =========================================
+   7. ADAPTACIONES PARA MÓVIL (Media Queries)
+   ========================================= */
+
+/* Tablets y móviles en horizontal */
 @media (max-width: 900px) {
     .trip-content-container {
         grid-template-columns: 1fr; /* Pasa a una sola columna */
@@ -323,5 +532,43 @@
     
     .btn-back-light {
         top: 80px;
+    }
+}
+
+/* Móviles en vertical (Teléfonos) */
+@media (max-width: 500px) {
+    /* 1. Hacemos la foto de cabecera un poco más pequeña */
+    .trip-hero {
+        height: 300px;
+    }
+    .hero-content h1 {
+        font-size: 1.8rem;
+    }
+
+    /* 2. Reducimos el "relleno" blanco de las tarjetas para ganar espacio real */
+    .main-column, .summary-card {
+        padding: 20px 15px;
+    }
+
+    /* 3. Ajustamos las pestañas para que no se aplasten */
+    .content-tabs {
+        gap: 10px;
+        justify-content: space-between;
+    }
+    .content-tabs button {
+        font-size: 0.9rem; /* Letra un poco más pequeña */
+        padding: 8px 0;
+    }
+
+    /* 4. Ajustes del Modal de gastos */
+    .expense-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .checkbox-grid {
+        grid-template-columns: 1fr; 
+    }
+    .modal-content {
+        padding: 25px 20px; /* Menos borde interno en el modal */
     }
 }

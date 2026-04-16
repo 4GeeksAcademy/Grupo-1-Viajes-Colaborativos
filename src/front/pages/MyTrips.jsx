@@ -7,7 +7,7 @@ export const MyTrips = () => {
     const navigate = useNavigate(); 
     const [activeFilter, setActiveFilter] = useState("Todos"); 
 
-    // 2. BASE DE DATOS FAKE (Ampliamos a 7 viajes para probar el diseño)
+    // 2. BASE DE DATOS FAKE
     const trips = [
         {
             id: 1,
@@ -41,7 +41,6 @@ export const MyTrips = () => {
             image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=500&q=80",
             featured: false,
         },
-        // --- NUEVOS VIAJES DE PRUEBA ---
         {
             id: 5,
             title: "Ruta por Japón",
@@ -66,7 +65,6 @@ export const MyTrips = () => {
             image: "https://images.unsplash.com/photo-1449034446853-66c86144b0ad?auto=format&fit=crop&w=500&q=80",
             featured: false,
         }
-        
     ];
 
     // 3. DATOS DE SUGERENCIAS
@@ -87,7 +85,6 @@ export const MyTrips = () => {
         <div className="dashboard-wrapper">
             <div className="dashboard-container">
                 
-                {/* --- CABECERA Y BOTÓN DE NUEVO VIAJE --- */}
                 <div className="dashboard-header">
                     <div className="header-text">
                         <h1>Mis Viajes</h1>
@@ -98,7 +95,6 @@ export const MyTrips = () => {
                     </button>
                 </div>
 
-                {/* --- BOTONES DE FILTRO --- */}
                 <div className="trip-filters">
                     {["Todos", "En curso", "Planificando", "Pasados"].map(filter => (
                         <button 
@@ -112,7 +108,6 @@ export const MyTrips = () => {
                     ))}
                 </div>
 
-                {/* --- CUADRÍCULA DE MIS VIAJES --- */}
                 <div className="trips-grid">
                     {filteredTrips.map((trip) => (
                         <div key={trip.id} className={`trip-card ${trip.featured ? "featured-card" : ""}`}>
@@ -128,20 +123,25 @@ export const MyTrips = () => {
                                 <h3>{trip.title}</h3>
                                 <p><i className="fa-regular fa-calendar"></i> {trip.date}</p>
                                 
-                                {trip.status === "En curso" && (
-                                    <div className="trip-progress">
+                                {/* NUEVO: El contenedor inferior sale SIEMPRE. 
+                                    Si no está "En curso", lo empujamos a la derecha para que quede bonito */}
+                                <div className="trip-progress" style={trip.status !== "En curso" ? { justifyContent: "flex-end" } : {}}>
+                                    
+                                    {/* La barrita de progreso SOLO se dibuja si está "En curso" */}
+                                    {trip.status === "En curso" && (
                                         <div className="progress-bar"><div className="progress-fill"></div></div>
-                                        <span className="link-details" onClick={() => navigate(`/trip/${trip.id}`)}>
-                                            Ver detalles <i className="fa-solid fa-chevron-right"></i>
-                                        </span>
-                                    </div>
-                                )}
+                                    )}
+                                    
+                                    {/* El botón de Ver Detalles sale SIEMPRE */}
+                                    <span className="link-details" onClick={() => navigate(`/trip/${trip.id}`)}>
+                                        Ver detalles <i className="fa-solid fa-chevron-right"></i>
+                                    </span>
+                                </div>
                             </div>
 
                         </div>
                     ))}
 
-                    {/* --- TARJETA DE "EXPLORAR" --- */}
                     <div className="trip-card explore-card">
                         <div className="explore-content">
                             <div className="compass-icon">
@@ -154,7 +154,6 @@ export const MyTrips = () => {
                     </div>
                 </div>
 
-                {/* --- SECCIÓN DE SUGERENCIAS INFERIOR --- */}
                 <div className="suggestions-section">
                     <div className="suggestions-header">
                         <h2>Sugerencias para ti</h2>
