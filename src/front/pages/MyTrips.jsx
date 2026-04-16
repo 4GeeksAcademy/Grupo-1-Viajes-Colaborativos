@@ -123,17 +123,14 @@ export const MyTrips = () => {
                                 <h3>{trip.title}</h3>
                                 <p><i className="fa-regular fa-calendar"></i> {trip.date}</p>
                                 
-                                {/* NUEVO: El contenedor inferior sale SIEMPRE. 
-                                    Si no está "En curso", lo empujamos a la derecha para que quede bonito */}
                                 <div className="trip-progress" style={trip.status !== "En curso" ? { justifyContent: "flex-end" } : {}}>
                                     
-                                    {/* La barrita de progreso SOLO se dibuja si está "En curso" */}
                                     {trip.status === "En curso" && (
                                         <div className="progress-bar"><div className="progress-fill"></div></div>
                                     )}
                                     
-                                    {/* El botón de Ver Detalles sale SIEMPRE */}
-                                    <span className="link-details" onClick={() => navigate(`/trip/${trip.id}`)}>
+                                    {/* CORRECCIÓN DE NAVEGACIÓN: Asegúrate de que esta ruta coincida con tu App.jsx */}
+                                    <span className="link-details" onClick={() => navigate(`/trip-details/${trip.id}`)}>
                                         Ver detalles <i className="fa-solid fa-chevron-right"></i>
                                     </span>
                                 </div>

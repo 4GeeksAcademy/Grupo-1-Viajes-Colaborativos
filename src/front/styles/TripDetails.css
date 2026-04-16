@@ -320,7 +320,7 @@
     color: var(--brand-teal);
 }
 
-.btn-action:hover, .btn-add-day:hover {
+.btn-action:hover, .btn-invite:hover, .btn-add-day:hover {
     background: #e2e8f0;
 }
 
