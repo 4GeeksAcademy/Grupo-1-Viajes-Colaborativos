@@ -67,6 +67,7 @@ def validate_credentials(payload, require_name=False):
 
     return name, email, password
 
+
 def validate_new_trip(payload):
 
     title = payload.get("title").strip()
@@ -75,7 +76,7 @@ def validate_new_trip(payload):
     starting_date = payload.get("starting_date").strip()
     ending_date = payload.get("ending_date").strip()
     budget = payload.get("budget").strip()
-    notes = payload.get("notes").strip()    
+    notes = payload.get("notes").strip()
 
     if title is None:
         raise APIException(
@@ -84,15 +85,15 @@ def validate_new_trip(payload):
     if destination is None:
         raise APIException(
             "El viaje debe contener destino", status_code=400)
-    
+
     if state is None:
         raise APIException(
             "El viaje debe contener estado", status_code=400)
-    
+
     if starting_date is None:
         raise APIException(
             "El viaje debe contener fecha de inicio", status_code=400)
-    
+
     if ending_date is None:
         raise APIException(
             "El viaje debe contener fecha de fin", status_code=400)
@@ -102,13 +103,13 @@ def validate_new_trip(payload):
             "El viaje debe contener un presupuesto", status_code=400)
 
     trip = Trip(
-        title = title,
-        destination = destination,
-        state = state,
-        starting_date = starting_date,
-        ending_date = ending_date,
-        budget = budget,
-        notes = notes
+        title=title,
+        destination=destination,
+        state=state,
+        starting_date=starting_date,
+        ending_date=ending_date,
+        budget=budget,
+        notes=notes
     )
 
     return trip
@@ -151,7 +152,6 @@ def sign_up():
     return build_auth_response(new_user, 201, "Usuario creado correctamente")
 
 
-
 @api.route("/travels", methods=["GET"])
 @api.route("/trips", methods=["GET"])
 @jwt_required
@@ -172,12 +172,12 @@ def travels():
         except ValueError:
             raise ValueError(f"Invalid state: {state_param}", status_code=400)
 
-
     trips = Trip.query.filter(*filters)
 
     return jsonify({
         "viajes": [trip.serialize_common_trips() for trip in trips]
     }), 200
+
 
 @api.route("/profile", methods=["GET"])
 @api.route("/me", methods=["GET"])
@@ -187,27 +187,16 @@ def me():
     return jsonify({"user": user.serialize()}), 200
 
 
-# ENDPOINT QUE REGISTRA UN NUEVO VIAJE
-# 1º: recibe el JWT y saca el usuario
-
-# 2º: debe recibir el titulo, el destino, el estado (por defecto será planning), la fecha de inicio, 
-# la fecha de fin, el presupuesto, notas (opcional), los usuarios extra del viaje
-
-# 3º: debe registrar un nuevo Trip, un nuevo Traveler por cada usuario extra y un nuevo Chat
-
-# 4º: debe enviar un correo informativo a los usuarios del viaje
-
-# 5º: HACER MIGRATE Y UPDATE
 @api.route("/new_trip", methods=["POST"])
 @api.route("/newtrip", methods=["POST"])
 @jwt_required()
 def new_trip():
-    
+
     user = get_current_user()
     data = get_json_payload()
 
     payload_users = data.get("users", [])
-    users = User.query.filter(User.email.in_(payload_users))
+    users = User.query.filter(User.email.in_(payload_users)).all()
     travelers_ids = [u.id for u in users]
     travelers_ids.append(user.id)
 
@@ -219,16 +208,16 @@ def new_trip():
 
     for traveler_id in travelers_ids:
         traveler = Traveler(
-            user_id = traveler_id,
-            trip_id = trip.id
+            user_id=traveler_id,
+            trip_id=trip.id
         )
 
         db.session.add(traveler)
         db.session.commit()
 
     chat = Chat(
-        title = trip.title,
-        trip_id = trip.id
+        title=trip.title,
+        trip_id=trip.id
     )
 
     db.session.add(chat)
@@ -242,13 +231,41 @@ def new_trip():
     }), 201
 
 
-# ENDPOINT QUE DEVUELVE TODA LA INFORMACION DEL VIAJE
-# 1º: recibe el id del viaje, el JWT y saca el usuario
+@api.route("/trip-detail/<int:trip_id>", methods=["GET"])
+@jwt_required()
+def trip_detail(trip_id):
 
-# 2º: comprueba que el usuario está registrado en el viaje desde la tabla Traveler
+    user = get_current_user()
 
-# 3º: debe devolver todos los datos del viaje, todos los itinerarios, todos los gastos, todos los documentos y todos los mensajes del chat
+    applicant = Traveler.query.filter(
+        Traveler.user_id == user.id, Traveler.trip_id == trip_id)
+    if applicant is None:
+        raise APIException(
+            "No estás incluido en este viaje", status_code=401)
 
+    travelers = Traveler.query.filter_by(Traveler.trip_id == trip_id).all
+    travelers = [traveler.serialize_user() for traveler in travelers]
+
+    travelers_confirmed = User.query.filter_by(User.id.in_(travelers))
+    travelers_confirmed.append(user)
+    users_confirmed = [users.serialize_name() for users in travelers_confirmed]
+
+    trip = Trip.query.filter_by(Trip.id == trip_id)
+    itinerary = Itinerary.query.filter_by(Itinerary.trip_id == trip_id).limit(5).all()
+    expense = Expense.query.filter_by(Expense.trip_id == trip_id).limit(5).all()
+    document = Document.query.filter_by(Document.trip_id == trip_id).all()
+    chat = Chat.query.filter_by(Chat.trip_id == trip_id)
+    messages = Message.query.filter_by(
+        Message.chat_id == chat.id).limit(20).all()
+
+    return {
+        "travelers": users_confirmed,
+        "trip": trip.serialize(),
+        "itinerary": itinerary.serialize(),
+        "expense": expense.serialize(),
+        "document": document.serialize(),
+        "messages": messages.serialize(),
+    }, 200
 
 
 # ENDPOINT QUE REGISTRA UNA NUEVA ACTIVIDAD DEL VIAJE
@@ -259,7 +276,6 @@ def new_trip():
 # 3º: debe recibir el titulo, el destino, la hora, la fecha, y las notas (opcional)
 
 # 4º: debe enviar un correo informativo a los usuarios del viaje
-
 
 
 # ENDPOINT QUE REGISTRA UN NUEVO GASTO
