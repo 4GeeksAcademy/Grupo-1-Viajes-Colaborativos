@@ -174,6 +174,15 @@ def validate_new_expense(payload):
 
     return expense
 
+def validate_user_trip(user, trip_id):
+        
+    applicant = Traveler.query.filter(
+        Traveler.user_id == user.id, Traveler.trip_id == trip_id).one_or_none()
+    if applicant is None:
+        raise APIException(
+            "No estás incluido en este viaje", status_code=401)
+    
+    return True
 
 @api.route("/login", methods=["POST"])
 @api.route("/signin", methods=["POST"])
@@ -297,11 +306,7 @@ def trip_detail(trip_id):
 
     user = get_current_user()
 
-    applicant = Traveler.query.filter(
-        Traveler.user_id == user.id, Traveler.trip_id == trip_id)
-    if applicant is None:
-        raise APIException(
-            "No estás incluido en este viaje", status_code=401)
+    validate_user_trip(user, trip_id)
 
     travelers = Traveler.query.filter_by(Traveler.trip_id == trip_id).all
     travelers = [traveler.serialize_user() for traveler in travelers]
@@ -320,14 +325,14 @@ def trip_detail(trip_id):
     messages = Message.query.filter_by(
         Message.chat_id == chat.id).limit(20).all()
 
-    return {
+    return jsonify({
         "travelers": users_confirmed,
         "trip": trip.serialize(),
         "itinerary": itinerary.serialize(),
         "expense": expense.serialize(),
         "document": document.serialize(),
         "messages": messages.serialize(),
-    }, 200
+    }), 200
 
 
 @api.route("/new-activity/<int:trip_id>", methods=["POST"])
@@ -337,11 +342,7 @@ def new_activity(trip_id):
     user = get_current_user()
     data = get_json_payload()
 
-    applicant = Traveler.query.filter(
-        Traveler.user_id == user.id, Traveler.trip_id == trip_id)
-    if applicant is None:
-        raise APIException(
-            "No estás incluido en este viaje", status_code=401)
+    validate_user_trip(user, trip_id)
     
     itinerary = validate_new_itinerary(data)
     itinerary.trip_id = trip_id
@@ -358,16 +359,6 @@ def new_activity(trip_id):
     }), 201
 
 
-# ENDPOINT QUE REGISTRA UN NUEVO GASTO
-# 1º: recibe el id del viaje, el JWT y saca el usuario
-
-# 2º: comprueba que el usuario está registrado en el viaje desde la tabla Traveler
-
-# 3º: debe recibir la cantidad, la descripcion, el id del pagador y los usuarios a pagar
-
-# 4º: debe registrar el pago en la cantidad en la tabla Expense y regresar el id
-
-# 5º: debe registrar una deuda en la tabla Debt por cada usuario a pagar
 @api.route("/new-expense/<int:trip_id>", methods=["POST"])
 @jwt_required()
 def new_expense(trip_id):
@@ -375,11 +366,7 @@ def new_expense(trip_id):
     user = get_current_user()
     data = get_json_payload()
 
-    applicant = Traveler.query.filter(
-        Traveler.user_id == user.id, Traveler.trip_id == trip_id)
-    if applicant is None:
-        raise APIException(
-            "No estás incluido en este viaje", status_code=401)
+    validate_user_trip(user, trip_id)
     
     expense = validate_new_expense(data)
     expense.trip_id = trip_id
@@ -412,12 +399,20 @@ def new_expense(trip_id):
         "expense": expense.serialize()
     }), 201
 
-# ENDPOINT QUE DEVUELVE TODOS LOS ITINERARIOS DEL VIAJE
-# 1º: recibe el id del viaje, el JWT y saca el usuario
 
-# 2º: comprueba que el usuario está registrado en el viaje desde la tabla Traveler
+@api.route("/all-activity/<int:trip_id>", methods=["GET"])
+@jwt_required()
+def all_activity(trip_id):
 
-# 3º: devuelve todos los itinerarios del viaje desde la tabla Itinerary
+    user = get_current_user()
+
+    validate_user_trip(user, trip_id)
+
+    itineraries = Itinerary.query.filter_by(Itinerary.trip_id == trip_id).order_by(Itinerary.starting_date.asc()).all()
+
+    return jsonify({
+        "itinerary": [itinerary.serialize() for itinerary in itineraries]
+    }), 200
 
 
 # ENDPOINT QUE DEVUELVE TODOS LOS GASTOS DEL VIAJE
