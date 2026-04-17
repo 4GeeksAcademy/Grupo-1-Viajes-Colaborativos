@@ -115,6 +115,41 @@ def validate_new_trip(payload):
     return trip
 
 
+def validate_new_itinerary(payload):
+
+    title = payload.get("title").strip()
+    destination = payload.get("destination").strip()
+    hour = payload.get("hour").strip()
+    starting_date = payload.get("starting_date").strip()
+    notes = payload.get("notes","").strip()
+
+    if title is None:
+        raise APIException(
+            "La actividad debe contener titulo", status_code=400)
+
+    if destination is None:
+        raise APIException(
+            "La actividad debe contener destino", status_code=400)
+
+    if hour is None:
+        raise APIException(
+            "La actividad debe contener destino", status_code=400)
+
+    if starting_date is None:
+        raise APIException(
+            "La actividad debe contener destino", status_code=400)
+
+    itinerary = Itinerary(
+        title=title,
+        destination=destination,
+        hour=hour,
+        starting_date=starting_date,
+        notes=notes
+    )
+
+    return itinerary
+
+
 @api.route("/login", methods=["POST"])
 @api.route("/signin", methods=["POST"])
 def sign_in():
@@ -251,8 +286,10 @@ def trip_detail(trip_id):
     users_confirmed = [users.serialize_name() for users in travelers_confirmed]
 
     trip = Trip.query.filter_by(Trip.id == trip_id)
-    itinerary = Itinerary.query.filter_by(Itinerary.trip_id == trip_id).limit(5).all()
-    expense = Expense.query.filter_by(Expense.trip_id == trip_id).limit(5).all()
+    itinerary = Itinerary.query.filter_by(
+        Itinerary.trip_id == trip_id).limit(5).all()
+    expense = Expense.query.filter_by(
+        Expense.trip_id == trip_id).limit(5).all()
     document = Document.query.filter_by(Document.trip_id == trip_id).all()
     chat = Chat.query.filter_by(Chat.trip_id == trip_id)
     messages = Message.query.filter_by(
@@ -268,14 +305,31 @@ def trip_detail(trip_id):
     }, 200
 
 
-# ENDPOINT QUE REGISTRA UNA NUEVA ACTIVIDAD DEL VIAJE
-# 1º: recibe el id del viaje, el JWT y saca el usuario
+@api.route("/new-activity/<int:trip_id>", methods=["POST"])
+@jwt_required()
+def new_activity(trip_id):
 
-# 2º: comprueba que el usuario está registrado en el viaje desde la tabla Traveler
+    user = get_current_user()
+    data = get_json_payload()
 
-# 3º: debe recibir el titulo, el destino, la hora, la fecha, y las notas (opcional)
+    applicant = Traveler.query.filter(
+        Traveler.user_id == user.id, Traveler.trip_id == trip_id)
+    if applicant is None:
+        raise APIException(
+            "No estás incluido en este viaje", status_code=401)
+    
+    itinerary = validate_new_itinerary(data)
 
-# 4º: debe enviar un correo informativo a los usuarios del viaje
+    db.session.add(itinerary)
+    db.session.commit()
+    db.session.refresh(itinerary)
+
+    # CORREO INFORMATIVO
+
+    return jsonify({
+        "message": "Actividad añadida correctamente",
+        "itinerary": itinerary.serialize()
+    }), 201
 
 
 # ENDPOINT QUE REGISTRA UN NUEVO GASTO
