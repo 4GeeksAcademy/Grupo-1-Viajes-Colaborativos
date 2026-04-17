@@ -100,7 +100,6 @@ class Trip(db.Model):
         }
 
 
-
 class Traveler(db.Model):
     __tablename__ = 'traveler'
     user_id: Mapped[int] = mapped_column(ForeignKey(
@@ -135,7 +134,7 @@ class Itinerary(db.Model):
     destination: Mapped[str] = mapped_column(String(50), nullable=False)
     hour: Mapped[time] = mapped_column(Time, nullable=False)
     starting_date: Mapped[date] = mapped_column(Date(), nullable=False)
-    notes: Mapped[str] = mapped_column(String(150), nullable=False)
+    notes: Mapped[str] = mapped_column(String(150), nullable=True)
     trip_id: Mapped[int] = mapped_column(
         ForeignKey("trip.id", ondelete="CASCADE"))
 
