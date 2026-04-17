@@ -150,6 +150,7 @@ class Itinerary(db.Model):
             "id": self.id,
             "title": self.title,
             "hour": str(self.hour),
+            "starting_date": str(self.starting_date),
             "trip_id": self.trip_id
         }
 
