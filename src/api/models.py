@@ -57,6 +57,11 @@ class User(db.Model):
             "last_name": self.last_name,
             "email": self.email
         }
+    
+    def serialize_name(self):
+        return {
+            "name": self.name
+        }
 
 
 class Trip(db.Model):
