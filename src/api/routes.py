@@ -133,11 +133,11 @@ def validate_new_itinerary(payload):
 
     if hour is None:
         raise APIException(
-            "La actividad debe contener destino", status_code=400)
+            "La actividad debe contener hora", status_code=400)
 
     if starting_date is None:
         raise APIException(
-            "La actividad debe contener destino", status_code=400)
+            "La actividad debe contener fecha", status_code=400)
 
     itinerary = Itinerary(
         title=title,
@@ -148,6 +148,31 @@ def validate_new_itinerary(payload):
     )
 
     return itinerary
+
+def validate_new_expense(payload):
+    amount = payload.get("amount").strip()
+    description = payload.get("description").strip()
+    payer_id = payload.get("payer_id").strip()
+
+    if amount is None:
+        raise APIException(
+            "El gasto debe contener una cantidad", status_code=400)
+    
+    if description is None:
+        raise APIException(
+            "El gasto debe contener descripcion", status_code=400)
+    
+    if payer_id is None:
+        raise APIException(
+            "El gasto debe contener un pagador", status_code=400)
+
+    expense = Expense(
+        amount = amount,
+        description = description,
+        payer_id = payer_id
+    )
+
+    return expense
 
 
 @api.route("/login", methods=["POST"])
@@ -319,12 +344,13 @@ def new_activity(trip_id):
             "No estás incluido en este viaje", status_code=401)
     
     itinerary = validate_new_itinerary(data)
+    itinerary.trip_id = trip_id
 
     db.session.add(itinerary)
     db.session.commit()
     db.session.refresh(itinerary)
 
-    # CORREO INFORMATIVO
+    # CORREO INFORMATIVO PENDIENTE
 
     return jsonify({
         "message": "Actividad añadida correctamente",
@@ -342,7 +368,49 @@ def new_activity(trip_id):
 # 4º: debe registrar el pago en la cantidad en la tabla Expense y regresar el id
 
 # 5º: debe registrar una deuda en la tabla Debt por cada usuario a pagar
+@api.route("/new-expense/<int:trip_id>", methods=["POST"])
+@jwt_required()
+def new_expense(trip_id):
 
+    user = get_current_user()
+    data = get_json_payload()
+
+    applicant = Traveler.query.filter(
+        Traveler.user_id == user.id, Traveler.trip_id == trip_id)
+    if applicant is None:
+        raise APIException(
+            "No estás incluido en este viaje", status_code=401)
+    
+    expense = validate_new_expense(data)
+    expense.trip_id = trip_id
+
+    db.session.add(expense)
+    db.session.commit()
+    db.session.refresh(expense)
+
+    # añadir una nueva deuda por cada usuario no pagador
+    debtors = data.get("debtors", [])
+    debtors = [debtor.id for debtor in debtors]
+    amount = expense.amount / len(debtors)
+    debtors.remove(expense.payer_id)
+
+    for debtor in debtors:
+        debt = Debt(
+            amount = amount,
+            debtor_id = debtor,
+            creditor_id = expense.payer_id,
+            expense_id = expense.id
+        )
+
+        db.session.add(debt)
+        db.session.commit()
+
+    # CORREO INFORMATIVO PENDIENTE
+
+    return jsonify({
+        "message": "Gasto añadida correctamente",
+        "expense": expense.serialize()
+    }), 201
 
 # ENDPOINT QUE DEVUELVE TODOS LOS ITINERARIOS DEL VIAJE
 # 1º: recibe el id del viaje, el JWT y saca el usuario

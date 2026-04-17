@@ -169,7 +169,7 @@ class Expense(db.Model):
     debts = relationship("Debt", back_populates="expenses")
 
     def serialize(self):
-        return {"id": self.id, "amount": self.amount, "description": self.description}
+        return {"id": self.id, "amount": self.amount, "description": self.description, "payer_id": self.payer_id}
 
 
 class Debt(db.Model):
