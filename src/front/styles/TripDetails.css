@@ -1,6 +1,6 @@
 /* =========================================
-    1. VARIABLES Y RESET (Respetando tus colores)
-    ========================================= */
+   1. VARIABLES Y RESET
+   ========================================= */
 :root {
     --brand-navy: #1E3A5F;
     --brand-teal: #2EC4B6;
@@ -14,8 +14,8 @@
 }
 
 /* =========================================
-    2. CABECERA (HERO SECTION)
-    ========================================= */
+   2. CABECERA (HERO SECTION)
+   ========================================= */
 .trip-hero {
     height: 400px;
     background-size: cover;
@@ -36,7 +36,7 @@
 
 .btn-back-light {
     position: absolute;
-    top: 100px; /* Debajo del navbar */
+    top: 100px;
     left: 20px;
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(5px);
@@ -78,8 +78,8 @@
 }
 
 /* =========================================
-    3. ESTRUCTURA DE DOS COLUMNAS (LAYOUT)
-    ========================================= */
+   3. ESTRUCTURA DE DOS COLUMNAS (LAYOUT)
+   ========================================= */
 .trip-content-container {
     max-width: 1200px;
     margin: -30px auto 50px auto; 
@@ -91,9 +91,6 @@
     z-index: 10;
 }
 
-/* =========================================
-    4. COLUMNA IZQUIERDA (Pestañas e Itinerario)
-    ========================================= */
 .main-column {
     background: white;
     border-radius: 16px;
@@ -134,76 +131,9 @@
     border-radius: 3px 3px 0 0;
 }
 
-/* Línea de tiempo (Itinerario) */
-.timeline {
-    border-left: 2px solid #e2e8f0;
-    margin-left: 10px;
-    padding-left: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-}
-
-.timeline-item {
-    position: relative;
-}
-
-.timeline-item.clickable {
-    cursor: pointer;
-    transition: transform 0.2s ease, background 0.2s ease;
-    padding: 15px;
-    border-radius: 12px;
-}
-
-.timeline-item.clickable:hover {
-    background: #f8fafc;
-    transform: translateX(5px);
-}
-
-.timeline-dot {
-    width: 14px;
-    height: 14px;
-    background: var(--brand-teal);
-    border-radius: 50%;
-    position: absolute;
-    left: -28px;
-    top: 20px;
-    box-shadow: 0 0 0 4px white;
-}
-
-.day-badge {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--brand-orange);
-    text-transform: uppercase;
-}
-
-.time-tag {
-    display: inline-block;
-    background: #e2e8f0;
-    color: #475569;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    margin-left: 10px;
-}
-
-.timeline-content h3 {
-    color: var(--brand-navy);
-    margin: 5px 0;
-    font-size: 1.2rem;
-}
-
-.timeline-content p {
-    color: #64748b;
-    font-size: 0.95rem;
-    margin: 0;
-}
-
 /* =========================================
-    5. COLUMNA DERECHA (WIDGETS Y CARDS)
-    ========================================= */
+   4. COLUMNA DERECHA (WIDGETS Y CARDS)
+   ========================================= */
 .side-column {
     display: flex;
     flex-direction: column;
@@ -272,10 +202,11 @@
 .friends-list li {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     margin-bottom: 12px;
     font-weight: 500;
     color: var(--brand-navy);
+    width: 100%;
 }
 
 .avatar {
@@ -295,9 +226,32 @@
     background: #cbd5e1;
 }
 
+/* Insignias de Balances */
+.balance-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-left: auto;
+}
+
+.balance-positive {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.balance-negative {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.balance-neutral {
+    color: #94a3b8;
+}
+
 /* =========================================
-    6. BOTONES GENERALES
-    ========================================= */
+   5. BOTONES GENERALES
+   ========================================= */
 .btn-action, .btn-invite, .btn-add-day {
     width: 100%;
     padding: 12px;
@@ -325,8 +279,8 @@
 }
 
 /* =========================================
-    7. MODALES (GENERAL Y GASTOS)
-    ========================================= */
+   6. MODALES BASE Y FORMULARIOS
+   ========================================= */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -377,146 +331,14 @@
     box-sizing: border-box;
 }
 
-/* FIX: Input de hora con formato fijo */
 input[type="time"] {
     min-height: 45px;
     cursor: pointer;
 }
 
 /* =========================================
-    8. DETALLE Y EDICIÓN DE ACTIVIDAD (GDV-35)
-    ========================================= */
-.activity-detail-modal { max-width: 480px; }
-
-.activity-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.btn-close-modal {
-    background: none; border: none; font-size: 1.8rem; color: #94a3b8; cursor: pointer;
-}
-
-.activity-main-info h2 {
-    color: var(--brand-navy);
-    font-size: 1.8rem;
-    margin-bottom: 15px;
-}
-
-.info-row {
-    display: flex; align-items: center; gap: 10px; color: #64748b; margin-bottom: 8px;
-}
-
-.info-row i { color: var(--brand-teal); width: 20px; text-align: center; }
-
-.modal-divider { border: 0; border-top: 1px solid #f1f5f9; margin: 20px 0; }
-
-.notes-box {
-    background: #fffbeb; border-left: 4px solid #fcd34d; padding: 15px;
-    color: #92400e; font-style: italic; border-radius: 4px;
-}
-
-.modal-actions-itinerary {
-    display: flex;
-    gap: 10px;
-    margin-top: 25px;
-}
-
-.btn-modal-cancel {
-    flex: 1; background: transparent; border: 1px solid #cbd5e1; color: #64748b;
-    padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
-}
-
-.btn-modal-confirm {
-    flex: 1; background: var(--brand-teal); color: white; border: none;
-    padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
-}
-
-.btn-edit-activity {
-    flex: 1; background: #f1f5f9; color: #475569; border: none;
-    padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
-}
-
-/* Estilos para el formulario de edición */
-.activity-edit-form textarea {
-    resize: none;
-}
-
-.expense-row {
-    display: flex;
-    gap: 15px;
-}
-
-/* =========================================
-    9. SPLITWISE / GASTOS ESPECIALES (Personalizado)
-    ========================================= */
-.custom-split-container {
-    background: #f1f5f9;
-    padding: 15px;
-    border-radius: 10px;
-    border: 1px solid #e2e8f0;
-}
-
-.checkbox-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-/* NUEVA LÓGICA DE CHECKBOX PERSONALIZADO (Sin check rojo) */
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    font-size: 0.95rem;
-    color: #475569;
-    gap: 10px;
-}
-
-/* Escondemos el check nativo del navegador */
-.checkbox-label input {
-    display: none;
-}
-
-/* Cuadro base del checkbox */
-.custom-checkbox {
-    height: 20px;
-    width: 20px;
-    background-color: white;
-    border: 2px solid #cbd5e1;
-    border-radius: 6px;
-    position: relative;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Cambio de color al estar marcado */
-.checkbox-label input:checked ~ .custom-checkbox {
-    background-color: var(--brand-teal);
-    border-color: var(--brand-teal);
-}
-
-/* Icono de Check blanco interno */
-.custom-checkbox::after {
-    content: "\f00c"; /* Icono Check de FontAwesome */
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    color: white;
-    font-size: 11px;
-    display: none;
-}
-
-.checkbox-label input:checked ~ .custom-checkbox::after {
-    display: block;
-}
-
-/* =========================================
-    10. ESTADOS VACÍOS
-    ========================================= */
+   7. ESTADOS VACÍOS
+   ========================================= */
 .empty-state {
     text-align: center;
     padding: 50px 20px;
@@ -530,8 +352,8 @@ input[type="time"] {
 }
 
 /* =========================================
-    11. RESPONSIVE DESIGN (MEDIA QUERIES)
-    ========================================= */
+   8. RESPONSIVE DESIGN (MEDIA QUERIES)
+   ========================================= */
 @media (max-width: 900px) {
     .trip-content-container {
         grid-template-columns: 1fr;
@@ -551,6 +373,5 @@ input[type="time"] {
     .content-tabs button { font-size: 0.9rem; }
 }
 
-/* Animaciones */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
