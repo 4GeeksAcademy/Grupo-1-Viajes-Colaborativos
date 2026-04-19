@@ -9,7 +9,8 @@ from flask_jwt_extended import (
 )
 
 import enum
-
+from sqlalchemy import func
+from collections import defaultdict
 from api.models import db, User, Trip, Traveler, Itinerary, Expense, Debt, Document, Chat, Message, StateTypes, CategoryTypes
 from api.utils import APIException
 
@@ -415,16 +416,25 @@ def all_activity(trip_id):
     }), 200
 
 
-# ENDPOINT QUE DEVUELVE TODOS LOS GASTOS DEL VIAJE
-# 1º: recibe el id del viaje, el JWT y saca el usuario
+@api.route("/all-expense/<int:trip_id>", methods=["GET"])
+@jwt_required()
+def all_expense(trip_id):
 
-# 2º: comprueba que el usuario está registrado en el viaje desde la tabla Traveler
+    user = get_current_user()
 
-# 3º: comprueba todas las deudas del viaje
+    validate_user_trip(user, trip_id)
 
-# 4º: hacer cuentas de la division de deudas
+    expenses = Expense.query.filter_by(Expense.trip_id == trip_id).order_by(Expense.id.desc()).all()
+    expenses_ids = [expense.id for expense in expenses]
 
-# 5º: devuelve todos los gastos del viaje desde la tabla Expense y todas las deudas
+    debts = Debt.query.filter(Debt.expense_id.in_(expenses_ids)).order_by(Debt.expense_id.desc()).all()
+
+    #DEUDAS SIMPLIFICADAS PARA EL FUTURO
+
+    return jsonify({
+        "expenses": [expense.serialize() for expense in expenses],
+        "debts": [debt.serialize() for debt in debts]
+    }), 200
 
 
 # ENDPOINT QUE MODIFICA LOS DATOS DEL USUARIO
