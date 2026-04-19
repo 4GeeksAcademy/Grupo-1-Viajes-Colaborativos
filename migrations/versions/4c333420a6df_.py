@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: a641ec06e1ec
+Revision ID: 4c333420a6df
 Revises: 
-Create Date: 2026-04-08 18:19:57.987352
+Create Date: 2026-04-19 12:43:03.260661
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a641ec06e1ec'
+revision = '4c333420a6df'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -26,13 +26,13 @@ def upgrade():
     sa.Column('starting_date', sa.Date(), nullable=False),
     sa.Column('ending_date', sa.Date(), nullable=False),
     sa.Column('budget', sa.Float(), nullable=False),
-    sa.Column('notes', sa.String(length=150), nullable=False),
+    sa.Column('notes', sa.String(length=150), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=20), nullable=False),
-    sa.Column('last_name', sa.String(length=50), nullable=False),
+    sa.Column('last_name', sa.String(length=50), nullable=True),
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password', sa.String(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
@@ -69,7 +69,7 @@ def upgrade():
     sa.Column('destination', sa.String(length=50), nullable=False),
     sa.Column('hour', sa.Time(), nullable=False),
     sa.Column('starting_date', sa.Date(), nullable=False),
-    sa.Column('notes', sa.String(length=150), nullable=False),
+    sa.Column('notes', sa.String(length=150), nullable=True),
     sa.Column('trip_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['trip_id'], ['trip.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')

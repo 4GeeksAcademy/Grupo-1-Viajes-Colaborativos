@@ -185,6 +185,15 @@ class Debt(db.Model):
                            debtor_id], back_populates="debts_owed")
     creditors = relationship("User", foreign_keys=[
                              creditor_id], back_populates="debts_to_receive")
+    
+    def serialize(self):
+        return {
+            "id": self.id,
+            "amount": self.amount,
+            "debtor_id": self.debtor_id,
+            "creditor_id": self.creditor_id,
+            "expense_id": self.expense_id
+        }
 
 
 class Document(db.Model):
@@ -197,6 +206,14 @@ class Document(db.Model):
 
     trips = relationship("Trip", back_populates="documents")
 
+    def serialize(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "url": self.url,
+            "trip_id": self.trip_id
+        }
+
 
 class Chat(db.Model):
     __tablename__ = 'chat'
@@ -208,6 +225,13 @@ class Chat(db.Model):
 
     trips = relationship("Trip", back_populates="chats")
     messages = relationship("Message", back_populates="chats")
+    
+    def serialize(self):
+        return {
+            "id": self.id,
+            "title": self.amount,
+            "trip_id": self.trip_id
+        }
 
 
 class Message(db.Model):
@@ -222,3 +246,12 @@ class Message(db.Model):
 
     chats = relationship("Chat", back_populates="messages")
     authors = relationship("User", back_populates="messages")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "content": self.content,
+            "date_time": str(self.date_time),
+            "chat_id": self.chat_id,
+            "user_id": self.user_id
+        }
