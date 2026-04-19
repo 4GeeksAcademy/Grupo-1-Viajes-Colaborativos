@@ -149,16 +149,18 @@ def validate_new_itinerary(payload):
 
     return itinerary
 
+# --- CORRECCIÓN 1: VALIDATE_NEW_EXPENSE ---
 def validate_new_expense(payload):
-    amount = payload.get("amount").strip()
-    description = payload.get("description").strip()
-    payer_id = payload.get("payer_id").strip()
+    # Quitamos los .strip() para evitar que el float y el int exploten
+    amount = payload.get("amount")
+    description = payload.get("description")
+    payer_id = payload.get("payer_id")
 
     if amount is None:
         raise APIException(
             "El gasto debe contener una cantidad", status_code=400)
     
-    if description is None:
+    if description is None or str(description).strip() == "":
         raise APIException(
             "El gasto debe contener descripcion", status_code=400)
     
@@ -166,10 +168,11 @@ def validate_new_expense(payload):
         raise APIException(
             "El gasto debe contener un pagador", status_code=400)
 
+    # Convertimos los datos de forma segura
     expense = Expense(
-        amount = amount,
-        description = description,
-        payer_id = payer_id
+        amount = float(amount),
+        description = str(description).strip(),
+        payer_id = int(payer_id)
     )
 
     return expense
@@ -223,7 +226,7 @@ def sign_up():
 
 @api.route("/travels", methods=["GET"])
 @api.route("/trips", methods=["GET"])
-@jwt_required
+@jwt_required()
 def travels():
     data = get_json_payload()
     state_param = data.get("state")
@@ -308,30 +311,38 @@ def trip_detail(trip_id):
 
     validate_user_trip(user, trip_id)
 
-    travelers = Traveler.query.filter_by(Traveler.trip_id == trip_id).all
-    travelers = [traveler.serialize_user() for traveler in travelers]
+    trip = db.session.get(Trip, trip_id)
+    if not trip:
+        raise APIException("Viaje no encontrado", status_code=404)
 
-    travelers_confirmed = User.query.filter_by(User.id.in_(travelers))
-    travelers_confirmed.append(user)
-    users_confirmed = [users.serialize_name() for users in travelers_confirmed]
+    travelers_links = Traveler.query.filter_by(trip_id=trip_id).all()
+    users_confirmed = [t.users.serialize() for t in travelers_links]
 
-    trip = Trip.query.filter_by(Trip.id == trip_id)
-    itinerary = Itinerary.query.filter_by(
-        Itinerary.trip_id == trip_id).limit(5).all()
-    expense = Expense.query.filter_by(
-        Expense.trip_id == trip_id).limit(5).all()
-    document = Document.query.filter_by(Document.trip_id == trip_id).all()
-    chat = Chat.query.filter_by(Chat.trip_id == trip_id)
-    messages = Message.query.filter_by(
-        Message.chat_id == chat.id).limit(20).all()
+    itineraries = Itinerary.query.filter_by(trip_id=trip_id).order_by(Itinerary.starting_date.asc(), Itinerary.hour.asc()).all()
+    expenses = Expense.query.filter_by(trip_id=trip_id).all()
+    documents = Document.query.filter_by(trip_id=trip_id).all()
+    
+    chat = Chat.query.filter_by(trip_id=trip_id).first()
+    messages_list = []
+    
+    if chat:
+        messages = Message.query.filter_by(chat_id=chat.id).order_by(Message.date_time.asc()).all()
+        for msg in messages:
+            messages_list.append({
+                "id": msg.id,
+                "content": msg.content,
+                "date_time": msg.date_time.isoformat(),
+                "user_id": msg.user_id,
+                "user_name": msg.authors.name 
+            })
 
     return jsonify({
         "travelers": users_confirmed,
         "trip": trip.serialize(),
-        "itinerary": itinerary.serialize(),
-        "expense": expense.serialize(),
-        "document": document.serialize(),
-        "messages": messages.serialize(),
+        "itinerary": [i.serialize() for i in itineraries],
+        "expense": [e.serialize() for e in expenses],
+        "document": [d.serialize() for d in documents],
+        "messages": messages_list,
     }), 200
 
 
@@ -359,6 +370,7 @@ def new_activity(trip_id):
     }), 201
 
 
+# --- CORRECCIÓN 2: NEW_EXPENSE (Bucle doble eliminado) ---
 @api.route("/new-expense/<int:trip_id>", methods=["POST"])
 @jwt_required()
 def new_expense(trip_id):
@@ -377,20 +389,34 @@ def new_expense(trip_id):
 
     # añadir una nueva deuda por cada usuario no pagador
     debtors = data.get("debtors", [])
-    debtors = [debtor.id for debtor in debtors]
-    amount = expense.amount / len(debtors)
-    debtors.remove(expense.payer_id)
+    
+    # 1. Extraemos los IDs de forma segura convirtiéndolos a números
+    debtors_ids = [int(debtor.get("id")) for debtor in debtors]
+    
+    # 2. Aseguramos que el payer_id también sea un número
+    payer_id_int = int(expense.payer_id)
+    
+    # 3. Calculamos la cantidad (protección por si acaso la lista de deudores viene vacía)
+    if len(debtors_ids) > 0:
+        amount = float(expense.amount) / len(debtors_ids)
+    else:
+        amount = float(expense.amount)
+    
+    # 4. Quitamos al pagador de la lista de deudores (solo si está en la lista)
+    if payer_id_int in debtors_ids:
+        debtors_ids.remove(payer_id_int)
 
-    for debtor in debtors:
+    # BUCLE ÚNICO CORREGIDO
+    for debtor_id in debtors_ids:
         debt = Debt(
             amount = amount,
-            debtor_id = debtor,
-            creditor_id = expense.payer_id,
+            debtor_id = debtor_id, 
+            creditor_id = payer_id_int, 
             expense_id = expense.id
         )
-
         db.session.add(debt)
-        db.session.commit()
+        
+    db.session.commit() # Hacemos un solo commit al final del bucle
 
     # CORREO INFORMATIVO PENDIENTE
 
@@ -413,6 +439,45 @@ def all_activity(trip_id):
     return jsonify({
         "itinerary": [itinerary.serialize() for itinerary in itineraries]
     }), 200
+
+
+@api.route("/new-message/<int:trip_id>", methods=["POST"])
+@jwt_required()
+def new_message(trip_id):
+    user = get_current_user()
+    validate_user_trip(user, trip_id)
+    
+    data = get_json_payload()
+    content = data.get("content", "").strip()
+    
+    if not content:
+        raise APIException("El mensaje no puede estar vacío", status_code=400)
+        
+    chat = Chat.query.filter_by(trip_id=trip_id).first()
+    if not chat:
+        chat = Chat(title="Chat del Viaje", trip_id=trip_id)
+        db.session.add(chat)
+        db.session.commit()
+        
+    new_msg = Message(
+        content=content,
+        chat_id=chat.id,
+        user_id=user.id
+    )
+    
+    db.session.add(new_msg)
+    db.session.commit()
+    
+    return jsonify({
+        "message": "Mensaje enviado",
+        "data": {
+            "id": new_msg.id,
+            "content": new_msg.content,
+            "date_time": new_msg.date_time.isoformat(),
+            "user_id": new_msg.user_id,
+            "user_name": user.name
+        }
+    }), 201
 
 
 # ENDPOINT QUE DEVUELVE TODOS LOS GASTOS DEL VIAJE
