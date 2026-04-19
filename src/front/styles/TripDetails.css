@@ -1,5 +1,5 @@
 /* =========================================
-   1. VARIABLES Y RESET
+   1. VARIABLES Y RESET MÓVIL
    ========================================= */
 :root {
     --brand-navy: #1E3A5F;
@@ -7,10 +7,16 @@
     --brand-orange: #FF7A59;
 }
 
+.trip-details-wrapper, .trip-details-wrapper * {
+    box-sizing: border-box;
+}
+
 .trip-details-wrapper {
     min-height: 100vh;
     font-family: 'Poppins', sans-serif;
     background-color: #f8fafc;
+    overflow-x: hidden; 
+    width: 100%;
 }
 
 /* =========================================
@@ -96,13 +102,47 @@
     border-radius: 16px;
     padding: 30px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    /* NUEVO: Asegura que la tarjeta no crezca más allá de la pantalla */
+    max-width: 100%; 
+    min-width: 0;
 }
 
+/* --- MAGIA HÍBRIDA MÓVIL/PC (Mobile First) --- */
+.main-layout-wrapper {
+    display: flex;
+    flex-direction: column-reverse; /* En móvil, el chat sube */
+    gap: 30px;
+    /* FIX ANCHO MÓVIL: Evita que el scroll de las pestañas estire este contenedor */
+    min-width: 0; 
+    width: 100%;
+}
+
+.persistent-chat, .tabs-content-area {
+    /* FIX ANCHO MÓVIL: Obliga a las dos áreas a respetar los bordes de la pantalla */
+    min-width: 0; 
+    width: 100%;
+}
+
+.chat-desktop-view {
+    display: none; 
+}
+
+/* =========================================
+   PESTAÑAS CON SCROLL MÓVIL
+   ========================================= */
 .content-tabs {
     display: flex;
     gap: 20px;
     border-bottom: 2px solid #f1f5f9;
     margin-bottom: 30px;
+    overflow-x: auto; 
+    -webkit-overflow-scrolling: touch; 
+    padding-bottom: 5px; 
+    width: 100%;
+}
+
+.content-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .content-tabs button {
@@ -114,6 +154,8 @@
     color: #64748b;
     cursor: pointer;
     position: relative;
+    white-space: nowrap; 
+    flex: 0 0 auto; 
 }
 
 .content-tabs button.active {
@@ -138,6 +180,7 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+    min-width: 0; /* Protección extra */
 }
 
 .summary-card {
@@ -156,27 +199,16 @@
     gap: 10px;
 }
 
-.summary-card h3 i {
-    color: var(--brand-teal);
-}
+.summary-card h3 i { color: var(--brand-teal); }
 
-/* Presupuesto Widget */
 .budget-numbers {
     display: flex;
     justify-content: space-between;
     margin-bottom: 15px;
 }
 
-.budget-numbers span {
-    font-size: 0.85rem;
-    color: #64748b;
-}
-
-.budget-numbers h4 {
-    font-size: 1.5rem;
-    color: var(--brand-navy);
-    margin: 0;
-}
+.budget-numbers span { font-size: 0.85rem; color: #64748b; }
+.budget-numbers h4 { font-size: 1.5rem; color: var(--brand-navy); margin: 0; }
 
 .progress-bar-bg {
     width: 100%;
@@ -192,7 +224,6 @@
     transition: width 0.5s ease;
 }
 
-/* Amigos / Viajeros Widget */
 .friends-list {
     list-style: none;
     padding: 0;
@@ -220,34 +251,23 @@
     justify-content: center;
     font-size: 0.8rem;
     font-weight: 700;
+    flex-shrink: 0; /* Para que el avatar no se deforme */
 }
 
-.friend-avatar {
-    background: #cbd5e1;
-}
+.friend-avatar { background: #cbd5e1; }
 
-/* Insignias de Balances */
 .balance-badge {
     font-size: 0.8rem;
     font-weight: 600;
     padding: 3px 8px;
     border-radius: 12px;
     margin-left: auto;
+    white-space: nowrap;
 }
 
-.balance-positive {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.balance-negative {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.balance-neutral {
-    color: #94a3b8;
-}
+.balance-positive { background: #dcfce7; color: #166534; }
+.balance-negative { background: #fee2e2; color: #991b1b; }
+.balance-neutral { color: #94a3b8; }
 
 /* =========================================
    5. BOTONES GENERALES
@@ -274,86 +294,25 @@
     color: var(--brand-teal);
 }
 
-.btn-action:hover, .btn-invite:hover, .btn-add-day:hover {
-    background: #e2e8f0;
-}
+.btn-action:hover, .btn-invite:hover, .btn-add-day:hover { background: #e2e8f0; }
 
 /* =========================================
-   6. MODALES BASE Y FORMULARIOS
+   8. RESPONSIVE DESIGN (PC FIRST y MOBILE)
    ========================================= */
-.modal-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: rgba(15, 23, 42, 0.7);
-    backdrop-filter: blur(4px);
-    display: flex; justify-content: center; align-items: center;
-    z-index: 9999;
+@media (min-width: 901px) {
+    .main-layout-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 350px; 
+        gap: 30px;
+        align-items: start;
+    }
+    
+    .persistent-chat {
+        position: sticky;
+        top: 20px;
+    }
 }
 
-.modal-content {
-    background: white;
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto; 
-    border-radius: 16px;
-    padding: 35px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-}
-
-.modal-content h3 {
-    margin: 0 0 5px 0;
-    font-size: 1.4rem;
-    color: var(--brand-navy);
-}
-
-.input-group {
-    margin-bottom: 15px;
-}
-
-.input-group label {
-    display: block;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--brand-navy);
-    margin-bottom: 8px;
-    text-transform: uppercase;
-}
-
-.input-group input, .input-group select, .input-group textarea {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid #ced4da;
-    border-radius: 10px;
-    font-family: 'Poppins', sans-serif;
-    background: #f8fafc;
-    box-sizing: border-box;
-}
-
-input[type="time"] {
-    min-height: 45px;
-    cursor: pointer;
-}
-
-/* =========================================
-   7. ESTADOS VACÍOS
-   ========================================= */
-.empty-state {
-    text-align: center;
-    padding: 50px 20px;
-    color: #94a3b8;
-}
-
-.empty-state i {
-    font-size: 3rem;
-    margin-bottom: 15px;
-    color: #cbd5e1;
-}
-
-/* =========================================
-   8. RESPONSIVE DESIGN (MEDIA QUERIES)
-   ========================================= */
 @media (max-width: 900px) {
     .trip-content-container {
         grid-template-columns: 1fr;
@@ -365,13 +324,22 @@ input[type="time"] {
 }
 
 @media (max-width: 500px) {
-    .trip-hero { height: 300px; }
+    .trip-hero { 
+        height: 320px; 
+        padding-bottom: 20px; 
+    }
+    
+    .btn-back-light {
+        top: 75px; 
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
     .main-column, .summary-card { padding: 20px 15px; }
     .hero-content h1 { font-size: 1.8rem; }
-    .expense-row { flex-direction: column; gap: 0; }
-    .content-tabs { gap: 10px; justify-content: space-between; }
-    .content-tabs button { font-size: 0.9rem; }
+    
+    .content-tabs { gap: 15px; } 
+    .content-tabs button { font-size: 0.95rem; }
 }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
