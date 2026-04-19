@@ -9,7 +9,8 @@ from flask_jwt_extended import (
 )
 
 import enum
-
+from sqlalchemy import func
+from collections import defaultdict
 from api.models import db, User, Trip, Traveler, Itinerary, Expense, Debt, Document, Chat, Message, StateTypes, CategoryTypes
 from api.utils import APIException
 
@@ -149,9 +150,7 @@ def validate_new_itinerary(payload):
 
     return itinerary
 
-# --- CORRECCIÓN 1: VALIDATE_NEW_EXPENSE ---
 def validate_new_expense(payload):
-    # Quitamos los .strip() para evitar que el float y el int exploten
     amount = payload.get("amount")
     description = payload.get("description")
     payer_id = payload.get("payer_id")
@@ -168,7 +167,6 @@ def validate_new_expense(payload):
         raise APIException(
             "El gasto debe contener un pagador", status_code=400)
 
-    # Convertimos los datos de forma segura
     expense = Expense(
         amount = float(amount),
         description = str(description).strip(),
@@ -387,10 +385,10 @@ def new_expense(trip_id):
     db.session.commit()
     db.session.refresh(expense)
 
-    # añadir una nueva deuda por cada usuario no pagador
+    # Añadir una nueva deuda por cada usuario no pagador
     debtors = data.get("debtors", [])
     
-    # 1. Extraemos los IDs de forma segura convirtiéndolos a números
+    # 1. Extraemos los IDs convirtiéndolos a números
     debtors_ids = [int(debtor.get("id")) for debtor in debtors]
     
     # 2. Aseguramos que el payer_id también sea un número
@@ -406,7 +404,6 @@ def new_expense(trip_id):
     if payer_id_int in debtors_ids:
         debtors_ids.remove(payer_id_int)
 
-    # BUCLE ÚNICO CORREGIDO
     for debtor_id in debtors_ids:
         debt = Debt(
             amount = amount,
@@ -416,7 +413,7 @@ def new_expense(trip_id):
         )
         db.session.add(debt)
         
-    db.session.commit() # Hacemos un solo commit al final del bucle
+    db.session.commit()
 
     # CORREO INFORMATIVO PENDIENTE
 
@@ -480,16 +477,25 @@ def new_message(trip_id):
     }), 201
 
 
-# ENDPOINT QUE DEVUELVE TODOS LOS GASTOS DEL VIAJE
-# 1º: recibe el id del viaje, el JWT y saca el usuario
+@api.route("/all-expense/<int:trip_id>", methods=["GET"])
+@jwt_required()
+def all_expense(trip_id):
 
-# 2º: comprueba que el usuario está registrado en el viaje desde la tabla Traveler
+    user = get_current_user()
 
-# 3º: comprueba todas las deudas del viaje
+    validate_user_trip(user, trip_id)
 
-# 4º: hacer cuentas de la division de deudas
+    expenses = Expense.query.filter_by(Expense.trip_id == trip_id).order_by(Expense.id.desc()).all()
+    expenses_ids = [expense.id for expense in expenses]
 
-# 5º: devuelve todos los gastos del viaje desde la tabla Expense y todas las deudas
+    debts = Debt.query.filter(Debt.expense_id.in_(expenses_ids)).order_by(Debt.expense_id.desc()).all()
+
+    #DEUDAS SIMPLIFICADAS PARA EL FUTURO
+
+    return jsonify({
+        "expenses": [expense.serialize() for expense in expenses],
+        "debts": [debt.serialize() for debt in debts]
+    }), 200
 
 
 # ENDPOINT QUE MODIFICA LOS DATOS DEL USUARIO
