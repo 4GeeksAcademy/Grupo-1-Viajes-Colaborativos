@@ -1,25 +1,27 @@
 import React, { useState } from "react";
-import "../styles/ExpensesTab.css"; // <-- ¡ESTA ES LA LÍNEA MÁGICA!
+import { useParams } from "react-router-dom"; // <-- Necesario para obtener el ID del viaje
+import "../styles/ExpensesTab.css";
 
-export const ExpensesTab = ({ expensesList, setExpensesList, allParticipants }) => {
-    // --- ESTADOS PARA LOS MODALES DE GASTOS ---
+// CAMBIO 1: Recibimos 'travelers' (la lista de objetos de la base de datos) en lugar de solo nombres
+export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParticipants }) => {
+    const { id } = useParams(); // ID del viaje de la URL
+
     const [showExpenseModal, setShowExpenseModal] = useState(false);
     const [isEditingExpense, setIsEditingExpense] = useState(false);
     const [selectedExpense, setSelectedExpense] = useState(null);
+    const [loading, setLoading] = useState(false); // Para el botón de enviar
     
-    // Estado del formulario (sirve tanto para crear como para editar)
     const [expenseData, setExpenseData] = useState({ 
         id: null, 
         description: "", 
         amount: "", 
         category: "Comida", 
-        paidBy: "Yo", 
+        paidBy: allParticipants[0] || "Yo", 
         splitMethod: "equally", 
         splitWith: [], 
         settledWith: [] 
     });
 
-    // --- FUNCIONES DEL FORMULARIO DE GASTOS ---
     const handleExpenseChange = (e) => {
         setExpenseData({ ...expenseData, [e.target.name]: e.target.value });
     };
@@ -33,33 +35,81 @@ export const ExpensesTab = ({ expensesList, setExpensesList, allParticipants }) 
         }));
     };
 
-    const handleExpenseSubmit = (e) => {
+    // --- LA FUNCIÓN MÁGICA CONECTADA AL BACKEND ---
+    const handleExpenseSubmit = async (e) => {
         e.preventDefault();
         const parsedAmount = parseFloat(expenseData.amount);
         
         if (isEditingExpense) {
-            // Actualizamos un gasto existente
+            // (La edición al backend la dejaremos para el siguiente paso, por ahora se queda en local)
             setExpensesList(expensesList.map(exp => 
                 exp.id === expenseData.id ? { ...expenseData, amount: parsedAmount } : exp
             ));
+            cerrarModal();
         } else {
-            // Creamos un gasto nuevo
-            setExpensesList([...expensesList, { 
-                id: Date.now(), 
-                ...expenseData, 
-                amount: parsedAmount, 
-                date: "Hoy", 
-                settledWith: [] 
-            }]);
+            // 1. TRADUCTOR DE NOMBRE A ID
+            // Buscamos el ID de quien pagó
+            const payerObj = travelers.find(t => t.name === expenseData.paidBy);
+            const payerId = payerObj ? payerObj.id : null;
+
+            // Buscamos los IDs de con quién se divide
+            const debtorsList = expenseData.splitWith.map(name => {
+                const t = travelers.find(t => t.name === name);
+                return t ? { id: t.id } : null;
+            }).filter(d => d !== null);
+
+            // 2. PAQUETE PARA EL BACKEND
+            const newExpensePayload = {
+                amount: parsedAmount,
+                description: expenseData.description,
+                payer_id: payerId,
+                debtors: debtorsList
+            };
+
+            setLoading(true);
+            try {
+                // 3. ENVIAMOS AL SERVIDOR
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/new-expense/${id}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${localStorage.getItem("token")}`
+                    },
+                    body: JSON.stringify(newExpensePayload)
+                });
+
+                if (response.ok) {
+                    const responseData = await response.json();
+                    
+                    // 4. GUARDAMOS EN REACT (Mezclando datos del Back con la estructura del Front)
+                    setExpensesList([...expensesList, { 
+                        id: responseData.expense.id, // ID real de PostgreSQL
+                        ...expenseData, 
+                        amount: parsedAmount, 
+                        date: "Hoy", 
+                        settledWith: [] 
+                    }]);
+                    
+                    cerrarModal();
+                } else {
+                    const errorData = await response.json();
+                    alert("Error al guardar en el servidor: " + (errorData.message || ""));
+                }
+            } catch (error) {
+                console.error("Error de conexión:", error);
+                alert("Error de conexión con el backend");
+            } finally {
+                setLoading(false);
+            }
         }
-        
-        // Limpiamos y cerramos
-        setShowExpenseModal(false);
-        setIsEditingExpense(false);
-        setExpenseData({ id: null, description: "", amount: "", category: "Comida", paidBy: "Yo", splitMethod: "equally", splitWith: [], settledWith: [] });
     };
 
-    // --- FUNCIONES DE INTERACCIÓN CON GASTOS CREADOS ---
+    const cerrarModal = () => {
+        setShowExpenseModal(false);
+        setIsEditingExpense(false);
+        setExpenseData({ id: null, description: "", amount: "", category: "Comida", paidBy: allParticipants[0] || "Yo", splitMethod: "equally", splitWith: [], settledWith: [] });
+    };
+
     const handleEditExpenseClick = () => {
         setExpenseData(selectedExpense);
         setIsEditingExpense(true);
@@ -71,22 +121,20 @@ export const ExpensesTab = ({ expensesList, setExpensesList, allParticipants }) 
         const confirmDelete = window.confirm("¿Estás seguro de que quieres borrar este gasto? Esta acción actualizará los balances.");
         if (confirmDelete) {
             setExpensesList(expensesList.filter(exp => exp.id !== id));
-            setSelectedExpense(null); // Cerramos el modal tras borrar
+            setSelectedExpense(null);
         }
     };
 
-    // La función mágica para saldar deudas individualmente
     const toggleSettleDebt = (expenseId, personName) => {
         const updatedExpenses = expensesList.map(exp => {
             if (exp.id === expenseId) {
                 const isAlreadySettled = exp.settledWith?.includes(personName);
                 const newSettledWith = isAlreadySettled
-                    ? exp.settledWith.filter(p => p !== personName) // Si ya estaba pagado, lo deshace
-                    : [...(exp.settledWith || []), personName]; // Si no, lo añade a la lista de pagados
+                    ? exp.settledWith.filter(p => p !== personName) 
+                    : [...(exp.settledWith || []), personName]; 
                 
                 const updatedExp = { ...exp, settledWith: newSettledWith };
                 
-                // Actualizamos también el selectedExpense para que la UI del modal se refresque en vivo
                 if (selectedExpense && selectedExpense.id === expenseId) {
                     setSelectedExpense(updatedExp);
                 }
@@ -97,7 +145,6 @@ export const ExpensesTab = ({ expensesList, setExpensesList, allParticipants }) 
         setExpensesList(updatedExpenses);
     };
 
-    // Helper para los iconos
     const getCategoryIcon = (category) => {
         switch(category) { 
             case "Comida": return "fa-solid fa-utensils"; 
@@ -115,8 +162,7 @@ export const ExpensesTab = ({ expensesList, setExpensesList, allParticipants }) 
                         className="btn-add-expense-small" 
                         onClick={() => { 
                             setIsEditingExpense(false); 
-                            // Pre-seleccionamos a todos por defecto al crear uno nuevo
-                            setExpenseData({ description: "", amount: "", category: "Comida", paidBy: "Yo", splitMethod: "equally", splitWith: allParticipants, settledWith: [] }); 
+                            setExpenseData({ description: "", amount: "", category: "Comida", paidBy: allParticipants[0] || "Yo", splitMethod: "equally", splitWith: allParticipants, settledWith: [] }); 
                             setShowExpenseModal(true); 
                         }}
                     >
@@ -124,7 +170,6 @@ export const ExpensesTab = ({ expensesList, setExpensesList, allParticipants }) 
                     </button>
                 </div>
                 
-                {/* LISTA DE TARJETAS DE GASTOS */}
                 {expensesList.length > 0 ? (
                     <div className="expenses-grid">
                         {expensesList.map((expense) => (
@@ -134,7 +179,7 @@ export const ExpensesTab = ({ expensesList, setExpensesList, allParticipants }) 
                                 </div>
                                 <div className="expense-card-info">
                                     <h4>{expense.description}</h4>
-                                    <span className="expense-payer">{expense.paidBy} pagó por {expense.splitWith.length}</span>
+                                    <span className="expense-payer">{expense.paidBy} pagó por {expense.splitWith ? expense.splitWith.length : 0}</span>
                                 </div>
                                 <div className="expense-card-amount">
                                     <h4>{expense.amount} €</h4>
@@ -152,13 +197,13 @@ export const ExpensesTab = ({ expensesList, setExpensesList, allParticipants }) 
                 )}
             </div>
 
-            {/* --- MODAL: CREAR O EDITAR GASTO --- */}
+            {/* --- MODAL CREAR/EDITAR --- */}
             {showExpenseModal && (
-                <div className="modal-overlay" onClick={() => setShowExpenseModal(false)}>
+                <div className="modal-overlay" onClick={cerrarModal}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <div className="activity-modal-header">
                             <h3>{isEditingExpense ? "Editar Gasto" : "Añadir Nuevo Gasto"}</h3>
-                            <button className="btn-close-modal" onClick={() => setShowExpenseModal(false)}>&times;</button>
+                            <button className="btn-close-modal" type="button" onClick={cerrarModal}>&times;</button>
                         </div>
                         <form onSubmit={handleExpenseSubmit} className="expense-form">
                             <div className="input-group full-width">
@@ -168,7 +213,7 @@ export const ExpensesTab = ({ expensesList, setExpensesList, allParticipants }) 
                             <div className="expense-row">
                                 <div className="input-group">
                                     <label>Importe (€)</label>
-                                    <input type="number" name="amount" value={expenseData.amount} onChange={handleExpenseChange} required />
+                                    <input type="number" step="0.01" min="0" name="amount" value={expenseData.amount} onChange={handleExpenseChange} required />
                                 </div>
                                 <div className="input-group">
                                     <label>Categoría</label>
@@ -195,7 +240,6 @@ export const ExpensesTab = ({ expensesList, setExpensesList, allParticipants }) 
                                 </div>
                             </div>
                             
-                            {/* Checkboxes para división personalizada */}
                             {expenseData.splitMethod === "custom" && (
                                 <div className="custom-split-container">
                                     <div className="checkbox-grid">
@@ -214,19 +258,20 @@ export const ExpensesTab = ({ expensesList, setExpensesList, allParticipants }) 
                             )}
                             
                             <div className="modal-actions-itinerary">
-                                <button type="button" className="btn-modal-cancel" onClick={() => setShowExpenseModal(false)}>Cancelar</button>
-                                <button type="submit" className="btn-modal-confirm">{isEditingExpense ? "Actualizar" : "Guardar"}</button>
+                                <button type="button" className="btn-modal-cancel" onClick={cerrarModal}>Cancelar</button>
+                                <button type="submit" className="btn-modal-confirm" disabled={loading}>
+                                    {loading ? "Guardando..." : (isEditingExpense ? "Actualizar" : "Guardar")}
+                                </button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
 
-            {/* --- MODAL: DESGLOSE DEL GASTO (GDV-36) --- */}
+            {/* --- MODAL DESGLOSE --- */}
             {selectedExpense && (
                 <div className="modal-overlay" onClick={() => setSelectedExpense(null)}>
                     <div className="modal-content expense-breakdown-modal" onClick={(e) => e.stopPropagation()}>
-                        
                         <div className="activity-modal-header">
                             <span className="day-badge">
                                 <i className={getCategoryIcon(selectedExpense.category)}></i> {selectedExpense.category}
@@ -243,9 +288,9 @@ export const ExpensesTab = ({ expensesList, setExpensesList, allParticipants }) 
                         <div className="modal-divider"></div>
                         
                         <div className="breakdown-list">
-                            <h4>División del gasto ({selectedExpense.splitWith.length} personas)</h4>
+                            <h4>División del gasto ({selectedExpense.splitWith ? selectedExpense.splitWith.length : 0} personas)</h4>
                             
-                            {selectedExpense.splitWith.map((person, index) => {
+                            {selectedExpense.splitWith && selectedExpense.splitWith.map((person, index) => {
                                 const amountPerPerson = (selectedExpense.amount / selectedExpense.splitWith.length).toFixed(2);
                                 const isPayer = person === selectedExpense.paidBy;
                                 const isSettled = selectedExpense.settledWith?.includes(person);
@@ -292,7 +337,6 @@ export const ExpensesTab = ({ expensesList, setExpensesList, allParticipants }) 
                                 Cerrar
                             </button>
                         </div>
-
                     </div>
                 </div>
             )}

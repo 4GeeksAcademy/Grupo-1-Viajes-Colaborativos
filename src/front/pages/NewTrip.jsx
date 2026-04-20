@@ -1,38 +1,77 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/NewTrip.css"; // Crearemos este archivo en el Paso 2
+import "../styles/NewTrip.css"; 
 
 export const NewTrip = () => {
     const navigate = useNavigate();
     
-    // Aquí guardaremos temporalmente lo que el usuario escriba
     const [trip, setTrip] = useState({
         title: "",
-        startDate: "",
-        endDate: "",
-        status: "Planificando", // Por defecto
-        imageUrl: "" 
+        destination: "",
+        starting_date: "",
+        ending_date: "",
+        // 🛠️ FIX: Ahora usamos la clave exacta que espera la base de datos
+        state: "PLANNING", 
+        budget: "",
+        notes: "",
+        users: "" 
     });
 
     const handleChange = (e) => {
         setTrip({ ...trip, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Por ahora solo lo mostramos en consola. ¡Más adelante lo enviaremos a Python!
-        console.log("Viaje listo para guardar:", trip);
         
-        // Simulamos que se guardó y devolvemos al usuario a su panel
-        alert("¡Aventura creada con éxito! (Simulación)");
-        navigate("/my-trips");
+        const token = localStorage.getItem("token");
+        if (!token) {
+            navigate("/login");
+            return;
+        }
+
+        const emailsArray = trip.users
+            .split(",")
+            .map(email => email.trim())
+            .filter(email => email !== "");
+
+        const payload = {
+            title: String(trip.title),
+            destination: String(trip.destination),
+            state: String(trip.state), // Esto enviará "PLANNING", "ONGOING" o "FINISHED"
+            starting_date: String(trip.starting_date),
+            ending_date: String(trip.ending_date),
+            budget: String(trip.budget),
+            notes: String(trip.notes),
+            users: emailsArray
+        };
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/new_trip`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                navigate(`/trip-details/${data.trip.id}`);
+            } else {
+                const errorData = await response.json();
+                alert(`Rigo dice: ${errorData.message}`); 
+            }
+        } catch (error) {
+            console.error("Error de conexión:", error);
+        }
     };
 
     return (
         <div className="new-trip-wrapper">
             <div className="new-trip-container">
                 
-                {/* Botón para volver atrás */}
                 <button className="btn-back" onClick={() => navigate("/my-trips")}>
                     <i className="fa-solid fa-arrow-left"></i> Volver a Mis Viajes
                 </button>
@@ -46,61 +85,104 @@ export const NewTrip = () => {
                     <form onSubmit={handleSubmit} className="new-trip-form">
                         
                         <div className="input-group">
-                            <label>¿A dónde vamos? (Destino)</label>
+                            <label>Nombre del Viaje (Título)</label>
                             <input 
                                 type="text" 
                                 name="title"
-                                placeholder="Ej. Escapada a Kioto" 
+                                placeholder="Ej. Aventura en Roma" 
                                 value={trip.title}
                                 onChange={handleChange}
                                 required 
                             />
                         </div>
 
-                        <div className="dates-row">
-                            <div className="input-group">
+                        <div className="input-group">
+                            <label>¿A dónde vamos? (Destino)</label>
+                            <input 
+                                type="text" 
+                                name="destination"
+                                placeholder="Ej. Italia" 
+                                value={trip.destination}
+                                onChange={handleChange}
+                                required 
+                            />
+                        </div>
+
+                        <div className="dates-row" style={{ display: 'flex', gap: '20px' }}>
+                            <div className="input-group" style={{ flex: 1 }}>
                                 <label>Fecha de inicio</label>
                                 <input 
                                     type="date" 
-                                    name="startDate"
-                                    value={trip.startDate}
+                                    name="starting_date"
+                                    value={trip.starting_date}
                                     onChange={handleChange}
                                     required 
                                 />
                             </div>
-                            <div className="input-group">
+                            <div className="input-group" style={{ flex: 1 }}>
                                 <label>Fecha de regreso</label>
                                 <input 
                                     type="date" 
-                                    name="endDate"
-                                    value={trip.endDate}
+                                    name="ending_date"
+                                    value={trip.ending_date}
                                     onChange={handleChange}
                                     required 
                                 />
                             </div>
+                        </div>
+
+                        <div className="input-group">
+                            <label>Presupuesto Total Estimado (€)</label>
+                            <input 
+                                type="number" 
+                                name="budget"
+                                placeholder="Ej. 1500" 
+                                value={trip.budget}
+                                onChange={handleChange}
+                                required 
+                                min="0"
+                                step="0.01"
+                            />
                         </div>
 
                         <div className="input-group">
                             <label>Estado del viaje</label>
-                            <select name="status" value={trip.status} onChange={handleChange}>
-                                <option value="Planificando">Planificando (Aún viendo detalles)</option>
-                                <option value="En curso">En curso (¡Billetes comprados!)</option>
+                            <select name="state" value={trip.state} onChange={handleChange}>
+                                {/* 🛠️ FIX: Ahora Rigo sí reconocerá estas palabras clave */}
+                                <option value="PLANNING">Planificando (Aún viendo detalles)</option>
+                                <option value="ONGOING">En curso (¡Billetes comprados!)</option>
+                                <option value="FINISHED">Finalizado (Viaje terminado)</option>
                             </select>
                         </div>
 
                         <div className="input-group">
-                            <label>URL de portada (Opcional)</label>
+                            <label>Invita a tus compañeros (Opcional)</label>
                             <input 
-                                type="url" 
-                                name="imageUrl"
-                                placeholder="https://images.unsplash.com/..." 
-                                value={trip.imageUrl}
+                                type="text" 
+                                name="users"
+                                placeholder="pepe@gmail.com, maria@hotmail.com" 
+                                value={trip.users}
                                 onChange={handleChange}
                             />
-                            <small>Pega el enlace de una imagen para que se vea en tu tarjeta.</small>
+                            <small style={{ color: "#64748b", fontSize: "0.8rem", marginTop: "5px", display: "block" }}>
+                                Separa los correos electrónicos con comas. Deben estar registrados en la app.
+                            </small>
                         </div>
 
-                        <button type="submit" className="btn-create-trip">
+                        <div className="input-group">
+                            <label>Notas de planificación (Obligatorio)</label>
+                            <textarea 
+                                name="notes"
+                                placeholder="Ideas iniciales, cosas que no olvidar..." 
+                                value={trip.notes}
+                                onChange={handleChange}
+                                required
+                                rows="3"
+                                style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ced4da" }}
+                            ></textarea>
+                        </div>
+
+                        <button type="submit" className="btn-create-trip" style={{ marginTop: "20px" }}>
                             <i className="fa-solid fa-plane-departure"></i> Comenzar Aventura
                         </button>
                     </form>

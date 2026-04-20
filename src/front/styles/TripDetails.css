@@ -88,7 +88,7 @@
    ========================================= */
 .trip-content-container {
     max-width: 1200px;
-    margin: -30px auto 50px auto; 
+    margin: -60px auto 50px auto; 
     padding: 0 20px;
     display: grid;
     grid-template-columns: 2fr 1fr; 
@@ -102,7 +102,6 @@
     border-radius: 16px;
     padding: 30px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-    /* NUEVO: Asegura que la tarjeta no crezca más allá de la pantalla */
     max-width: 100%; 
     min-width: 0;
 }
@@ -110,21 +109,20 @@
 /* --- MAGIA HÍBRIDA MÓVIL/PC (Mobile First) --- */
 .main-layout-wrapper {
     display: flex;
-    flex-direction: column-reverse; /* En móvil, el chat sube */
+    flex-direction: column-reverse; /* En móvil, el chat sube por encima de las pestañas */
     gap: 30px;
-    /* FIX ANCHO MÓVIL: Evita que el scroll de las pestañas estire este contenedor */
     min-width: 0; 
     width: 100%;
 }
 
 .persistent-chat, .tabs-content-area {
-    /* FIX ANCHO MÓVIL: Obliga a las dos áreas a respetar los bordes de la pantalla */
     min-width: 0; 
     width: 100%;
 }
 
+/* 🪄 LA SOLUCIÓN: Hacemos que la caja sea visible SIEMPRE */
 .chat-desktop-view {
-    display: none; 
+    display: block; 
 }
 
 /* =========================================
@@ -180,7 +178,7 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
-    min-width: 0; /* Protección extra */
+    min-width: 0; 
 }
 
 .summary-card {
@@ -251,7 +249,7 @@
     justify-content: center;
     font-size: 0.8rem;
     font-weight: 700;
-    flex-shrink: 0; /* Para que el avatar no se deforme */
+    flex-shrink: 0; 
 }
 
 .friend-avatar { background: #cbd5e1; }

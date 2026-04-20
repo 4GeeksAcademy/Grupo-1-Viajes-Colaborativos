@@ -26,7 +26,6 @@
     border-radius: 16px;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    /* --- AÑADE ESTAS DOS LÍNEAS --- */
     position: relative; 
     z-index: 2000; /* Esto rompe el "escudo invisible" del Navbar */
 }
@@ -108,12 +107,16 @@
     transform: translateY(-50%);
     color: #adb5bd;
     z-index: 10;
+    width: 25px; /* Un poco más de caja para el icono */
+    text-align: center;
+    font-size: 1.1rem;
 }
 
 .input-with-icon input {
     width: 100%;
     box-sizing: border-box;
-    padding: 12px 12px 12px 45px;
+    /* 🚨 EL FIX: 55px con !important para aplastar cualquier otra regla */
+    padding: 12px 15px 12px 55px !important; 
     border: 1px solid #ced4da;
     border-radius: 10px;
     font-size: 0.95rem;
@@ -243,9 +246,9 @@
         font-size: 0.95rem;
     }
 
-    /* Aseguramos que el texto del input NO se monte encima del icono */
+    /* 🛠️ FIX: Aseguramos que en móvil el padding también sea 55px */
     .input-with-icon input {
-        padding-left: 45px !important; 
+        padding-left: 55px !important; 
     }
     
     /* El botón y los textos sociales un poco más compactos */

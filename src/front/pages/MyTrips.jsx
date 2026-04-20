@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/MyTrips.css";
 
@@ -6,68 +6,61 @@ export const MyTrips = () => {
     // 1. HERRAMIENTAS DE REACT
     const navigate = useNavigate(); 
     const [activeFilter, setActiveFilter] = useState("Todos"); 
+    
+    // Estados para la Base de Datos Real
+    const [trips, setTrips] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // 2. BASE DE DATOS FAKE
-    const trips = [
-        {
-            id: 1,
-            title: "Lisboa Editorial",
-            date: "12 - 15 Septiembre",
-            status: "En curso",
-            image: "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?auto=format&fit=crop&w=800&q=80",
-            featured: true, 
-        },
-        {
-            id: 2,
-            title: "Costa Italiana",
-            date: "01 - 12 Octubre",
-            status: "Planificando",
-            image: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=500&q=80",
-            featured: false,
-        },
-        {
-            id: 3,
-            title: "London Weekend",
-            date: "24 - 26 Noviembre",
-            status: "Planificando",
-            image: "https://images.unsplash.com/photo-1520939817895-060bdaf4fe1b?auto=format&fit=crop&w=500&q=80",
-            featured: false,
-        },
-        {
-            id: 4,
-            title: "Escapada a París",
-            date: "Julio 2023",
-            status: "Pasados",
-            image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=500&q=80",
-            featured: false,
-        },
-        {
-            id: 5,
-            title: "Ruta por Japón",
-            date: "10 - 25 Abril",
-            status: "En curso",
-            image: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=500&q=80",
-            featured: false,
-        },
-        {
-            id: 6,
-            title: "Aventura en los Alpes",
-            date: "Diciembre 2024",
-            status: "Planificando",
-            image: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=500&q=80",
-            featured: false,
-        },
-        {
-            id: 7,
-            title: "Roadtrip California",
-            date: "Agosto 2022",
-            status: "Pasados",
-            image: "https://images.unsplash.com/photo-1449034446853-66c86144b0ad?auto=format&fit=crop&w=500&q=80",
-            featured: false,
-        }
-    ];
+    // 2. CONEXIÓN AL BACKEND
+    useEffect(() => {
+        const fetchMyTrips = async () => {
+            const token = localStorage.getItem("token");
+            
+            // Si no hay llave, a iniciar sesión
+            if (!token) {
+                navigate("/login");
+                return;
+            }
 
-    // 3. DATOS DE SUGERENCIAS
+            try {
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/trips`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Guardamos los viajes que nos devuelve Python
+                    setTrips(data.viajes || []);
+                } else if (response.status === 401) {
+                    // Si el token caducó, volvemos al login
+                    navigate("/login");
+                }
+            } catch (error) {
+                console.error("Error al cargar los viajes:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMyTrips();
+    }, [navigate]);
+
+    // 3. TRADUCTOR DE ESTADOS (Para que los filtros sigan funcionando)
+    // El backend envía "FINISHED", "ONGOING", "PLANNING", lo pasamos a español.
+    const translateStatus = (status) => {
+        if (!status) return "Planificando";
+        const s = status.toUpperCase();
+        if (s === "FINISHED") return "Pasados";
+        if (s === "ONGOING") return "En curso";
+        if (s === "PLANNING") return "Planificando";
+        return status;
+    };
+
+    // 4. DATOS DE SUGERENCIAS (Estáticos por ahora)
     const suggestions = [
         { title: "Misterios de la India", image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=400&q=80" },
         { title: "Islas Griegas", image: "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=400&q=80" },
@@ -75,12 +68,21 @@ export const MyTrips = () => {
         { title: "Dubai Futurista", image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=400&q=80" }
     ];
 
-    // 4. LA MAGIA DEL FILTRADO
+    // 5. LA MAGIA DEL FILTRADO
     const filteredTrips = activeFilter === "Todos" 
         ? trips 
-        : trips.filter(trip => trip.status === activeFilter);
+        : trips.filter(trip => translateStatus(trip.state) === activeFilter);
 
-    // 5. RENDERIZADO VISUAL
+    // 6. PANTALLA DE CARGA
+    if (loading) {
+        return (
+            <div className="dashboard-wrapper" style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+                <h2>Cargando tus aventuras... 🌍</h2>
+            </div>
+        );
+    }
+
+    // 7. RENDERIZADO VISUAL
     return (
         <div className="dashboard-wrapper">
             <div className="dashboard-container">
@@ -109,35 +111,44 @@ export const MyTrips = () => {
                 </div>
 
                 <div className="trips-grid">
-                    {filteredTrips.map((trip) => (
-                        <div key={trip.id} className={`trip-card ${trip.featured ? "featured-card" : ""}`}>
-                            
-                            <div className="trip-img-container">
-                                <img src={trip.image} alt={trip.title} />
-                                <span className={`status-badge ${trip.status.replace(/\s+/g, '-').toLowerCase()}`}>
-                                    {trip.status}
-                                </span>
-                            </div>
-
-                            <div className="trip-info">
-                                <h3>{trip.title}</h3>
-                                <p><i className="fa-regular fa-calendar"></i> {trip.date}</p>
-                                
-                                <div className="trip-progress" style={trip.status !== "En curso" ? { justifyContent: "flex-end" } : {}}>
-                                    
-                                    {trip.status === "En curso" && (
-                                        <div className="progress-bar"><div className="progress-fill"></div></div>
-                                    )}
-                                    
-                                    {/* CORRECCIÓN DE NAVEGACIÓN: Asegúrate de que esta ruta coincida con tu App.jsx */}
-                                    <span className="link-details" onClick={() => navigate(`/trip-details/${trip.id}`)}>
-                                        Ver detalles <i className="fa-solid fa-chevron-right"></i>
-                                    </span>
-                                </div>
-                            </div>
-
+                    {filteredTrips.length === 0 ? (
+                        <div style={{ padding: "20px", color: "#64748b" }}>
+                            No tienes viajes en esta categoría.
                         </div>
-                    ))}
+                    ) : (
+                        filteredTrips.map((trip) => {
+                            const statusEsp = translateStatus(trip.state);
+                            // Como el backend aún no guarda fotos, usamos una genérica o buscamos por destino
+                            const tripImage = trip.image || `https://source.unsplash.com/500x300/?${trip.destination || 'travel'}`;
+
+                            return (
+                                <div key={trip.id} className="trip-card">
+                                    <div className="trip-img-container">
+                                        <img src={tripImage} alt={trip.title} />
+                                        <span className={`status-badge ${statusEsp.replace(/\s+/g, '-').toLowerCase()}`}>
+                                            {statusEsp}
+                                        </span>
+                                    </div>
+
+                                    <div className="trip-info">
+                                        <h3>{trip.title}</h3>
+                                        <p><i className="fa-regular fa-calendar"></i> {trip.starting_date} al {trip.ending_date}</p>
+                                        
+                                        <div className="trip-progress" style={statusEsp !== "En curso" ? { justifyContent: "flex-end" } : {}}>
+                                            {statusEsp === "En curso" && (
+                                                <div className="progress-bar"><div className="progress-fill"></div></div>
+                                            )}
+                                            
+                                            {/* ENLACE DINÁMICO: Te lleva al ID real del viaje */}
+                                            <span className="link-details" onClick={() => navigate(`/trip-details/${trip.id}`)}>
+                                                Ver detalles <i className="fa-solid fa-chevron-right"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
 
                     <div className="trip-card explore-card">
                         <div className="explore-content">
