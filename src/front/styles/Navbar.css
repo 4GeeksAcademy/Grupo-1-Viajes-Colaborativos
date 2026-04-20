@@ -1,0 +1,203 @@
+.navbar-expedition {
+    width: 100%;
+    height: 90px; 
+    background-color: transparent; 
+    position: absolute;
+    top: 0;
+    /* ¡NUEVO! Le damos el número más alto posible para que gane a la tarjeta de login */
+    z-index: 9999; 
+    display: flex;
+    align-items: center;
+    font-family: 'Poppins', sans-serif;
+}
+
+.nav-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative; /* Importante para el centrado */
+}
+
+/* =========================================
+   IZQUIERDA Y LOGO RESTAURADO A TU MEDIDA
+   ========================================= */
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo-img {
+    height: 200px; /* <--- TU MEDIDA ORIGINAL RESTAURADA */
+    width: auto;
+    max-width: 250px; 
+    display: block;
+    object-fit: contain;
+}
+
+.nav-logo {
+    text-decoration: none;
+}
+
+.menu-btn {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: var(--brand-navy, #1E3A5F); 
+    cursor: pointer;
+}
+
+/* =========================================
+   CENTRO (Enlaces)
+   ========================================= */
+.nav-center {
+    display: flex;
+    gap: 30px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%); /* Centrado matemático perfecto */
+}
+
+.nav-link {
+    text-decoration: none;
+    /* APLICAMOS EL AZUL DEL LOGO Y NEGRITA */
+    color: var(--brand-navy, #1E3A5F); 
+    font-size: 1rem;
+    font-weight: 700; /* NEGRITA */
+    padding-bottom: 5px;
+    border-bottom: 2px solid transparent; 
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--brand-orange, #FF7A59); /* Cambia a naranja al pasar el mouse */
+}
+
+.nav-link.active {
+    color: var(--brand-navy, #1E3A5F);
+    font-weight: 800; /* Extra negrita si estás en esa página */
+    border-bottom: 2px solid var(--brand-navy, #1E3A5F); 
+}
+
+/* =========================================
+   DERECHA (Logout y Perfil)
+   ========================================= */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.logout-text {
+    font-size: 0.95rem;
+    /* APLICAMOS EL AZUL DEL LOGO Y NEGRITA */
+    color: var(--brand-navy, #1E3A5F);
+    font-weight: 700; /* NEGRITA */
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.logout-text:hover {
+    color: var(--brand-orange, #FF7A59); /* Cambia a naranja al pasar el mouse */
+}
+
+.profile-icon {
+    width: 42px;
+    height: 42px;
+    background-color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brand-navy, #1E3A5F); 
+    border: 2px solid var(--brand-teal, #2EC4B6); 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: all 0.3s;
+}
+
+.profile-icon:hover {
+    background-color: var(--brand-teal, #2EC4B6);
+    color: white;
+}
+
+/* =========================================
+   MENÚ DESPLEGABLE MÓVIL
+   ========================================= */
+.dropdown-menu-mobile {
+    position: absolute;
+    top: 75px;
+    left: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    z-index: 9999;
+}
+
+.dropdown-menu-mobile a {
+    text-decoration: none;
+    color: var(--brand-navy, #1E3A5F); 
+    font-weight: 600;
+    padding: 10px;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+}
+
+.dropdown-menu-mobile a:hover {
+    background-color: #f1f5f9;
+    color: var(--brand-orange, #FF7A59); 
+}
+
+/* =========================================
+   ADAPTACIÓN RESPONSIVA
+   ========================================= */
+.desktop-only {
+    display: none; 
+}
+
+@media (min-width: 900px) {
+    .desktop-only {
+        display: flex; 
+    }
+
+    .menu-btn {
+        display: none; 
+    }
+}
+
+/* =========================================
+   MODO LOGIN (Aseguramos Azul y Negrita también aquí)
+   ========================================= */
+.navbar-login-mode .nav-link,
+.navbar-login-mode .logout-text {
+    /* APLICAMOS EL AZUL DEL LOGO Y NEGRITA PARA EL LOGIN */
+    color: var(--brand-navy, #1E3A5F); 
+    font-weight: 700; /* NEGRITA */
+    text-shadow: none; /* Quitamos la sombra para que el azul se vea súper nítido */
+    opacity: 1;
+}
+
+.navbar-login-mode .nav-link:hover,
+.navbar-login-mode .logout-text:hover {
+    color: var(--brand-orange, #FF7A59); /* Naranja al pasar el ratón */
+}
+
+.navbar-login-mode .nav-link.active {
+    color: var(--brand-navy, #1E3A5F);
+    font-weight: 800; /* Extra negrita */
+    border-bottom: 2px solid var(--brand-navy, #1E3A5F); /* Línea azul debajo */
+}
+
+/* El botón de menú móvil lo mantenemos blanco en el login para que resalte sobre el fondo */
+.navbar-login-mode .menu-btn {
+    color: #ffffff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}

@@ -1,0 +1,343 @@
+/* =========================================
+   1. VARIABLES Y RESET MÓVIL
+   ========================================= */
+:root {
+    --brand-navy: #1E3A5F;
+    --brand-teal: #2EC4B6;
+    --brand-orange: #FF7A59;
+}
+
+.trip-details-wrapper, .trip-details-wrapper * {
+    box-sizing: border-box;
+}
+
+.trip-details-wrapper {
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8fafc;
+    overflow-x: hidden; 
+    width: 100%;
+}
+
+/* =========================================
+   2. CABECERA (HERO SECTION)
+   ========================================= */
+.trip-hero {
+    height: 400px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 50px;
+}
+
+.hero-content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    color: white;
+}
+
+.btn-back-light {
+    position: absolute;
+    top: 100px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    border: none;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+.btn-back-light:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.hero-badge {
+    background: var(--brand-teal);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.hero-content h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin: 0 0 10px 0;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.hero-content p {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* =========================================
+   3. ESTRUCTURA DE DOS COLUMNAS (LAYOUT)
+   ========================================= */
+.trip-content-container {
+    max-width: 1200px;
+    margin: -60px auto 50px auto; 
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 2fr 1fr; 
+    gap: 30px;
+    position: relative;
+    z-index: 10;
+}
+
+.main-column {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    max-width: 100%; 
+    min-width: 0;
+}
+
+/* --- MAGIA HÍBRIDA MÓVIL/PC (Mobile First) --- */
+.main-layout-wrapper {
+    display: flex;
+    flex-direction: column-reverse; /* En móvil, el chat sube por encima de las pestañas */
+    gap: 30px;
+    min-width: 0; 
+    width: 100%;
+}
+
+.persistent-chat, .tabs-content-area {
+    min-width: 0; 
+    width: 100%;
+}
+
+/* 🪄 LA SOLUCIÓN: Hacemos que la caja sea visible SIEMPRE */
+.chat-desktop-view {
+    display: block; 
+}
+
+/* =========================================
+   PESTAÑAS CON SCROLL MÓVIL
+   ========================================= */
+.content-tabs {
+    display: flex;
+    gap: 20px;
+    border-bottom: 2px solid #f1f5f9;
+    margin-bottom: 30px;
+    overflow-x: auto; 
+    -webkit-overflow-scrolling: touch; 
+    padding-bottom: 5px; 
+    width: 100%;
+}
+
+.content-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.content-tabs button {
+    background: none;
+    border: none;
+    padding: 10px 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap; 
+    flex: 0 0 auto; 
+}
+
+.content-tabs button.active {
+    color: var(--brand-navy);
+}
+
+.content-tabs button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--brand-orange);
+    border-radius: 3px 3px 0 0;
+}
+
+/* =========================================
+   4. COLUMNA DERECHA (WIDGETS Y CARDS)
+   ========================================= */
+.side-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0; 
+}
+
+.summary-card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.summary-card h3 {
+    color: var(--brand-navy);
+    margin: 0 0 20px 0;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.summary-card h3 i { color: var(--brand-teal); }
+
+.budget-numbers {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.budget-numbers span { font-size: 0.85rem; color: #64748b; }
+.budget-numbers h4 { font-size: 1.5rem; color: var(--brand-navy); margin: 0; }
+
+.progress-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--brand-orange);
+    transition: width 0.5s ease;
+}
+
+.friends-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+.friends-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-weight: 500;
+    color: var(--brand-navy);
+    width: 100%;
+}
+
+.avatar {
+    width: 35px;
+    height: 35px;
+    background: var(--brand-teal);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0; 
+}
+
+.friend-avatar { background: #cbd5e1; }
+
+.balance-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.balance-positive { background: #dcfce7; color: #166534; }
+.balance-negative { background: #fee2e2; color: #991b1b; }
+.balance-neutral { color: #94a3b8; }
+
+/* =========================================
+   5. BOTONES GENERALES
+   ========================================= */
+.btn-action, .btn-invite, .btn-add-day {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-action, .btn-add-day {
+    background: #f1f5f9;
+    color: var(--brand-navy);
+    margin-top: 20px;
+}
+
+.btn-invite {
+    background: transparent;
+    border: 1px dashed #cbd5e1;
+    color: var(--brand-teal);
+}
+
+.btn-action:hover, .btn-invite:hover, .btn-add-day:hover { background: #e2e8f0; }
+
+/* =========================================
+   8. RESPONSIVE DESIGN (PC FIRST y MOBILE)
+   ========================================= */
+@media (min-width: 901px) {
+    .main-layout-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 350px; 
+        gap: 30px;
+        align-items: start;
+    }
+    
+    .persistent-chat {
+        position: sticky;
+        top: 20px;
+    }
+}
+
+@media (max-width: 900px) {
+    .trip-content-container {
+        grid-template-columns: 1fr;
+        margin-top: 20px;
+    }
+    .hero-content h1 {
+        font-size: 2.2rem;
+    }
+}
+
+@media (max-width: 500px) {
+    .trip-hero { 
+        height: 320px; 
+        padding-bottom: 20px; 
+    }
+    
+    .btn-back-light {
+        top: 75px; 
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
+    .main-column, .summary-card { padding: 20px 15px; }
+    .hero-content h1 { font-size: 1.8rem; }
+    
+    .content-tabs { gap: 15px; } 
+    .content-tabs button { font-size: 0.95rem; }
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

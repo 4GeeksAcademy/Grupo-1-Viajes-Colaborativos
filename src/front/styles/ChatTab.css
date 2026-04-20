@@ -1,0 +1,129 @@
+.chat-section {
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+    background: #fdfdfd;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (min-width: 901px) {
+    .chat-section {
+        height: 600px; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+    }
+}
+
+.chat-messages-container {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.message-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: 85%; /* Ampliado un poco para móviles muy pequeños */
+}
+
+.message-wrapper.me {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+
+.message-wrapper.others {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+
+.message-user {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--brand-navy);
+    margin-bottom: 4px;
+    margin-left: 5px;
+}
+
+.message-bubble {
+    padding: 10px 15px;
+    border-radius: 18px;
+    position: relative;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    /* FIX ANCHO MÓVIL: Fuerza a que textos largos (como URLs) salten de línea */
+    word-wrap: break-word; 
+    word-break: break-word;
+}
+
+.me .message-bubble {
+    background: var(--brand-teal);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.others .message-bubble {
+    background: #e2e8f0;
+    color: var(--brand-navy);
+    border-bottom-left-radius: 4px;
+}
+
+.message-bubble p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.message-time {
+    font-size: 0.65rem;
+    display: block;
+    margin-top: 4px;
+    opacity: 0.7;
+    text-align: right;
+}
+
+.chat-input-area {
+    padding: 15px;
+    background: white;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 10px;
+    align-items: center; /* Alinea botón e input perfectamente */
+}
+
+.chat-input-area input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 25px;
+    outline: none;
+    font-family: 'Poppins', sans-serif;
+    background: #f8fafc;
+    min-width: 0; 
+    box-sizing: border-box;
+}
+
+.btn-send-chat {
+    width: 45px;
+    height: 45px;
+    background: var(--brand-navy);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s;
+    /* FIX ANCHO MÓVIL: Prohíbe terminantemente que el botón se aplaste en pantallas de 320px */
+    flex-shrink: 0; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-send-chat:hover {
+    transform: scale(1.05);
+    background: var(--brand-teal);
+}

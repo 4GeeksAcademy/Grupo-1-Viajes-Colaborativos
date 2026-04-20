@@ -1,0 +1,135 @@
+/* =========================================
+   ITINERARIO: LÍNEA DE TIEMPO
+   ========================================= */
+.timeline {
+    border-left: 2px solid #e2e8f0;
+    margin-left: 10px;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.timeline-item {
+    position: relative;
+}
+
+.timeline-item.clickable {
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.timeline-item.clickable:hover {
+    background: #f8fafc;
+    transform: translateX(5px);
+}
+
+.timeline-dot {
+    width: 14px;
+    height: 14px;
+    background: var(--brand-teal);
+    border-radius: 50%;
+    position: absolute;
+    left: -28px;
+    top: 20px;
+    box-shadow: 0 0 0 4px white;
+}
+
+.day-badge {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--brand-orange);
+    text-transform: uppercase;
+}
+
+.time-tag {
+    display: inline-block;
+    background: #e2e8f0;
+    color: #475569;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-left: 10px;
+}
+
+.timeline-content h3 {
+    color: var(--brand-navy);
+    margin: 5px 0;
+    font-size: 1.2rem;
+}
+
+.timeline-content p {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* =========================================
+   ITINERARIO: MODALES
+   ========================================= */
+.activity-detail-modal { 
+    max-width: 480px; 
+}
+
+.activity-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.btn-close-modal {
+    background: none; border: none; font-size: 1.8rem; color: #94a3b8; cursor: pointer;
+}
+
+.activity-main-info h2 {
+    color: var(--brand-navy);
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+}
+
+.info-row {
+    display: flex; align-items: center; gap: 10px; color: #64748b; margin-bottom: 8px;
+}
+
+.info-row i { color: var(--brand-teal); width: 20px; text-align: center; }
+
+.modal-divider { border: 0; border-top: 1px solid #f1f5f9; margin: 20px 0; }
+
+.notes-box {
+    background: #fffbeb; border-left: 4px solid #fcd34d; padding: 15px;
+    color: #92400e; font-style: italic; border-radius: 4px;
+}
+
+.modal-actions-itinerary {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.btn-modal-cancel {
+    flex: 1; background: transparent; border: 1px solid #cbd5e1; color: #64748b;
+    padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
+}
+
+.btn-modal-confirm {
+    flex: 1; background: var(--brand-teal); color: white; border: none;
+    padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
+}
+
+.btn-edit-activity {
+    flex: 1; background: #f1f5f9; color: #475569; border: none;
+    padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;
+}
+
+.activity-edit-form textarea {
+    resize: none;
+}
+
+.expense-row {
+    display: flex;
+    gap: 15px;
+}

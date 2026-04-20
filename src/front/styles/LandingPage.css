@@ -1,0 +1,310 @@
+/* Contenedor principal */
+.landing-container {
+    width: 100%;
+    overflow-x: hidden;
+    background-color: var(--bg-light, #F8FAFC);
+    font-family: 'Poppins', sans-serif;
+}
+
+/* =========================================
+   1. HERO SECTION (Mobile First)
+   ========================================= */
+.hero-section {
+    background: linear-gradient(rgba(46, 196, 182, 0.8), rgba(46, 196, 182, 0.6)), 
+                url('../assets/img/fondo-landing.jpg');
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 100px 20px 40px 20px;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.hero-content {
+    width: 100%;
+}
+
+.hero-section h1 {
+    font-size: 2.3rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    color: white; 
+    word-wrap: break-word;
+}
+
+.text-highlight {
+    color: var(--brand-orange, #FF7A59); 
+}
+
+.hero-section p {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--brand-navy, #1E3A5F); 
+    margin-bottom: 30px;
+    max-width: 100%;
+    padding: 0;
+}
+
+.hero-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.btn-start, .btn-demo {
+    width: 100%;
+    padding: 14px 20px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-align: center;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-start {
+    background-color: var(--brand-navy, #1E3A5F); 
+    color: white;
+}
+
+.btn-start:hover {
+    background-color: #132742; 
+}
+
+.btn-demo {
+    background-color: white; 
+    color: var(--brand-navy, #1E3A5F);
+}
+
+.btn-demo:hover {
+    background-color: #f1f5f9;
+}
+
+/* =========================================
+   2. STATS SECTION
+   ========================================= */
+.stats-wrapper {
+    margin-top: 40px;
+    width: 100%;
+    position: relative;
+    z-index: 10;
+}
+
+.stats-container {
+    display: flex;
+    justify-content: flex-start;
+    gap: 30px;
+    margin-bottom: 15px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: baseline;
+    gap: 6px; 
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white; 
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--brand-navy, #1E3A5F); 
+    font-weight: 600;
+}
+
+.hero-bottom-text {
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    font-style: italic;
+}
+
+/* =========================================
+   3. FEATURES (Tarjetas)
+   ========================================= */
+.features-section {
+    padding: 60px 20px;
+    /* Limitamos el ancho y centramos toda la sección */
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.features-section h2 {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 40px;
+    color: var(--brand-navy, #1E3A5F); 
+}
+
+/* NUEVO: Contenedor para alinear las tarjetas */
+.features-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.feature-card {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05); /* Sombra más moderna */
+    transition: transform 0.3s ease;
+    /* Centramos el texto de las tarjetas para que se vea más limpio */
+    text-align: center; 
+}
+
+.feature-card:hover {
+    transform: translateY(-5px); /* Efecto hover elegante */
+}
+
+.feature-card .icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    display: block; /* Asegura el centrado */
+}
+
+.feature-card h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--brand-navy, #1E3A5F); 
+}
+
+.feature-card p {
+    color: #475569;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* =========================================
+   4. FOOTER / CALL TO ACTION
+   ========================================= */
+.cta-footer {
+    background-color: var(--brand-navy, #1E3A5F); 
+    color: white;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.cta-footer h3 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 24px;
+}
+
+.btn-final {
+    background-color: var(--brand-orange, #FF7A59); 
+    color: white;
+    width: 100%;
+    max-width: 300px; /* Evita que el botón sea exageradamente ancho en PC */
+    margin: 0 auto;
+    display: block;
+    padding: 16px;
+    border-radius: 14px;
+    font-weight: 700;
+    border: none;
+    font-size: 1.1rem;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-final:hover {
+    background-color: #e56a4d;
+}
+
+/* =========================================
+   ADAPTACIÓN PARA ESCRITORIO (PC/Tablets)
+   ========================================= */
+@media (min-width: 768px) {
+    
+    .hero-section {
+        background: linear-gradient(to right, rgba(46, 196, 182, 0.95) 0%, rgba(46, 196, 182, 0.6) 50%, rgba(46, 196, 182, 0.1) 100%), 
+                    url('../assets/img/fondo-landing.jpg');
+        background-size: cover;
+        background-position: center;
+        min-height: 100vh;
+        padding: 160px 0 60px 0; 
+        align-items: center; 
+    }
+
+    .hero-content, .stats-wrapper {
+        width: 100%;
+        max-width: 1200px; 
+        margin: 0 auto;
+        padding: 0 20px; 
+    }
+
+    .stats-wrapper {
+        margin-top: 50px;
+    }
+    
+    .hero-section h1 {
+        font-size: 5rem; 
+        font-weight: 800;
+        letter-spacing: -2px; 
+        line-height: 1.05;
+        max-width: 850px;
+    }
+    
+    .hero-section p {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-top: 20px;
+        margin-bottom: 40px;
+        max-width: 650px;
+    }
+    
+    .hero-buttons {
+        flex-direction: row;
+        max-width: 600px;
+        gap: 20px;
+    }
+    
+    .btn-start, .btn-demo {
+        width: auto;
+        padding: 14px 35px;
+        font-size: 1.15rem;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+    }
+
+    .stat-label {
+        font-size: 1.3rem;
+    }
+
+    .hero-bottom-text {
+        font-size: 1.2rem;
+        max-width: 500px;
+        margin-top: 15px;
+    }
+
+    /* NUEVO: Las Features se convierten en cuadrícula en PC */
+    .features-section h2 {
+        font-size: 2.5rem;
+        margin-bottom: 50px;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Crea 3 columnas iguales */
+        gap: 30px; /* Separación entre las tarjetas */
+    }
+
+    .cta-footer h3 {
+        font-size: 2.5rem;
+        margin-bottom: 30px;
+    }
+}

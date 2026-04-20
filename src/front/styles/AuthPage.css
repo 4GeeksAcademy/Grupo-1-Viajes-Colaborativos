@@ -1,0 +1,263 @@
+/* Contenedor principal corregido */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* Fondo idéntico al de la Landing Page */
+    background: linear-gradient(rgba(46, 196, 182, 0.8), rgba(46, 196, 182, 0.6)), 
+                url('../assets/img/fondo-login.jpg'); 
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    /* Aumentamos el padding superior a 100px para librar el Navbar (que mide 90px) */
+    padding: 100px 20px 40px 20px; 
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* La tarjeta blanca */
+.auth-card {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(5px);
+    width: 100%;
+    max-width: 450px;
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    position: relative; 
+    z-index: 2000; /* Esto rompe el "escudo invisible" del Navbar */
+}
+
+/* Pestañas */
+.auth-tabs {
+    display: flex;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 20px;
+    background: none;
+    border: none;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.tab-btn.active {
+    color: var(--brand-orange, #FF7A59); /* Naranja */
+    border-bottom: 3px solid var(--brand-orange, #FF7A59);
+}
+
+/* Cuerpo de la tarjeta */
+.auth-body {
+    padding: 30px 40px;
+    text-align: center;
+}
+
+.auth-body h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--brand-navy, #1E3A5F); /* Azul Marino */
+    margin-bottom: 10px;
+}
+
+.auth-subtitle {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 30px;
+}
+
+/* Formularios e Inputs */
+.auth-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group {
+    margin-bottom: 20px;
+    width: 100%;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--brand-navy, #1E3A5F); /* Azul Marino */
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.input-with-icon {
+    position: relative;
+    width: 100%;
+}
+
+.input-with-icon i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #adb5bd;
+    z-index: 10;
+    width: 25px; /* Un poco más de caja para el icono */
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.input-with-icon input {
+    width: 100%;
+    box-sizing: border-box;
+    /* 🚨 EL FIX: 55px con !important para aplastar cualquier otra regla */
+    padding: 12px 15px 12px 55px !important; 
+    border: 1px solid #ced4da;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.input-with-icon input:focus {
+    border-color: var(--brand-teal, #2EC4B6); /* Borde Turquesa al escribir */
+    box-shadow: 0 0 0 0.2rem rgba(46, 196, 182, 0.15); /* Sombra Turquesa suave */
+}
+
+/* Enlace de contraseña y botón principal */
+.forgot-password {
+    text-align: right;
+    margin-top: -10px;
+    margin-bottom: 20px;
+}
+
+.forgot-password a {
+    font-size: 0.85rem;
+    color: var(--brand-teal, #2EC4B6); /* Turquesa */
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.btn-submit {
+    width: 100%;
+    background-color: var(--brand-orange, #FF7A59); /* Naranja */
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-submit:hover {
+    background-color: #e56a4d;
+}
+
+/* Separador "O continúa con" */
+.auth-divider {
+    margin: 30px 0;
+    position: relative;
+    text-align: center;
+}
+
+.auth-divider::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 1px;
+    background-color: #eaeaea;
+    z-index: 1;
+}
+
+.auth-divider span {
+    background: rgba(255, 255, 255, 0.98);
+    padding: 0 15px;
+    color: #adb5bd;
+    font-size: 0.8rem;
+    font-weight: 500;
+    position: relative;
+    z-index: 2;
+}
+
+/* Botones sociales */
+.social-login {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-social {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    background: white;
+    border: 1px solid #ced4da;
+    border-radius: 10px;
+    font-weight: 600;
+    color: var(--brand-navy, #1E3A5F);
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: background-color 0.3s;
+}
+
+.btn-social:hover {
+    background-color: #f8fafc;
+}
+
+/* Texto de abajo (Fuera de la tarjeta) */
+.auth-footer-text {
+    margin-top: 25px;
+    font-size: 0.95rem;
+    color: var(--brand-navy, #1E3A5F); /* Azul Marino */
+    font-weight: 500;
+}
+
+.toggle-link {
+    color: var(--brand-orange, #FF7A59); /* Naranja para resaltar la acción de cambiar */
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+/* =========================================
+   ADAPTACIÓN PARA MÓVILES (Responsive)
+   ========================================= */
+@media (max-width: 500px) {
+    /* Reducimos el relleno interno de la tarjeta para que respire */
+    .auth-body {
+        padding: 30px 20px; 
+    }
+
+    /* Hacemos las pestañas un pelín más pequeñas */
+    .tab-btn {
+        padding: 15px 10px;
+        font-size: 0.95rem;
+    }
+
+    /* 🛠️ FIX: Aseguramos que en móvil el padding también sea 55px */
+    .input-with-icon input {
+        padding-left: 55px !important; 
+    }
+    
+    /* El botón y los textos sociales un poco más compactos */
+    .btn-submit {
+        padding: 12px;
+        font-size: 1rem;
+    }
+    
+    .btn-social {
+        font-size: 0.9rem;
+    }
+}
