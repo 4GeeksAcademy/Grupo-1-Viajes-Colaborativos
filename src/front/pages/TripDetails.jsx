@@ -1,255 +1,205 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import useGlobalReducer from "../hooks/useGlobalReducer";
 import "../styles/TripDetails.css";
 
-// Importamos nuestros nuevos componentes hijos
 import { ItineraryTab } from "../components/ItineraryTab";
 import { ExpensesTab } from "../components/ExpensesTab";
 import { ChatTab } from "../components/ChatTab";
 
-// 1. BASE DE DATOS COMPLETA
-const tripsData = {
-        "1": {
-                id: "1",
-                title: "Lisboa Editorial",
-                dates: "12 - 15 Septiembre, 2026",
-                status: "En curso",
-                image: "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?auto=format&fit=crop&w=1200&q=80",
-                budget: { total: 800, spent: 345 },
-                companions: ["Ana", "Carlos"],
-                itinerary: [
-                        { date: "2026-09-12", time: "10:30", title: "Llegada y Check-in", location: "Aeropuerto de Lisboa", desc: "Vuelo de mañana. Tarde libre por Alfama." },
-                        { date: "2026-09-13", time: "11:00", title: "Ruta de los Miradores", location: "Miradouro de Santa Luzia", desc: "Tour fotográfico y cena con Fado." }
-                ]
-        },
-        "2": {
-                id: "2",
-                title: "Costa Italiana",
-                dates: "01 - 12 Octubre, 2026",
-                status: "Planificando",
-                image: "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=1200&q=80",
-                budget: { total: 2000, spent: 0 },
-                companions: ["Lucía", "Pedro"],
-                itinerary: [{ date: "2026-10-01", time: "12:00", title: "Llegada a Positano", location: "Costa Amalfitana", desc: "Check-in en el hotel." }]
-        },
-        "3": {
-                id: "3",
-                title: "London Weekend",
-                dates: "24 - 26 Noviembre, 2026",
-                status: "Planificando",
-                image: "https://images.unsplash.com/photo-1520939817895-060bdaf4fe1b?auto=format&fit=crop&w=1200&q=80",
-                budget: { total: 600, spent: 150 },
-                companions: ["Tomás"],
-                itinerary: [{ date: "2026-11-24", time: "15:00", title: "Paseo por el Támesis", location: "London Eye", desc: "Vistas de la ciudad." }]
-        },
-        "4": {
-                id: "4",
-                title: "Escapada a París",
-                dates: "Julio 2023",
-                status: "Pasados",
-                image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80",
-                budget: { total: 1000, spent: 1000 },
-                companions: ["Sofía"],
-                itinerary: [{ date: "2023-07-10", time: "20:00", title: "Cena Torre Eiffel", location: "París", desc: "Despedida del viaje en restaurante." }]
-        },
-        "5": {
-                id: "5",
-                title: "Ruta por Japón",
-                dates: "10 - 25 Abril, 2026",
-                status: "En curso",
-                image: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=1200&q=80",
-                budget: { total: 3000, spent: 1200 },
-                companions: ["Yuki", "Kenji"],
-                itinerary: [{ date: "2026-04-10", time: "08:00", title: "Llegada a Narita", location: "Tokio", desc: "Activación del JR Pass." }]
-        },
-        "6": {
-                id: "6",
-                title: "Aventura en los Alpes",
-                dates: "Diciembre 2024",
-                status: "Planificando",
-                image: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1200&q=80",
-                budget: { total: 1500, spent: 450 },
-                companions: ["Elena", "Marcos"],
-                itinerary: [{ date: "2024-12-15", time: "09:00", title: "Llegada a Chamonix", location: "Estación de bus", desc: "Recogida de equipo de esquí." }]
-        },
-        "7": {
-                id: "7",
-                title: "Roadtrip California",
-                dates: "Agosto 2022",
-                status: "Pasados",
-                image: "https://images.unsplash.com/photo-1449034446853-66c86144b0ad?auto=format&fit=crop&w=1200&q=80",
-                budget: { total: 2500, spent: 2500 },
-                companions: ["James"],
-                itinerary: [{ date: "2022-08-01", time: "10:00", title: "Golden Gate", location: "San Francisco", desc: "Cruzar el puente en bicicleta." }]
-        }
-};
-
 export const TripDetails = () => {
-        const { id } = useParams();
-        const navigate = useNavigate();
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { store, dispatch } = useGlobalReducer();
 
-        // --- ESTADOS GLOBALES DE LA PÁGINA ---
-        const [activeTab, setActiveTab] = useState("itinerario");
-        const [trip, setTrip] = useState(null);
+    const [activeTab, setActiveTab] = useState("itinerario");
+    const [tripItinerary, setTripItinerary] = useState([]);
+    const [expensesList, setExpensesList] = useState([]);
 
-        // Estos estados los maneja el Padre para poder calcular los totales en la barra lateral
-        const [tripItinerary, setTripItinerary] = useState([]);
-        const [expensesList, setExpensesList] = useState([
-                { id: 1, description: "Cena en Alfama", amount: 120, category: "Comida", paidBy: "Carlos", splitMethod: "equally", splitWith: ["Yo", "Ana", "Carlos"], settledWith: [], date: "14 Sept" },
-                { id: 2, description: "Uber al aeropuerto", amount: 25, category: "Transporte", paidBy: "Yo", splitMethod: "equally", splitWith: ["Yo", "Carlos"], settledWith: [], date: "15 Sept" }
-        ]);
+    // 🎨 CHAPA Y PINTURA: Nuestro traductor VIP de estados
+    const stateTranslations = {
+        "PLANNING": { text: "Planificando", color: "#3498db" }, // Azul
+        "ONGOING": { text: "En curso", color: "#2ecc71" },      // Verde
+        "FINISHED": { text: "Finalizado", color: "#95a5a6" }    // Gris
+    };
 
-        // --- CARGA DINÁMICA ---
-        useEffect(() => {
-                const foundTrip = tripsData[String(id)];
-                if (foundTrip) {
-                        setTrip(foundTrip);
-                        setTripItinerary(foundTrip.itinerary || []);
-                }
-        }, [id]);
+    useEffect(() => {
+        const fetchTripDetails = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                navigate("/login");
+                return;
+            }
 
-        // Render de carga de seguridad
-        if (!trip) {
-                return (
-                        <div className="trip-details-wrapper" style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: "100px" }}>
-                                <h2>Cargando información del viaje...</h2>
-                                <button className="btn-action" style={{ marginTop: "20px" }} onClick={() => navigate("/my-trips")}>Volver a Mis Viajes</button>
-                        </div>
-                );
-        }
-
-        const allParticipants = ["Yo", ...trip.companions];
-
-        // --- MATEMÁTICAS CENTRALIZADAS ---
-        const calculateBalances = () => {
-                let balances = {};
-                allParticipants.forEach(p => balances[p] = 0);
-
-                expensesList.forEach(exp => {
-                        const splitAmount = parseFloat(exp.amount) / exp.splitWith.length;
-                        if (balances[exp.paidBy] !== undefined) balances[exp.paidBy] += parseFloat(exp.amount);
-
-                        exp.splitWith.forEach(person => {
-                                if (balances[person] !== undefined) balances[person] -= splitAmount;
-                        });
-
-                        if (exp.settledWith && exp.settledWith.length > 0) {
-                                exp.settledWith.forEach(settledPerson => {
-                                        if (balances[settledPerson] !== undefined && balances[exp.paidBy] !== undefined) {
-                                                balances[settledPerson] += splitAmount;
-                                                balances[exp.paidBy] -= splitAmount;
-                                        }
-                                });
-                        }
+            try {
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/trip-detail/${id}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    }
                 });
-                return balances;
+
+                if (response.ok) {
+                    const data = await response.json();
+                    dispatch({ type: "load_trip_details", payload: data });
+                    setTripItinerary(data.itinerary || []);
+                    setExpensesList(data.expense || []);
+                } else {
+                    if (response.status === 401) navigate("/login");
+                }
+            } catch (error) {
+                console.error("Error de conexión con el backend:", error);
+            }
         };
 
-        const participantBalances = calculateBalances();
-        const totalSpent = expensesList.reduce((acc, curr) => acc + curr.amount, 0);
+        if (id) fetchTripDetails();
+    }, [id, navigate, dispatch]);
 
+    if (!store.currentTrip) {
         return (
-                <div className="trip-details-wrapper">
-                        {/* HERO */}
-                        <div className="trip-hero" style={{ backgroundImage: `linear-gradient(rgba(30, 58, 95, 0.7), rgba(30, 58, 95, 0.4)), url(${trip.image})` }}>
-                                <div className="hero-content">
-                                        <button className="btn-back-light" onClick={() => navigate("/my-trips")}>
-                                                <i className="fa-solid fa-arrow-left"></i> Volver
-                                        </button>
-                                        <span className="hero-badge">{trip.status}</span>
-                                        <h1>{trip.title}</h1>
-                                        <p><i className="fa-regular fa-calendar"></i> {trip.dates}</p>
-                                </div>
-                        </div>
-
-                        <div className="trip-content-container">
-
-                                {/* COLUMNA PRINCIPAL */}
-                                <div className="main-column">
-                                        <div className="main-layout-wrapper">
-
-                                                {/* BLOQUE 1: LAS PESTAÑAS */}
-                                                <div className="tabs-content-area">
-                                                        <div className="content-tabs">
-                                                                <button className={activeTab === "itinerario" ? "active" : ""} onClick={() => setActiveTab("itinerario")}>Itinerario</button>
-                                                                <button className={activeTab === "gastos" ? "active" : ""} onClick={() => setActiveTab("gastos")}>Gastos</button>
-                                                                <button className={activeTab === "documentos" ? "active" : ""} onClick={() => setActiveTab("documentos")}>Documentos</button>
-                                                        </div>
-
-                                                        {activeTab === "itinerario" && (
-                                                                <ItineraryTab
-                                                                        tripItinerary={tripItinerary}
-                                                                        setTripItinerary={setTripItinerary}
-                                                                />
-                                                        )}
-
-                                                        {activeTab === "gastos" && (
-                                                                <ExpensesTab
-                                                                        expensesList={expensesList}
-                                                                        setExpensesList={setExpensesList}
-                                                                        allParticipants={allParticipants}
-                                                                />
-                                                        )}
-
-                                                        {activeTab === "documentos" && (
-                                                                <div className="empty-state">
-                                                                        <i className="fa-regular fa-folder-open"></i>
-                                                                        <h3>Aún no hay documentos</h3>
-                                                                        <p style={{ marginTop: "10px" }}>Aquí podrás subir tus billetes y reservas.</p>
-                                                                </div>
-                                                        )}
-                                                </div>
-
-                                                {/* BLOQUE 2: EL CHAT FIJO */}
-                                                <div className="persistent-chat">
-                                                        <ChatTab />
-                                                </div>
-
-                                        </div>
-                                </div>
-
-                                {/* COLUMNA LATERAL */}
-                                <div className="side-column">
-                                        <div className="summary-card budget-card">
-                                                <h3><i className="fa-solid fa-chart-pie"></i> Presupuesto</h3>
-                                                <div className="budget-numbers">
-                                                        <div><span>Gastado</span><h4>{totalSpent.toFixed(2)}€</h4></div>
-                                                        <div><span>Total</span><h4>{trip.budget.total}€</h4></div>
-                                                </div>
-                                                <div className="progress-bar-bg">
-                                                        <div className="progress-bar-fill" style={{ width: `${trip.budget.total > 0 ? (totalSpent / trip.budget.total) * 100 : 0}%` }}></div>
-                                                </div>
-                                        </div>
-
-                                        <div className="summary-card friends-card">
-                                                <h3><i className="fa-solid fa-users"></i> Viajeros y Balances</h3>
-                                                <ul className="friends-list">
-                                                        {allParticipants.map((person, i) => {
-                                                                const balance = participantBalances[person];
-                                                                let balanceClass = "balance-neutral";
-                                                                let balanceText = "0.00 €";
-
-                                                                if (balance > 0.01) {
-                                                                        balanceClass = "balance-positive";
-                                                                        balanceText = `+${balance.toFixed(2)} €`;
-                                                                } else if (balance < -0.01) {
-                                                                        balanceClass = "balance-negative";
-                                                                        balanceText = `${balance.toFixed(2)} €`;
-                                                                }
-
-                                                                return (
-                                                                        <li key={i}>
-                                                                                <div className="avatar friend-avatar">{person.charAt(0)}</div>
-                                                                                <span>{person === "Yo" ? "Tú" : person}</span>
-                                                                                <span className={`balance-badge ${balanceClass}`}>{balanceText}</span>
-                                                                        </li>
-                                                                );
-                                                        })}
-                                                </ul>
-                                        </div>
-                                </div>
-
-                        </div>
-                </div>
+            <div className="trip-details-wrapper" style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: "100px" }}>
+                <div className="spinner"></div>
+                <h2>Cargando información del viaje...</h2>
+            </div>
         );
+    }
+
+    const trip = store.currentTrip;
+    const formattedDates = `${trip.starting_date} al ${trip.ending_date}`;
+
+    // 🎨 CHAPA Y PINTURA: Calculamos el estado actual. 
+    // Usamos toUpperCase() por si la base de datos lo devuelve en minúsculas.
+    const safeState = trip.state ? trip.state.toUpperCase() : "PLANNING";
+    const currentState = stateTranslations[safeState] || { text: trip.state, color: "var(--brand-teal)" };
+
+    const allParticipants = store.travelers && store.travelers.length > 0
+        ? store.travelers.map(t => t.name)
+        : ["Usuario"];
+
+    const calculateBalances = () => {
+        let balances = {};
+        allParticipants.forEach(p => balances[p] = 0);
+
+        expensesList.forEach(exp => {
+            const amount = parseFloat(exp.amount) || 0;
+            const splitArray = exp.splitWith || allParticipants;
+            const splitAmount = amount / splitArray.length;
+            const payerName = exp.payer_name || allParticipants[0];
+
+            if (balances[payerName] !== undefined) balances[payerName] += amount;
+
+            splitArray.forEach(person => {
+                if (balances[person] !== undefined) balances[person] -= splitAmount;
+            });
+        });
+        return balances;
+    };
+
+    const participantBalances = calculateBalances();
+    const totalSpent = expensesList.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+
+    return (
+        <div className="trip-details-wrapper">
+            {/* HERO SECTION */}
+            <div className="trip-hero" style={{
+                backgroundImage: `linear-gradient(rgba(30, 58, 95, 0.7), rgba(30, 58, 95, 0.4)), url('https://images.unsplash.com/photo-1555881400-74d7acaacd8b?auto=format&fit=crop&w=1200&q=80')`
+            }}>
+                <div className="hero-content">
+                    <button className="btn-back-light" onClick={() => navigate("/my-trips")}>
+                        <i className="fa-solid fa-arrow-left"></i> Volver
+                    </button>
+                    
+                    {/* 🎨 CHAPA Y PINTURA: Aplicamos el color y el texto traducido */}
+                    <span className="hero-badge" style={{ backgroundColor: currentState.color }}>
+                        {currentState.text}
+                    </span>
+                    
+                    <h1>{trip.title}</h1>
+                    <p><i className="fa-regular fa-calendar"></i> {formattedDates}</p>
+                </div>
+            </div>
+
+            {/* CONTENEDOR PRINCIPAL */}
+            <div className="trip-content-container">
+                <div className="main-column">
+                    <div className="main-layout-wrapper">
+
+                        {/* ÁREA DE PESTAÑAS (IZQUIERDA EN PC / ABAJO EN MÓVIL) */}
+                        <div className="tabs-content-area">
+                            <div className="content-tabs">
+                                <button className={activeTab === "itinerario" ? "active" : ""} onClick={() => setActiveTab("itinerario")}>Itinerario</button>
+                                <button className={activeTab === "gastos" ? "active" : ""} onClick={() => setActiveTab("gastos")}>Gastos</button>
+                                <button className={activeTab === "documentos" ? "active" : ""} onClick={() => setActiveTab("documentos")}>Documentos</button>
+                            </div>
+
+                            {activeTab === "itinerario" && (
+                                <ItineraryTab tripItinerary={tripItinerary} setTripItinerary={setTripItinerary} />
+                            )}
+
+                            {activeTab === "gastos" && (
+                                <ExpensesTab
+                                    expensesList={expensesList}
+                                    setExpensesList={setExpensesList}
+                                    allParticipants={allParticipants}
+                                    travelers={store.travelers || []}
+                                />
+                            )}
+
+                            {activeTab === "documentos" && (
+                                <div className="empty-state">
+                                    <i className="fa-regular fa-folder-open"></i>
+                                    <h3>Aún no hay documentos</h3>
+                                    <p>Sube aquí tus reservas de hotel o vuelos.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* CHAT PERSISTENTE (DERECHA EN PC / ARRIBA EN MÓVIL) */}
+                        <div className="chat-desktop-view persistent-chat">
+                            <ChatTab />
+                        </div>
+                        
+                    </div>
+                </div>
+
+                {/* BARRA LATERAL / SIDEBAR */}
+                <div className="side-column">
+                    <div className="summary-card budget-card">
+                        <h3><i className="fa-solid fa-chart-pie"></i> Presupuesto</h3>
+                        <div className="budget-numbers">
+                            <div><span>Gastado</span><h4>{totalSpent.toFixed(2)}€</h4></div>
+                            <div><span>Total</span><h4>{trip.budget || 0}€</h4></div>
+                        </div>
+                        <div className="progress-bar-bg">
+                            <div className="progress-bar-fill" style={{
+                                width: `${trip.budget > 0 ? Math.min((totalSpent / trip.budget) * 100, 100) : 0}%`,
+                                backgroundColor: totalSpent > trip.budget ? "#e74c3c" : "#2ecc71"
+                            }}></div>
+                        </div>
+                    </div>
+
+                    <div className="summary-card friends-card">
+                        <h3><i className="fa-solid fa-users"></i> Viajeros y Balances</h3>
+                        <ul className="friends-list">
+                            {allParticipants.map((person, i) => {
+                                const balance = participantBalances[person] || 0;
+                                const balanceClass = balance > 0.01 ? "balance-positive" : balance < -0.01 ? "balance-negative" : "balance-neutral";
+
+                                return (
+                                    <li key={i}>
+                                        <div className="avatar friend-avatar">{person.charAt(0).toUpperCase()}</div>
+                                        <span>{person}</span>
+                                        <span className={`balance-badge ${balanceClass}`}>
+                                            {balance > 0 ? `+${balance.toFixed(2)}` : balance.toFixed(2)} €
+                                        </span>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 };
