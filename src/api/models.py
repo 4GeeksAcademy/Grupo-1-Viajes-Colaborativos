@@ -75,6 +75,9 @@ class Trip(db.Model):
     ending_date: Mapped[date] = mapped_column(Date(), nullable=False)
     budget: Mapped[float] = mapped_column(Float, nullable=False)
     notes: Mapped[str] = mapped_column(String(150), nullable=True)
+    
+    # 📸 NUEVO CAMPO: Para guardar la foto de portada
+    image_url: Mapped[str] = mapped_column(String(500), nullable=True)
 
     # Relationships
     travelers = relationship("Traveler", back_populates="trips")
@@ -92,16 +95,19 @@ class Trip(db.Model):
             "starting_date": str(self.starting_date),
             "ending_date": str(self.ending_date),
             "budget": self.budget,
-            "notes": self.notes
+            "notes": self.notes,
+            "image_url": self.image_url # 📸 Incluido en serialización
         }
     
     def serialize_common_trips(self):
         return {
             "id": self.id,
             "title": self.title,
+            "destination": self.destination, # Añadido para ayudar con imágenes genéricas si hace falta
             "state": self.state.value,
             "starting_date": str(self.starting_date),
             "ending_date": str(self.ending_date),
+            "image_url": self.image_url # 📸 Incluido en serialización reducida
         }
 
 
@@ -255,3 +261,4 @@ class Message(db.Model):
             "chat_id": self.chat_id,
             "user_id": self.user_id
         }
+        
