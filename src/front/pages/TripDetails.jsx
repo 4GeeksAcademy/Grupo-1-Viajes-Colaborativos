@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import "../styles/TripDetails.css";
 
@@ -15,46 +15,80 @@ export const TripDetails = () => {
     const [activeTab, setActiveTab] = useState("itinerario");
     const [tripItinerary, setTripItinerary] = useState([]);
     const [expensesList, setExpensesList] = useState([]);
+    
+    // 📸 ESTADOS PARA LA EDICIÓN DE IMAGEN
+    const [isEditingImage, setIsEditingImage] = useState(false);
+    const [newImageUrl, setNewImageUrl] = useState("");
+    const [isUpdatingImage, setIsUpdatingImage] = useState(false);
 
-    // 🎨 CHAPA Y PINTURA: Nuestro traductor VIP de estados
     const stateTranslations = {
-        "PLANNING": { text: "Planificando", color: "#3498db" }, // Azul
-        "ONGOING": { text: "En curso", color: "#2ecc71" },      // Verde
-        "FINISHED": { text: "Finalizado", color: "#95a5a6" }    // Gris
+        "PLANNING": { text: "Planificando", color: "#3498db" },
+        "ONGOING": { text: "En curso", color: "#2ecc71" },
+        "FINISHED": { text: "Finalizado", color: "#95a5a6" }
+    };
+
+    // Extraemos el fetch a una función para poder reutilizarlo al actualizar la imagen
+    const fetchTripDetails = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            navigate("/login");
+            return;
+        }
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/trip-detail/${id}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                dispatch({ type: "load_trip_details", payload: data });
+                setTripItinerary(data.itinerary || []);
+                setExpensesList(data.expense || []);
+            } else {
+                if (response.status === 401) navigate("/login");
+            }
+        } catch (error) {
+            console.error("Error de conexión con el backend:", error);
+        }
     };
 
     useEffect(() => {
-        const fetchTripDetails = async () => {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                navigate("/login");
-                return;
-            }
-
-            try {
-                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/trip-detail/${id}`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    dispatch({ type: "load_trip_details", payload: data });
-                    setTripItinerary(data.itinerary || []);
-                    setExpensesList(data.expense || []);
-                } else {
-                    if (response.status === 401) navigate("/login");
-                }
-            } catch (error) {
-                console.error("Error de conexión con el backend:", error);
-            }
-        };
-
         if (id) fetchTripDetails();
     }, [id, navigate, dispatch]);
+
+    // 📸 FUNCIÓN PARA ACTUALIZAR LA IMAGEN EN EL BACKEND
+    const handleImageUpdate = async () => {
+        setIsUpdatingImage(true);
+        const token = localStorage.getItem("token");
+        
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/update-trip-image/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ image_url: newImageUrl })
+            });
+
+            if (response.ok) {
+                setIsEditingImage(false);
+                setNewImageUrl("");
+                fetchTripDetails(); // Recargamos los datos para que se vea la foto nueva
+            } else {
+                alert("Hubo un error al actualizar la imagen.");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        } finally {
+            setIsUpdatingImage(false);
+        }
+    };
 
     if (!store.currentTrip) {
         return (
@@ -68,8 +102,6 @@ export const TripDetails = () => {
     const trip = store.currentTrip;
     const formattedDates = `${trip.starting_date} al ${trip.ending_date}`;
 
-    // 🎨 CHAPA Y PINTURA: Calculamos el estado actual. 
-    // Usamos toUpperCase() por si la base de datos lo devuelve en minúsculas.
     const safeState = trip.state ? trip.state.toUpperCase() : "PLANNING";
     const currentState = stateTranslations[safeState] || { text: trip.state, color: "var(--brand-teal)" };
 
@@ -99,24 +131,80 @@ export const TripDetails = () => {
     const participantBalances = calculateBalances();
     const totalSpent = expensesList.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
 
+    // 📸 LÓGICA DE FONDO: Usa la imagen del viaje o una por defecto
+    const heroImage = trip.image_url && trip.image_url.trim() !== "" 
+        ? trip.image_url 
+        : `https://source.unsplash.com/1200x400/?${encodeURIComponent(trip.destination || 'travel')}`;
+
     return (
         <div className="trip-details-wrapper">
             {/* HERO SECTION */}
             <div className="trip-hero" style={{
-                backgroundImage: `linear-gradient(rgba(30, 58, 95, 0.7), rgba(30, 58, 95, 0.4)), url('https://images.unsplash.com/photo-1555881400-74d7acaacd8b?auto=format&fit=crop&w=1200&q=80')`
+                backgroundImage: `linear-gradient(rgba(30, 58, 95, 0.7), rgba(30, 58, 95, 0.4)), url('${heroImage}')`
             }}>
-                <div className="hero-content">
-                    <button className="btn-back-light" onClick={() => navigate("/my-trips")}>
-                        <i className="fa-solid fa-arrow-left"></i> Volver
-                    </button>
+                <div className="hero-content" style={{ position: "relative", width: "100%" }}>
                     
-                    {/* 🎨 CHAPA Y PINTURA: Aplicamos el color y el texto traducido */}
+                    {/* 🛠️ FIX: Botón de volver a prueba de balas usando Link */}
+                    <Link 
+                        to="/my-trips" 
+                        className="btn-back-light" 
+                        style={{ 
+                            cursor: "pointer", 
+                            position: "absolute",
+                            top: "20px",
+                            left:"20px",
+                            zIndex: 9999,
+                            display: "inline-block",
+                            alignItems: "center",
+                            gap: "8px",
+                            textDecoration: "none"
+                        }}
+                    >
+                        <i className="fa-solid fa-arrow-left"></i> Volver
+                    </Link>
+                    
                     <span className="hero-badge" style={{ backgroundColor: currentState.color }}>
                         {currentState.text}
                     </span>
                     
                     <h1>{trip.title}</h1>
                     <p><i className="fa-regular fa-calendar"></i> {formattedDates}</p>
+
+                    {/* 📸 INTERFAZ DE EDICIÓN DE IMAGEN */}
+                    <div style={{ position: "absolute", bottom: "10px", right: "20px" }}>
+                        {!isEditingImage ? (
+                            <button 
+                                onClick={() => { setIsEditingImage(true); setNewImageUrl(trip.image_url || ""); }}
+                                style={{ background: "rgba(255,255,255,0.2)", border: "1px solid white", color: "white", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", backdropFilter: "blur(4px)" }}
+                            >
+                                <i className="fa-solid fa-camera"></i> Cambiar Foto
+                            </button>
+                        ) : (
+                            <div style={{ background: "white", padding: "10px", borderRadius: "8px", display: "flex", gap: "10px", alignItems: "center", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}>
+                                <input 
+                                    type="url" 
+                                    placeholder="Pega la nueva URL..." 
+                                    value={newImageUrl}
+                                    onChange={(e) => setNewImageUrl(e.target.value)}
+                                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "250px" }}
+                                />
+                                <button 
+                                    onClick={handleImageUpdate}
+                                    disabled={isUpdatingImage}
+                                    style={{ background: "var(--brand-teal)", color: "white", border: "none", padding: "8px 15px", borderRadius: "4px", cursor: "pointer" }}
+                                >
+                                    {isUpdatingImage ? "..." : "Guardar"}
+                                </button>
+                                <button 
+                                    onClick={() => setIsEditingImage(false)}
+                                    style={{ background: "#e2e8f0", color: "#334155", border: "none", padding: "8px 10px", borderRadius: "4px", cursor: "pointer" }}
+                                >
+                                    <i className="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
                 </div>
             </div>
 
@@ -125,7 +213,7 @@ export const TripDetails = () => {
                 <div className="main-column">
                     <div className="main-layout-wrapper">
 
-                        {/* ÁREA DE PESTAÑAS (IZQUIERDA EN PC / ABAJO EN MÓVIL) */}
+                        {/* ÁREA DE PESTAÑAS */}
                         <div className="tabs-content-area">
                             <div className="content-tabs">
                                 <button className={activeTab === "itinerario" ? "active" : ""} onClick={() => setActiveTab("itinerario")}>Itinerario</button>
@@ -155,7 +243,7 @@ export const TripDetails = () => {
                             )}
                         </div>
 
-                        {/* CHAT PERSISTENTE (DERECHA EN PC / ARRIBA EN MÓVIL) */}
+                        {/* CHAT PERSISTENTE */}
                         <div className="chat-desktop-view persistent-chat">
                             <ChatTab />
                         </div>

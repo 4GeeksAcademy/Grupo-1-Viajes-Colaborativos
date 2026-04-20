@@ -33,10 +33,8 @@ export const MyTrips = () => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    // Guardamos los viajes que nos devuelve Python
                     setTrips(data.viajes || []);
                 } else if (response.status === 401) {
-                    // Si el token caducó, volvemos al login
                     navigate("/login");
                 }
             } catch (error) {
@@ -49,8 +47,7 @@ export const MyTrips = () => {
         fetchMyTrips();
     }, [navigate]);
 
-    // 3. TRADUCTOR DE ESTADOS (Para que los filtros sigan funcionando)
-    // El backend envía "FINISHED", "ONGOING", "PLANNING", lo pasamos a español.
+    // 3. TRADUCTOR DE ESTADOS
     const translateStatus = (status) => {
         if (!status) return "Planificando";
         const s = status.toUpperCase();
@@ -118,13 +115,23 @@ export const MyTrips = () => {
                     ) : (
                         filteredTrips.map((trip) => {
                             const statusEsp = translateStatus(trip.state);
-                            // Como el backend aún no guarda fotos, usamos una genérica o buscamos por destino
-                            const tripImage = trip.image || `https://source.unsplash.com/500x300/?${trip.destination || 'travel'}`;
+                            
+                            // 📸 LÓGICA DE LA IMAGEN: 
+                            // 1. Usa la image_url de la DB si existe y no es nula.
+                            // 2. Si no hay imagen, busca una aleatoria en Unsplash basada en el destino.
+                            const tripImage = trip.image_url && trip.image_url.trim() !== "" 
+                                ? trip.image_url 
+                                : `https://source.unsplash.com/500x300/?${encodeURIComponent(trip.destination || 'travel')}`;
 
                             return (
                                 <div key={trip.id} className="trip-card">
                                     <div className="trip-img-container">
-                                        <img src={tripImage} alt={trip.title} />
+                                        <img 
+                                            src={tripImage} 
+                                            alt={trip.title} 
+                                            // 📸 Seguridad extra: si la URL de la DB está rota, muestra paisaje por defecto
+                                            onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=500&q=80" }}
+                                        />
                                         <span className={`status-badge ${statusEsp.replace(/\s+/g, '-').toLowerCase()}`}>
                                             {statusEsp}
                                         </span>
@@ -139,7 +146,6 @@ export const MyTrips = () => {
                                                 <div className="progress-bar"><div className="progress-fill"></div></div>
                                             )}
                                             
-                                            {/* ENLACE DINÁMICO: Te lleva al ID real del viaje */}
                                             <span className="link-details" onClick={() => navigate(`/trip-details/${trip.id}`)}>
                                                 Ver detalles <i className="fa-solid fa-chevron-right"></i>
                                             </span>

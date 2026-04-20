@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "../styles/NewTrip.css"; 
 
 export const NewTrip = () => {
@@ -10,11 +10,11 @@ export const NewTrip = () => {
         destination: "",
         starting_date: "",
         ending_date: "",
-        // 🛠️ FIX: Ahora usamos la clave exacta que espera la base de datos
         state: "PLANNING", 
         budget: "",
         notes: "",
-        users: "" 
+        users: "",
+        image_url: "" // 📸 NUEVO ESTADO PARA LA IMAGEN
     });
 
     const handleChange = (e) => {
@@ -38,12 +38,13 @@ export const NewTrip = () => {
         const payload = {
             title: String(trip.title),
             destination: String(trip.destination),
-            state: String(trip.state), // Esto enviará "PLANNING", "ONGOING" o "FINISHED"
+            state: String(trip.state), 
             starting_date: String(trip.starting_date),
             ending_date: String(trip.ending_date),
             budget: String(trip.budget),
             notes: String(trip.notes),
-            users: emailsArray
+            users: emailsArray,
+            image_url: String(trip.image_url) // 📸 ENVIAMOS LA IMAGEN
         };
 
         try {
@@ -72,9 +73,20 @@ export const NewTrip = () => {
         <div className="new-trip-wrapper">
             <div className="new-trip-container">
                 
-                <button className="btn-back" onClick={() => navigate("/my-trips")}>
+                {/* 🛠️ FIX: Botón de volver a prueba de balas usando Link y zIndex máximo */}
+                <Link 
+                    to="/my-trips" 
+                    className="btn-back" 
+                    style={{ 
+                        cursor: "pointer", 
+                        position: "relative", 
+                        zIndex: 9999, 
+                        display: "inline-block",
+                        textDecoration: "none" 
+                    }}
+                >
                     <i className="fa-solid fa-arrow-left"></i> Volver a Mis Viajes
-                </button>
+                </Link>
 
                 <div className="new-trip-card">
                     <div className="card-header">
@@ -145,10 +157,24 @@ export const NewTrip = () => {
                             />
                         </div>
 
+                        {/* 📸 NUEVO CAMPO VISUAL PARA LA IMAGEN */}
+                        <div className="input-group">
+                            <label>Foto de portada (Enlace de la imagen)</label>
+                            <input 
+                                type="url" 
+                                name="image_url"
+                                placeholder="Pega el link (Ej: https://unsplash.com/.../foto.jpg)" 
+                                value={trip.image_url}
+                                onChange={handleChange}
+                            />
+                            <small style={{ color: "#64748b", fontSize: "0.8rem", marginTop: "5px", display: "block" }}>
+                                Opcional. Pega el enlace de una imagen para darle color a tu viaje.
+                            </small>
+                        </div>
+
                         <div className="input-group">
                             <label>Estado del viaje</label>
                             <select name="state" value={trip.state} onChange={handleChange}>
-                                {/* 🛠️ FIX: Ahora Rigo sí reconocerá estas palabras clave */}
                                 <option value="PLANNING">Planificando (Aún viendo detalles)</option>
                                 <option value="ONGOING">En curso (¡Billetes comprados!)</option>
                                 <option value="FINISHED">Finalizado (Viaje terminado)</option>

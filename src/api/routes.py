@@ -78,6 +78,9 @@ def validate_new_trip(payload):
     ending_date = payload.get("ending_date").strip()
     budget = payload.get("budget").strip()
     notes = payload.get("notes").strip()
+    
+    # 📸 NUEVO: Capturamos la URL (puede venir vacía)
+    image_url = payload.get("image_url", "").strip() 
 
     if title is None:
         raise APIException(
@@ -110,7 +113,8 @@ def validate_new_trip(payload):
         starting_date=starting_date,
         ending_date=ending_date,
         budget=budget,
-        notes=notes
+        notes=notes,
+        image_url=image_url if image_url else None # 📸 Guardamos la URL o None
     )
 
     return trip
@@ -497,6 +501,29 @@ def all_expense(trip_id):
         "debts": [debt.serialize() for debt in debts]
     }), 200
 
+@api.route("/update-trip-image/<int:trip_id>", methods=["PUT"])
+@jwt_required()
+def update_trip_image(trip_id):
+    user = get_current_user()
+    
+    # Verificamos que el usuario pertenezca a este viaje
+    validate_user_trip(user, trip_id)
+
+    data = get_json_payload()
+    new_image_url = data.get("image_url", "").strip()
+
+    trip = db.session.get(Trip, trip_id)
+    if not trip:
+        raise APIException("Viaje no encontrado", status_code=404)
+
+    # Actualizamos la URL y guardamos
+    trip.image_url = new_image_url
+    db.session.commit()
+
+    return jsonify({
+        "message": "Imagen de portada actualizada correctamente",
+        "image_url": trip.image_url
+    }), 200
 
 # ENDPOINT QUE MODIFICA LOS DATOS DEL USUARIO
 # 1º: recibe el JWT y saca el usuario
