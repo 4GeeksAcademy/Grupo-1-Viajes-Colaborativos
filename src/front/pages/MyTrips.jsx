@@ -163,7 +163,8 @@ export const MyTrips = () => {
                             </div>
                             <h3>¿Sin ideas?</h3>
                             <p>Explora destinos seleccionados por nuestra comunidad.</p>
-                            <button className="btn-explore-link">Explorar destinos</button>
+                            {/* AÑADIDA LA NAVEGACIÓN AQUÍ 👇 */}
+                            <button className="btn-explore-link" onClick={() => navigate("/explore")}>Explorar destinos</button>
                         </div>
                     </div>
                 </div>
@@ -171,7 +172,8 @@ export const MyTrips = () => {
                 <div className="suggestions-section">
                     <div className="suggestions-header">
                         <h2>Sugerencias para ti</h2>
-                        <span className="link-view-all">Ver todas</span>
+                        {/* AÑADIDA LA NAVEGACIÓN AQUÍ 👇 */}
+                        <span className="link-view-all" onClick={() => navigate("/explore")} style={{ cursor: "pointer" }}>Ver todas</span>
                     </div>
                     <div className="suggestions-grid">
                         {suggestions.map((sug, index) => (

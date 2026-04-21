@@ -1,17 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Profile.css";
 
 export const Profile = () => {
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true);
 
     const [user, setUser] = useState({
-        firstName: "Alex",
-        lastName: "Thompson",
-        email: "alex.thompson@traveler.com",
-        phone: "+34 600 000 000",
-        location: "Madrid, España",
-        bio: "Amante de la fotografía, las montañas y descubrir nuevas culturas."
+        firstName: "",
+        lastName: "",
+        email: ""
     });
 
     const [notifications, setNotifications] = useState({
@@ -20,10 +18,45 @@ export const Profile = () => {
         offers: false
     });
 
-    // === NUEVOS ESTADOS PARA LOS MODALES ===
+    // === ESTADOS PARA LOS MODALES ===
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [passwordData, setPasswordData] = useState({ current: "", new: "", confirm: "" });
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // 1. OBTENER DATOS DEL USUARIO AL ENTRAR
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                navigate("/login");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/profile`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setUser({
+                        firstName: data.user.name || "",
+                        lastName: data.user.last_name || "",
+                        email: data.user.email || ""
+                    });
+                } else {
+                    if (response.status === 401) navigate("/login");
+                }
+            } catch (error) {
+                console.error("Error al cargar perfil:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchUserProfile();
+    }, [navigate]);
 
     const handleChange = (e) => {
         setUser({ ...user, [e.target.name]: e.target.value });
@@ -37,28 +70,107 @@ export const Profile = () => {
         setNotifications({ ...notifications, [setting]: !notifications[setting] });
     };
 
-    const handleSubmit = (e) => {
+    // 2. GUARDAR LOS CAMBIOS DE PERFIL
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        alert("¡Cambios guardados correctamente!");
+        const token = localStorage.getItem("token");
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/profile`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(user)
+            });
+
+            if (response.ok) {
+                alert("¡Cambios guardados correctamente!");
+                const userData = JSON.parse(localStorage.getItem("user") || "{}");
+                userData.name = user.firstName;
+                localStorage.setItem("user", JSON.stringify(userData));
+            } else {
+                alert("Hubo un error al guardar los cambios.");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Error de conexión con el servidor.");
+        }
     };
 
-    // Funciones para manejar los modales
-    const submitPasswordChange = (e) => {
+    // 3. CAMBIAR CONTRASEÑA
+    const submitPasswordChange = async (e) => {
         e.preventDefault();
-        if(passwordData.new !== passwordData.confirm) {
+        
+        if (passwordData.new !== passwordData.confirm) {
             alert("Las contraseñas nuevas no coinciden.");
             return;
         }
-        alert("¡Contraseña actualizada con éxito!");
-        setShowPasswordModal(false);
-        setPasswordData({ current: "", new: "", confirm: "" }); // Limpiar formulario
+
+        const token = localStorage.getItem("token");
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/update-password`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    current: passwordData.current,
+                    new: passwordData.new
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert("¡Contraseña actualizada con éxito!");
+                setShowPasswordModal(false);
+                setPasswordData({ current: "", new: "", confirm: "" }); 
+            } else {
+                alert(data.message || "Error al actualizar la contraseña.");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Error de conexión con el servidor.");
+        }
     };
 
-    const confirmDeleteAccount = () => {
-        alert("Tu cuenta ha sido eliminada. Lamentamos verte partir.");
-        setShowDeleteModal(false);
-        navigate("/"); // Lo mandamos de vuelta al inicio
+    // 4. ELIMINAR CUENTA REAL EN LA BASE DE DATOS
+    const confirmDeleteAccount = async () => {
+        setIsDeleting(true);
+        const token = localStorage.getItem("token");
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/delete-account`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                alert("Tu cuenta ha sido eliminada. Lamentamos verte partir.");
+                setShowDeleteModal(false);
+                localStorage.removeItem("token");
+                localStorage.removeItem("user");
+                navigate("/login"); 
+            } else {
+                alert("Error al intentar eliminar la cuenta.");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Error de conexión con el servidor.");
+        } finally {
+            setIsDeleting(false);
+        }
     };
+
+    if (isLoading) {
+        return <div style={{ textAlign: "center", marginTop: "100px" }}>Cargando perfil...</div>;
+    }
 
     return (
         <div className="profile-wrapper">
@@ -73,7 +185,8 @@ export const Profile = () => {
                     <div className="profile-header">
                         <div className="profile-avatar-container">
                             <div className="profile-avatar">
-                                {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                                {user.firstName ? user.firstName.charAt(0).toUpperCase() : "U"}
+                                {user.lastName ? user.lastName.charAt(0).toUpperCase() : ""}
                             </div>
                             <button className="btn-edit-avatar" title="Cambiar foto">
                                 <i className="fa-solid fa-pencil"></i>
@@ -98,19 +211,11 @@ export const Profile = () => {
                             </div>
                             <div className="input-group">
                                 <label>Apellidos</label>
-                                <input type="text" name="lastName" value={user.lastName} onChange={handleChange} required />
-                            </div>
-                            <div className="input-group">
-                                <label>Correo Electrónico</label>
-                                <input type="email" name="email" value={user.email} onChange={handleChange} required />
-                            </div>
-                            <div className="input-group">
-                                <label>Teléfono</label>
-                                <input type="tel" name="phone" value={user.phone} onChange={handleChange} />
+                                <input type="text" name="lastName" value={user.lastName} onChange={handleChange} />
                             </div>
                             <div className="input-group full-width">
-                                <label>Ubicación</label>
-                                <input type="text" name="location" value={user.location} onChange={handleChange} />
+                                <label>Correo Electrónico</label>
+                                <input type="email" name="email" value={user.email} onChange={handleChange} required />
                             </div>
                         </div>
 
@@ -148,7 +253,6 @@ export const Profile = () => {
                             <hr />
                         </div>
                         <div className="account-actions-row">
-                            {/* Al hacer clic, activamos los modales */}
                             <button type="button" className="btn-change-password" onClick={() => setShowPasswordModal(true)}>
                                 Cambiar Contraseña
                             </button>
@@ -166,12 +270,10 @@ export const Profile = () => {
                 </div>
             </div>
 
-            {/* =========================================
-                MODAL: CAMBIAR CONTRASEÑA
-                ========================================= */}
+            {/* MODAL: CAMBIAR CONTRASEÑA */}
             {showPasswordModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
+                <div className="modal-overlay" onClick={() => setShowPasswordModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <h3>Cambiar Contraseña</h3>
                         <p>Introduce tu contraseña actual y la nueva que deseas utilizar.</p>
                         <form onSubmit={submitPasswordChange}>
@@ -181,13 +283,13 @@ export const Profile = () => {
                             </div>
                             <div className="input-group">
                                 <label>Nueva Contraseña</label>
-                                <input type="password" name="new" value={passwordData.new} onChange={handlePasswordChange} required />
+                                <input type="password" name="new" value={passwordData.new} onChange={handlePasswordChange} required minLength="6" />
                             </div>
                             <div className="input-group">
                                 <label>Confirmar Nueva Contraseña</label>
-                                <input type="password" name="confirm" value={passwordData.confirm} onChange={handlePasswordChange} required />
+                                <input type="password" name="confirm" value={passwordData.confirm} onChange={handlePasswordChange} required minLength="6" />
                             </div>
-                            <div className="modal-actions">
+                            <div className="modal-actions-itinerary">
                                 <button type="button" className="btn-modal-cancel" onClick={() => setShowPasswordModal(false)}>Cancelar</button>
                                 <button type="submit" className="btn-modal-confirm">Actualizar</button>
                             </div>
@@ -196,20 +298,20 @@ export const Profile = () => {
                 </div>
             )}
 
-            {/* =========================================
-                MODAL: ELIMINAR CUENTA
-                ========================================= */}
+            {/* MODAL: ELIMINAR CUENTA */}
             {showDeleteModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content danger-modal">
-                        <div className="danger-icon">
+                <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
+                    <div className="modal-content danger-modal" onClick={(e) => e.stopPropagation()} style={{textAlign: "center"}}>
+                        <div className="danger-icon" style={{fontSize: "3rem", color: "#e74c3c", marginBottom: "15px"}}>
                             <i className="fa-solid fa-triangle-exclamation"></i>
                         </div>
                         <h3>¿Eliminar cuenta definitivamente?</h3>
-                        <p>Esta acción <strong>no se puede deshacer</strong>. Todos tus viajes, gastos, e información personal serán eliminados de nuestros servidores para siempre.</p>
-                        <div className="modal-actions">
-                            <button type="button" className="btn-modal-cancel" onClick={() => setShowDeleteModal(false)}>Cancelar</button>
-                            <button type="button" className="btn-modal-danger" onClick={confirmDeleteAccount}>Sí, eliminar mi cuenta</button>
+                        <p style={{marginTop: "10px", marginBottom: "20px"}}>Esta acción <strong>no se puede deshacer</strong>. Todos tus viajes, gastos e información personal serán eliminados de nuestros servidores para siempre.</p>
+                        <div className="modal-actions-itinerary" style={{justifyContent: "center", gap: "15px"}}>
+                            <button type="button" className="btn-modal-cancel" disabled={isDeleting} onClick={() => setShowDeleteModal(false)}>Cancelar</button>
+                            <button type="button" className="btn-modal-danger" disabled={isDeleting} style={{background: "#e74c3c", color: "white", padding: "10px 15px", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "bold"}} onClick={confirmDeleteAccount}>
+                                {isDeleting ? "Eliminando..." : "Sí, eliminar mi cuenta"}
+                            </button>
                         </div>
                     </div>
                 </div>

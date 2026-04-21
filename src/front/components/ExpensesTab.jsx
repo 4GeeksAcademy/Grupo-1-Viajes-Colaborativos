@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import { useParams } from "react-router-dom"; // <-- Necesario para obtener el ID del viaje
+import { useParams } from "react-router-dom";
 import "../styles/ExpensesTab.css";
 
-// CAMBIO 1: Recibimos 'travelers' (la lista de objetos de la base de datos) en lugar de solo nombres
 export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParticipants }) => {
-    const { id } = useParams(); // ID del viaje de la URL
+    const { id } = useParams(); 
 
     const [showExpenseModal, setShowExpenseModal] = useState(false);
+    const [showAllExpensesModal, setShowAllExpensesModal] = useState(false); // 📸 NUEVO MODAL "VER TODOS"
     const [isEditingExpense, setIsEditingExpense] = useState(false);
     const [selectedExpense, setSelectedExpense] = useState(null);
-    const [loading, setLoading] = useState(false); // Para el botón de enviar
+    const [loading, setLoading] = useState(false); 
     
     const [expenseData, setExpenseData] = useState({ 
         id: null, 
@@ -27,12 +27,16 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
     };
 
     const handleCheckboxChange = (participant) => {
-        setExpenseData(prev => ({
-            ...prev, 
-            splitWith: prev.splitWith.includes(participant) 
-                ? prev.splitWith.filter(p => p !== participant) 
-                : [...prev.splitWith, participant]
-        }));
+        setExpenseData(prev => {
+            // Paracaídas de seguridad: si splitWith es undefined, usamos []
+            const currentSplitWith = prev.splitWith || [];
+            return {
+                ...prev, 
+                splitWith: currentSplitWith.includes(participant) 
+                    ? currentSplitWith.filter(p => p !== participant) 
+                    : [...currentSplitWith, participant]
+            };
+        });
     };
 
     // --- LA FUNCIÓN MÁGICA CONECTADA AL BACKEND ---
@@ -41,24 +45,22 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
         const parsedAmount = parseFloat(expenseData.amount);
         
         if (isEditingExpense) {
-            // (La edición al backend la dejaremos para el siguiente paso, por ahora se queda en local)
             setExpensesList(expensesList.map(exp => 
                 exp.id === expenseData.id ? { ...expenseData, amount: parsedAmount } : exp
             ));
             cerrarModal();
         } else {
-            // 1. TRADUCTOR DE NOMBRE A ID
-            // Buscamos el ID de quien pagó
             const payerObj = travelers.find(t => t.name === expenseData.paidBy);
             const payerId = payerObj ? payerObj.id : null;
 
-            // Buscamos los IDs de con quién se divide
-            const debtorsList = expenseData.splitWith.map(name => {
+            // Paracaídas: asegurar que splitWith sea un arreglo
+            const validSplitWith = expenseData.splitWith || [];
+
+            const debtorsList = validSplitWith.map(name => {
                 const t = travelers.find(t => t.name === name);
                 return t ? { id: t.id } : null;
             }).filter(d => d !== null);
 
-            // 2. PAQUETE PARA EL BACKEND
             const newExpensePayload = {
                 amount: parsedAmount,
                 description: expenseData.description,
@@ -68,7 +70,6 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
 
             setLoading(true);
             try {
-                // 3. ENVIAMOS AL SERVIDOR
                 const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/new-expense/${id}`, {
                     method: "POST",
                     headers: {
@@ -81,9 +82,8 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
                 if (response.ok) {
                     const responseData = await response.json();
                     
-                    // 4. GUARDAMOS EN REACT (Mezclando datos del Back con la estructura del Front)
                     setExpensesList([...expensesList, { 
-                        id: responseData.expense.id, // ID real de PostgreSQL
+                        id: responseData.expense.id, 
                         ...expenseData, 
                         amount: parsedAmount, 
                         date: "Hoy", 
@@ -111,7 +111,12 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
     };
 
     const handleEditExpenseClick = () => {
-        setExpenseData(selectedExpense);
+        // Paracaídas al cargar datos para editar: evitamos que variables clave sean undefined
+        setExpenseData({
+            ...selectedExpense,
+            splitWith: selectedExpense.splitWith || allParticipants, // Por defecto marcamos a todos si viene vacío
+            settledWith: selectedExpense.settledWith || []
+        });
         setIsEditingExpense(true);
         setSelectedExpense(null);
         setShowExpenseModal(true);
@@ -128,10 +133,11 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
     const toggleSettleDebt = (expenseId, personName) => {
         const updatedExpenses = expensesList.map(exp => {
             if (exp.id === expenseId) {
-                const isAlreadySettled = exp.settledWith?.includes(personName);
+                const settledList = exp.settledWith || [];
+                const isAlreadySettled = settledList.includes(personName);
                 const newSettledWith = isAlreadySettled
-                    ? exp.settledWith.filter(p => p !== personName) 
-                    : [...(exp.settledWith || []), personName]; 
+                    ? settledList.filter(p => p !== personName) 
+                    : [...settledList, personName]; 
                 
                 const updatedExp = { ...exp, settledWith: newSettledWith };
                 
@@ -153,6 +159,9 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
         }
     };
 
+    // 📸 Extraemos solo los primeros 3 gastos para la vista principal
+    const previewExpenses = expensesList.slice(0, 3);
+
     return (
         <>
             <div className="expenses-section">
@@ -171,23 +180,36 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
                 </div>
                 
                 {expensesList.length > 0 ? (
-                    <div className="expenses-grid">
-                        {expensesList.map((expense) => (
-                            <div key={expense.id} className="expense-card clickable" onClick={() => setSelectedExpense(expense)}>
-                                <div className="expense-card-icon">
-                                    <i className={getCategoryIcon(expense.category)}></i>
+                    <>
+                        <div className="expenses-grid">
+                            {previewExpenses.map((expense) => (
+                                <div key={expense.id} className="expense-card clickable" onClick={() => setSelectedExpense(expense)}>
+                                    <div className="expense-card-icon">
+                                        <i className={getCategoryIcon(expense.category)}></i>
+                                    </div>
+                                    <div className="expense-card-info">
+                                        <h4>{expense.description}</h4>
+                                        <span className="expense-payer">{expense.paidBy} pagó por {expense.splitWith ? expense.splitWith.length : 0}</span>
+                                    </div>
+                                    <div className="expense-card-amount">
+                                        <h4>{expense.amount} €</h4>
+                                        <span>{expense.date}</span>
+                                    </div>
                                 </div>
-                                <div className="expense-card-info">
-                                    <h4>{expense.description}</h4>
-                                    <span className="expense-payer">{expense.paidBy} pagó por {expense.splitWith ? expense.splitWith.length : 0}</span>
-                                </div>
-                                <div className="expense-card-amount">
-                                    <h4>{expense.amount} €</h4>
-                                    <span>{expense.date}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                        
+                        {/* 📸 BOTÓN PARA VER TODOS LOS GASTOS SI HAY MÁS DE 3 */}
+                        {expensesList.length > 3 && (
+                            <button 
+                                className="btn-action" 
+                                style={{ marginTop: "15px", marginBottom: "10px" }}
+                                onClick={() => setShowAllExpensesModal(true)}
+                            >
+                                <i className="fa-solid fa-list-ul"></i> Ver todos los gastos ({expensesList.length})
+                            </button>
+                        )}
+                    </>
                 ) : (
                     <div className="empty-state">
                         <i className="fa-solid fa-wallet"></i>
@@ -196,6 +218,38 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
                     </div>
                 )}
             </div>
+
+            {/* --- MODAL TODOS LOS GASTOS --- */}
+            {showAllExpensesModal && (
+                <div className="modal-overlay" onClick={() => setShowAllExpensesModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxHeight: '80vh', overflowY: 'auto', backgroundColor: "#f8fafc" }}>
+                        <div className="activity-modal-header" style={{ marginBottom: "20px" }}>
+                            <h3>Historial de Gastos</h3>
+                            <button className="btn-close-modal" onClick={() => setShowAllExpensesModal(false)}>&times;</button>
+                        </div>
+                        <div className="expenses-grid">
+                            {expensesList.map((expense) => (
+                                <div key={expense.id} className="expense-card clickable" style={{ background: "white" }} onClick={() => {
+                                    setShowAllExpensesModal(false); // Cerramos el historial
+                                    setSelectedExpense(expense); // Abrimos el detalle
+                                }}>
+                                    <div className="expense-card-icon">
+                                        <i className={getCategoryIcon(expense.category)}></i>
+                                    </div>
+                                    <div className="expense-card-info">
+                                        <h4>{expense.description}</h4>
+                                        <span className="expense-payer">{expense.paidBy} pagó por {expense.splitWith ? expense.splitWith.length : 0}</span>
+                                    </div>
+                                    <div className="expense-card-amount">
+                                        <h4>{expense.amount} €</h4>
+                                        <span>{expense.date}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* --- MODAL CREAR/EDITAR --- */}
             {showExpenseModal && (
@@ -247,7 +301,8 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
                                             <label key={i} className="checkbox-label">
                                                 <input 
                                                     type="checkbox" 
-                                                    checked={expenseData.splitWith.includes(p)} 
+                                                    // Paracaídas aquí: aseguramos que lea un array y no de error
+                                                    checked={(expenseData.splitWith || []).includes(p)} 
                                                     onChange={() => handleCheckboxChange(p)} 
                                                 />
                                                 <div className="custom-checkbox"></div> {p}
@@ -290,10 +345,11 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
                         <div className="breakdown-list">
                             <h4>División del gasto ({selectedExpense.splitWith ? selectedExpense.splitWith.length : 0} personas)</h4>
                             
-                            {selectedExpense.splitWith && selectedExpense.splitWith.map((person, index) => {
-                                const amountPerPerson = (selectedExpense.amount / selectedExpense.splitWith.length).toFixed(2);
+                            {/* Paracaídas aquí también al mapear */}
+                            {(selectedExpense.splitWith || []).map((person, index) => {
+                                const amountPerPerson = (selectedExpense.amount / (selectedExpense.splitWith || allParticipants).length).toFixed(2);
                                 const isPayer = person === selectedExpense.paidBy;
-                                const isSettled = selectedExpense.settledWith?.includes(person);
+                                const isSettled = (selectedExpense.settledWith || []).includes(person);
 
                                 return (
                                     <div key={index} className="breakdown-row">

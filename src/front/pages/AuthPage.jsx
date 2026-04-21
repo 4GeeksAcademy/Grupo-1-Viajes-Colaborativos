@@ -15,6 +15,10 @@ export const AuthPage = () => {
     const [errorMsg, setErrorMsg] = useState("");
     const [loading, setLoading] = useState(false);
 
+    // --- NUEVO: ESTADOS PARA RECUPERAR CONTRASEÑA ---
+    const [showForgotModal, setShowForgotModal] = useState(false);
+    const [recoveryEmail, setRecoveryEmail] = useState("");
+
     // Sincronizar la pestaña con la navegación
     useEffect(() => {
         if (location.state?.tab === "register") {
@@ -75,6 +79,19 @@ export const AuthPage = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // --- 3. FUNCIÓN PARA RECUPERAR CONTRASEÑA ---
+    const handleForgotPasswordSubmit = async (e) => {
+        e.preventDefault();
+        
+        // Aquí irá tu conexión al backend en el futuro. Ejemplo:
+        // await fetch('/api/forgot-password', { method: 'POST', body: JSON.stringify({ email: recoveryEmail }) });
+        
+        alert(`Si el correo ${recoveryEmail} existe en nuestra base de datos, recibirás un enlace de recuperación en los próximos minutos.`);
+        
+        setShowForgotModal(false);
+        setRecoveryEmail("");
     };
 
     return (
@@ -171,9 +188,18 @@ export const AuthPage = () => {
                             </div>
                         </div>
 
+                        {/* BOTÓN OLVIDÉ CONTRASEÑA */}
                         {isLogin && (
                             <div className="forgot-password">
-                                <a href="#">¿Has olvidado tu contraseña?</a>
+                                <a 
+                                    href="#" 
+                                    onClick={(e) => { 
+                                        e.preventDefault(); 
+                                        setShowForgotModal(true); 
+                                    }}
+                                >
+                                    ¿Has olvidado tu contraseña?
+                                </a>
                             </div>
                         )}
 
@@ -208,6 +234,42 @@ export const AuthPage = () => {
                     {isLogin ? "Únete a la comunidad" : "Inicia sesión"}
                 </span>
             </div>
+
+            {/* =========================================
+                MODAL: RECUPERAR CONTRASEÑA
+                ========================================= */}
+            {showForgotModal && (
+                <div className="modal-overlay" onClick={() => setShowForgotModal(false)} style={{ zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)' }}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '400px', textAlign: 'center', position: 'relative' }}>
+                        <h3 style={{ color: 'var(--brand-navy, #1E3A5F)', marginBottom: '10px' }}>Recuperar Contraseña</h3>
+                        <p style={{ color: '#64748b', fontSize: '0.95rem', marginBottom: '20px', lineHeight: '1.5' }}>
+                            Introduce tu correo electrónico y te enviaremos las instrucciones para restablecer tu acceso.
+                        </p>
+                        
+                        <form onSubmit={handleForgotPasswordSubmit}>
+                            <div className="input-group" style={{ textAlign: 'left', marginBottom: '20px' }}>
+                                <label style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--brand-navy, #1E3A5F)', display: 'block', marginBottom: '5px' }}>CORREO ELECTRÓNICO</label>
+                                <input
+                                    type="email"
+                                    placeholder="ejemplo@travel.com"
+                                    value={recoveryEmail}
+                                    onChange={(e) => setRecoveryEmail(e.target.value)}
+                                    required
+                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                                <button type="button" onClick={() => setShowForgotModal(false)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#e2e8f0', color: '#334155', cursor: 'pointer', fontWeight: 'bold', flex: 1 }}>
+                                    Cancelar
+                                </button>
+                                <button type="submit" style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: 'var(--brand-teal, #2EC4B6)', color: 'white', cursor: 'pointer', fontWeight: 'bold', flex: 1 }}>
+                                    Enviar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

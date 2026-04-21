@@ -21,13 +21,21 @@ export const TripDetails = () => {
     const [newImageUrl, setNewImageUrl] = useState("");
     const [isUpdatingImage, setIsUpdatingImage] = useState(false);
 
+    // 📸 ESTADOS PARA MODALES
+    const [showAddTravelerModal, setShowAddTravelerModal] = useState(false);
+    const [showAddDocModal, setShowAddDocModal] = useState(false);
+
+    // 🧑‍🤝‍🧑 NUEVOS ESTADOS PARA INVITAR VIAJERO
+    const [inviteEmail, setInviteEmail] = useState("");
+    const [isInviting, setIsInviting] = useState(false);
+
     const stateTranslations = {
         "PLANNING": { text: "Planificando", color: "#3498db" },
         "ONGOING": { text: "En curso", color: "#2ecc71" },
         "FINISHED": { text: "Finalizado", color: "#95a5a6" }
     };
 
-    // Extraemos el fetch a una función para poder reutilizarlo al actualizar la imagen
+    // Extraemos el fetch a una función para poder reutilizarlo al actualizar la imagen o invitar amigos
     const fetchTripDetails = async () => {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -90,6 +98,41 @@ export const TripDetails = () => {
         }
     };
 
+    // 🧑‍🤝‍🧑 FUNCIÓN PARA INVITAR VIAJERO AL BACKEND
+    const handleInviteTraveler = async (e) => {
+        e.preventDefault();
+        if (!inviteEmail.trim()) return;
+
+        setIsInviting(true);
+        const token = localStorage.getItem("token");
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/add-traveler/${id}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ email: inviteEmail })
+            });
+
+            if (response.ok) {
+                alert("✅ ¡Viajero añadido con éxito!");
+                setShowAddTravelerModal(false);
+                setInviteEmail(""); // Limpiamos el input
+                fetchTripDetails(); // Recargamos la página para actualizar balances y avatares
+            } else {
+                const errorData = await response.json();
+                alert(`⚠️ Error: ${errorData.message}`);
+            }
+        } catch (error) {
+            console.error("Error al invitar:", error);
+            alert("No se pudo conectar con el servidor.");
+        } finally {
+            setIsInviting(false);
+        }
+    };
+
     if (!store.currentTrip) {
         return (
             <div className="trip-details-wrapper" style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: "100px" }}>
@@ -131,7 +174,6 @@ export const TripDetails = () => {
     const participantBalances = calculateBalances();
     const totalSpent = expensesList.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
 
-    // 📸 LÓGICA DE FONDO: Usa la imagen del viaje o una por defecto
     const heroImage = trip.image_url && trip.image_url.trim() !== "" 
         ? trip.image_url 
         : `https://source.unsplash.com/1200x400/?${encodeURIComponent(trip.destination || 'travel')}`;
@@ -142,35 +184,28 @@ export const TripDetails = () => {
             <div className="trip-hero" style={{
                 backgroundImage: `linear-gradient(rgba(30, 58, 95, 0.7), rgba(30, 58, 95, 0.4)), url('${heroImage}')`
             }}>
+                <Link 
+                    to="/my-trips" 
+                    className="btn-back-light" 
+                    style={{ 
+                        cursor: "pointer", 
+                        zIndex: 9999,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        textDecoration: "none"
+                    }}
+                >
+                    <i className="fa-solid fa-arrow-left"></i> Volver
+                </Link>
+
                 <div className="hero-content" style={{ position: "relative", width: "100%" }}>
-                    
-                    {/* 🛠️ FIX: Botón de volver a prueba de balas usando Link */}
-                    <Link 
-                        to="/my-trips" 
-                        className="btn-back-light" 
-                        style={{ 
-                            cursor: "pointer", 
-                            position: "absolute",
-                            top: "20px",
-                            left:"20px",
-                            zIndex: 9999,
-                            display: "inline-block",
-                            alignItems: "center",
-                            gap: "8px",
-                            textDecoration: "none"
-                        }}
-                    >
-                        <i className="fa-solid fa-arrow-left"></i> Volver
-                    </Link>
-                    
                     <span className="hero-badge" style={{ backgroundColor: currentState.color }}>
                         {currentState.text}
                     </span>
-                    
                     <h1>{trip.title}</h1>
                     <p><i className="fa-regular fa-calendar"></i> {formattedDates}</p>
 
-                    {/* 📸 INTERFAZ DE EDICIÓN DE IMAGEN */}
                     <div style={{ position: "absolute", bottom: "10px", right: "20px" }}>
                         {!isEditingImage ? (
                             <button 
@@ -204,7 +239,6 @@ export const TripDetails = () => {
                             </div>
                         )}
                     </div>
-
                 </div>
             </div>
 
@@ -235,10 +269,17 @@ export const TripDetails = () => {
                             )}
 
                             {activeTab === "documentos" && (
-                                <div className="empty-state">
+                                <div className="empty-state" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <i className="fa-regular fa-folder-open"></i>
                                     <h3>Aún no hay documentos</h3>
                                     <p>Sube aquí tus reservas de hotel o vuelos.</p>
+                                    <button 
+                                        className="btn-action" 
+                                        style={{ marginTop: "15px", width: "auto", padding: "10px 20px" }}
+                                        onClick={() => setShowAddDocModal(true)}
+                                    >
+                                        <i className="fa-solid fa-upload"></i> Subir Documento
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -285,9 +326,69 @@ export const TripDetails = () => {
                                 );
                             })}
                         </ul>
+                        
+                        <button 
+                            className="btn-invite" 
+                            style={{ width: "100%", marginTop: "10px", padding: "10px", border: "1px dashed var(--brand-teal)", background: "transparent", color: "var(--brand-teal)", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}
+                            onClick={() => setShowAddTravelerModal(true)}
+                        >
+                            <i className="fa-solid fa-user-plus"></i> Invitar Viajero
+                        </button>
                     </div>
                 </div>
             </div>
+
+            {/* --- MODALES REVISADOS --- */}
+            {showAddTravelerModal && (
+                <div className="modal-overlay" onClick={() => setShowAddTravelerModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center', padding: '30px', maxWidth: '400px' }}>
+                        <h2><i className="fa-solid fa-envelope-open-text" style={{color: "var(--brand-teal)", fontSize: "2rem", marginBottom: "15px"}}></i></h2>
+                        <h3>Invitar a un amigo</h3>
+                        <p style={{color: "#64748b", margin: "15px 0", fontSize: "0.95rem"}}>
+                            Introduce el correo electrónico del usuario registrado con el que vas a compartir esta aventura.
+                        </p>
+                        
+                        <form onSubmit={handleInviteTraveler} style={{ display: "flex", flexDirection: "column", gap: "15px", marginTop: "20px" }}>
+                            <input 
+                                type="email" 
+                                placeholder="correo@ejemplo.com" 
+                                value={inviteEmail}
+                                onChange={(e) => setInviteEmail(e.target.value)}
+                                required
+                                style={{ padding: "12px", borderRadius: "8px", border: "1px solid #cbd5e1", width: "100%", fontSize: "1rem" }}
+                            />
+                            <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                                <button 
+                                    type="button" 
+                                    className="btn-modal-cancel" 
+                                    onClick={() => setShowAddTravelerModal(false)}
+                                    style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "none", background: "#f1f5f9", color: "#64748b", cursor: "pointer", fontWeight: "bold" }}
+                                >
+                                    Cancelar
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    disabled={isInviting}
+                                    style={{ flex: 1, padding: "10px", borderRadius: "8px", border: "none", background: "var(--brand-teal)", color: "white", cursor: isInviting ? "not-allowed" : "pointer", fontWeight: "bold" }}
+                                >
+                                    {isInviting ? "Enviando..." : "Añadir"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {showAddDocModal && (
+                <div className="modal-overlay" onClick={() => setShowAddDocModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center', padding: '30px' }}>
+                        <h2><i className="fa-solid fa-file-pdf" style={{color: "#e74c3c", fontSize: "2rem", marginBottom: "15px"}}></i></h2>
+                        <h3>Gestor de Archivos</h3>
+                        <p style={{color: "#64748b", margin: "15px 0"}}>La subida de billetes y reservas (PDF/Imágenes) estará disponible en la próxima actualización.</p>
+                        <button className="btn-modal-confirm" onClick={() => setShowAddDocModal(false)}>Entendido</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

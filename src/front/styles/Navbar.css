@@ -1,10 +1,12 @@
+/* =========================================
+   NAVBAR EXPEDITION (Fondo 100% Transparente)
+   ========================================= */
 .navbar-expedition {
     width: 100%;
     height: 90px; 
-    background-color: transparent; 
+    background-color: transparent; /* 100% invisible para no cortar la foto */
     position: absolute;
     top: 0;
-    /* ¡NUEVO! Le damos el número más alto posible para que gane a la tarjeta de login */
     z-index: 9999; 
     display: flex;
     align-items: center;
@@ -19,11 +21,11 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: relative; /* Importante para el centrado */
+    position: relative; 
 }
 
 /* =========================================
-   IZQUIERDA Y LOGO RESTAURADO A TU MEDIDA
+   IZQUIERDA Y LOGO 
    ========================================= */
 .nav-left {
     display: flex;
@@ -32,11 +34,12 @@
 }
 
 .logo-img {
-    height: 200px; /* <--- TU MEDIDA ORIGINAL RESTAURADA */
+    height: 200px; /* Tu medida original intacta */
     width: auto;
     max-width: 250px; 
     display: block;
     object-fit: contain;
+    filter: drop-shadow(0 4px 10px white); /* fondo para las imagenes*/
 }
 
 .nav-logo {
@@ -44,42 +47,50 @@
 }
 
 .menu-btn {
-    background: none;
+    background: rgba(255, 255, 255, 0.9); /* Fondito para que se vea en móvil */
     border: none;
     font-size: 1.3rem;
     color: var(--brand-navy, #1E3A5F); 
     cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 /* =========================================
-   CENTRO (Enlaces)
+   CENTRO (Enlaces en "Cápsula Flotante")
    ========================================= */
 .nav-center {
     display: flex;
     gap: 30px;
     position: absolute;
     left: 50%;
-    transform: translateX(-50%); /* Centrado matemático perfecto */
+    transform: translateX(-50%); 
+    
+    /* 🎨 EL FIX: Una cápsula blanca elegante que solo abraza a las letras */
+    background: rgba(255, 255, 255, 0.95);
+    padding: 10px 30px;
+    border-radius: 40px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .nav-link {
     text-decoration: none;
-    /* APLICAMOS EL AZUL DEL LOGO Y NEGRITA */
     color: var(--brand-navy, #1E3A5F); 
     font-size: 1rem;
-    font-weight: 700; /* NEGRITA */
+    font-weight: 700; 
     padding-bottom: 5px;
     border-bottom: 2px solid transparent; 
     transition: all 0.3s ease;
 }
 
 .nav-link:hover {
-    color: var(--brand-orange, #FF7A59); /* Cambia a naranja al pasar el mouse */
+    color: var(--brand-orange, #FF7A59); 
 }
 
 .nav-link.active {
     color: var(--brand-navy, #1E3A5F);
-    font-weight: 800; /* Extra negrita si estás en esa página */
+    font-weight: 800; 
     border-bottom: 2px solid var(--brand-navy, #1E3A5F); 
 }
 
@@ -89,20 +100,26 @@
 .nav-right {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
 }
 
 .logout-text {
     font-size: 0.95rem;
-    /* APLICAMOS EL AZUL DEL LOGO Y NEGRITA */
     color: var(--brand-navy, #1E3A5F);
-    font-weight: 700; /* NEGRITA */
+    font-weight: 700; 
     cursor: pointer;
-    transition: color 0.3s;
+    transition: all 0.3s;
+    
+    /* 🎨 Le damos su propia cápsula al botón de cerrar sesión */
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px 18px;
+    border-radius: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .logout-text:hover {
-    color: var(--brand-orange, #FF7A59); /* Cambia a naranja al pasar el mouse */
+    color: var(--brand-orange, #FF7A59); 
+    transform: translateY(-2px);
 }
 
 .profile-icon {
@@ -115,7 +132,7 @@
     justify-content: center;
     color: var(--brand-navy, #1E3A5F); 
     border: 2px solid var(--brand-teal, #2EC4B6); 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     transition: all 0.3s;
 }
 
@@ -129,16 +146,16 @@
    ========================================= */
 .dropdown-menu-mobile {
     position: absolute;
-    top: 75px;
+    top: 90px;
     left: 20px;
     right: 20px;
     background: white;
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 15px;
     display: flex;
     flex-direction: column;
     gap: 12px;
-    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
     z-index: 9999;
 }
 
@@ -146,7 +163,7 @@
     text-decoration: none;
     color: var(--brand-navy, #1E3A5F); 
     font-weight: 600;
-    padding: 10px;
+    padding: 12px;
     border-radius: 8px;
     transition: background-color 0.3s;
 }
@@ -174,30 +191,26 @@
 }
 
 /* =========================================
-   MODO LOGIN (Aseguramos Azul y Negrita también aquí)
+   MODO LOGIN (Le quitamos las cápsulas porque ahí el fondo es claro)
    ========================================= */
+.navbar-login-mode .nav-center,
+.navbar-login-mode .logout-text {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+}
+
 .navbar-login-mode .nav-link,
 .navbar-login-mode .logout-text {
-    /* APLICAMOS EL AZUL DEL LOGO Y NEGRITA PARA EL LOGIN */
     color: var(--brand-navy, #1E3A5F); 
-    font-weight: 700; /* NEGRITA */
-    text-shadow: none; /* Quitamos la sombra para que el azul se vea súper nítido */
-    opacity: 1;
+    font-weight: 700; 
 }
 
 .navbar-login-mode .nav-link:hover,
 .navbar-login-mode .logout-text:hover {
-    color: var(--brand-orange, #FF7A59); /* Naranja al pasar el ratón */
+    color: var(--brand-orange, #FF7A59); 
 }
 
 .navbar-login-mode .nav-link.active {
-    color: var(--brand-navy, #1E3A5F);
-    font-weight: 800; /* Extra negrita */
-    border-bottom: 2px solid var(--brand-navy, #1E3A5F); /* Línea azul debajo */
-}
-
-/* El botón de menú móvil lo mantenemos blanco en el login para que resalte sobre el fondo */
-.navbar-login-mode .menu-btn {
-    color: #ffffff;
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    border-bottom: 2px solid var(--brand-navy, #1E3A5F); 
 }

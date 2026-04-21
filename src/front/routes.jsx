@@ -14,6 +14,9 @@ import { MyTrips } from "./pages/MyTrips";
 import { NewTrip } from "./pages/NewTrip";
 import { TripDetails } from "./pages/TripDetails";
 import { Profile } from "./pages/Profile";
+import { ExploreDestination } from "./pages/ExploreDestination"; // <-- NUEVA IMPORTACIÓN
+import { DestinationDetails } from "./pages/DestinationDetails";
+
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -38,10 +41,14 @@ export const router = createBrowserRouter(
             {/* Ruta para el sistema de Autenticación (newtrip) */}
             <Route path="/new-trip" element={<NewTrip />} />
 
-            {/* ¡AQUÍ ESTÁ LA CORRECCIÓN! Cambiamos /trip/ por /trip-details/ */}
+            {/* Cambiamos /trip/ por /trip-details/ */}
             <Route path="/trip-details/:id" element={<TripDetails />} />
 
             <Route path="/profile" element={<Profile />} />
+
+            {/* NUEVA RUTA PARA EL EXPLORADOR DE DESTINOS */}
+            <Route path="/explore" element={<ExploreDestination />} />
+            <Route path="/destination-details/:locationId/:locationName" element={<DestinationDetails />} />
 
             {/* Cambiamos el path de Home a "/home" para que no choque con la Landing Page */}
             <Route path="/home" element={<Home />} />
