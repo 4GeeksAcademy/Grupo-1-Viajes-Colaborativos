@@ -27,12 +27,16 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
     };
 
     const handleCheckboxChange = (participant) => {
-        setExpenseData(prev => ({
-            ...prev, 
-            splitWith: prev.splitWith.includes(participant) 
-                ? prev.splitWith.filter(p => p !== participant) 
-                : [...prev.splitWith, participant]
-        }));
+        setExpenseData(prev => {
+            // Paracaídas de seguridad: si splitWith es undefined, usamos []
+            const currentSplitWith = prev.splitWith || [];
+            return {
+                ...prev, 
+                splitWith: currentSplitWith.includes(participant) 
+                    ? currentSplitWith.filter(p => p !== participant) 
+                    : [...currentSplitWith, participant]
+            };
+        });
     };
 
     // --- LA FUNCIÓN MÁGICA CONECTADA AL BACKEND ---
@@ -49,7 +53,10 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
             const payerObj = travelers.find(t => t.name === expenseData.paidBy);
             const payerId = payerObj ? payerObj.id : null;
 
-            const debtorsList = expenseData.splitWith.map(name => {
+            // Paracaídas: asegurar que splitWith sea un arreglo
+            const validSplitWith = expenseData.splitWith || [];
+
+            const debtorsList = validSplitWith.map(name => {
                 const t = travelers.find(t => t.name === name);
                 return t ? { id: t.id } : null;
             }).filter(d => d !== null);
@@ -104,7 +111,12 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
     };
 
     const handleEditExpenseClick = () => {
-        setExpenseData(selectedExpense);
+        // Paracaídas al cargar datos para editar: evitamos que variables clave sean undefined
+        setExpenseData({
+            ...selectedExpense,
+            splitWith: selectedExpense.splitWith || allParticipants, // Por defecto marcamos a todos si viene vacío
+            settledWith: selectedExpense.settledWith || []
+        });
         setIsEditingExpense(true);
         setSelectedExpense(null);
         setShowExpenseModal(true);
@@ -121,10 +133,11 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
     const toggleSettleDebt = (expenseId, personName) => {
         const updatedExpenses = expensesList.map(exp => {
             if (exp.id === expenseId) {
-                const isAlreadySettled = exp.settledWith?.includes(personName);
+                const settledList = exp.settledWith || [];
+                const isAlreadySettled = settledList.includes(personName);
                 const newSettledWith = isAlreadySettled
-                    ? exp.settledWith.filter(p => p !== personName) 
-                    : [...(exp.settledWith || []), personName]; 
+                    ? settledList.filter(p => p !== personName) 
+                    : [...settledList, personName]; 
                 
                 const updatedExp = { ...exp, settledWith: newSettledWith };
                 
@@ -288,7 +301,8 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
                                             <label key={i} className="checkbox-label">
                                                 <input 
                                                     type="checkbox" 
-                                                    checked={expenseData.splitWith.includes(p)} 
+                                                    // Paracaídas aquí: aseguramos que lea un array y no de error
+                                                    checked={(expenseData.splitWith || []).includes(p)} 
                                                     onChange={() => handleCheckboxChange(p)} 
                                                 />
                                                 <div className="custom-checkbox"></div> {p}
@@ -331,10 +345,11 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
                         <div className="breakdown-list">
                             <h4>División del gasto ({selectedExpense.splitWith ? selectedExpense.splitWith.length : 0} personas)</h4>
                             
-                            {selectedExpense.splitWith && selectedExpense.splitWith.map((person, index) => {
-                                const amountPerPerson = (selectedExpense.amount / selectedExpense.splitWith.length).toFixed(2);
+                            {/* Paracaídas aquí también al mapear */}
+                            {(selectedExpense.splitWith || []).map((person, index) => {
+                                const amountPerPerson = (selectedExpense.amount / (selectedExpense.splitWith || allParticipants).length).toFixed(2);
                                 const isPayer = person === selectedExpense.paidBy;
-                                const isSettled = selectedExpense.settledWith?.includes(person);
+                                const isSettled = (selectedExpense.settledWith || []).includes(person);
 
                                 return (
                                     <div key={index} className="breakdown-row">
