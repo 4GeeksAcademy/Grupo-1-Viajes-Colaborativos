@@ -372,6 +372,29 @@ def new_activity(trip_id):
     }), 201
 
 
+# --- 🗑️ NUEVO ENDPOINT: ELIMINAR ACTIVIDAD ---
+@api.route("/activity/<int:activity_id>", methods=["DELETE"])
+@jwt_required()
+def delete_activity(activity_id):
+    user = get_current_user()
+
+    # Buscamos la actividad por su ID
+    activity = db.session.get(Itinerary, activity_id)
+    if not activity:
+        raise APIException("Actividad no encontrada", status_code=404)
+
+    # Verificamos que el usuario tiene permisos en el viaje asociado a esta actividad
+    validate_user_trip(user, activity.trip_id)
+
+    # Eliminamos la actividad y guardamos los cambios
+    db.session.delete(activity)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Actividad eliminada correctamente"
+    }), 200
+
+
 # --- CORRECCIÓN 2: NEW_EXPENSE (Bucle doble eliminado) ---
 @api.route("/new-expense/<int:trip_id>", methods=["POST"])
 @jwt_required()
@@ -525,6 +548,117 @@ def update_trip_image(trip_id):
         "image_url": trip.image_url
     }), 200
 
+
+# ==========================================
+# ENDPOINTS DEL PERFIL DE USUARIO
+# ==========================================
+
+@api.route("/profile", methods=["PUT"])
+@jwt_required()
+def update_profile():
+    user = get_current_user()
+    data = get_json_payload()
+
+    # Actualizamos solo los datos que existen en tu modelo
+    user.name = data.get("firstName", user.name)
+    user.last_name = data.get("lastName", user.last_name)
+    user.email = data.get("email", user.email)
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Perfil actualizado correctamente", 
+        "user": user.serialize()
+    }), 200
+
+@api.route("/update-password", methods=["PUT"])
+@jwt_required()
+def update_password():
+    user = get_current_user()
+    data = get_json_payload()
+
+    current_password = data.get("current")
+    new_password = data.get("new")
+
+    if not current_password or not new_password:
+        raise APIException("Faltan datos", status_code=400)
+
+    # Verificamos que la contraseña antigua sea correcta
+    if not user.check_password(current_password):
+        raise APIException("La contraseña actual es incorrecta", status_code=401)
+
+    # Hasheamos y guardamos la nueva contraseña
+    user.set_password(new_password)
+    db.session.commit()
+
+    return jsonify({"message": "Contraseña actualizada correctamente"}), 200
+
+@api.route("/delete-account", methods=["DELETE"])
+@jwt_required()
+def delete_account():
+    user = get_current_user()
+    
+    # Eliminamos al usuario de la base de datos
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({"message": "Cuenta eliminada correctamente"}), 200
+
+
+# ==========================================
+# ENDPOINTS DEL PERFIL DE USUARIO
+# ==========================================
+
+@api.route("/profile", methods=["PUT"])
+@jwt_required()
+def update_profile():
+    user = get_current_user()
+    data = get_json_payload()
+
+    # Actualizamos solo los 3 datos que existen en tu modelo
+    user.name = data.get("firstName", user.name)
+    user.last_name = data.get("lastName", user.last_name)
+    user.email = data.get("email", user.email)
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Perfil actualizado correctamente", 
+        "user": user.serialize()
+    }), 200
+
+@api.route("/update-password", methods=["PUT"])
+@jwt_required()
+def update_password():
+    user = get_current_user()
+    data = get_json_payload()
+
+    current_password = data.get("current")
+    new_password = data.get("new")
+
+    if not current_password or not new_password:
+        raise APIException("Faltan datos", status_code=400)
+
+    # Verificamos que la contraseña antigua sea correcta
+    if not user.check_password(current_password):
+        raise APIException("La contraseña actual es incorrecta", status_code=401)
+
+    # Hasheamos y guardamos la nueva contraseña
+    user.set_password(new_password)
+    db.session.commit()
+
+    return jsonify({"message": "Contraseña actualizada correctamente"}), 200
+
+@api.route("/delete-account", methods=["DELETE"])
+@jwt_required()
+def delete_account():
+    user = get_current_user()
+    
+    # Eliminamos al usuario de la base de datos de forma permanente
+    db.session.delete(user)
+    db.session.commit()
+
+    return jsonify({"message": "Cuenta eliminada correctamente"}), 200
 # ENDPOINT QUE MODIFICA LOS DATOS DEL USUARIO
 # 1º: recibe el JWT y saca el usuario
 
