@@ -617,7 +617,7 @@ def update_password():
 def delete_account():
     user = get_current_user()
     
-    # Eliminamos al usuario de la base de datos
+    # Eliminamos al usuario de la base de datos de forma permanente
     db.session.delete(user)
     db.session.commit()
 
