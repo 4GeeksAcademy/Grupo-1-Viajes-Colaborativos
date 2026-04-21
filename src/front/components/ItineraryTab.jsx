@@ -39,10 +39,36 @@ export const ItineraryTab = ({ tripItinerary, setTripItinerary }) => {
         setTempActivityData({ ...tempActivityData, [e.target.name]: e.target.value });
     };
     
-    const saveActivityChanges = () => {
-        setTripItinerary(tripItinerary.map(item => item.id === selectedActivity.id ? tempActivityData : item));
-        setSelectedActivity(tempActivityData); 
-        setIsEditingActivity(false);
+    // --- ✏️ FUNCIÓN EDITAR CONECTADA AL BACKEND REAL ---
+    const saveActivityChanges = async () => {
+        setLoading(true);
+        const token = localStorage.getItem("token");
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/activity/${selectedActivity.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(tempActivityData)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setTripItinerary(tripItinerary.map(item => item.id === selectedActivity.id ? data.itinerary : item));
+                setSelectedActivity(data.itinerary); 
+                setIsEditingActivity(false);
+            } else {
+                const errorData = await response.json();
+                alert("Error al actualizar: " + (errorData.message || "Error desconocido"));
+            }
+        } catch (error) {
+            console.error("Error de conexión:", error);
+            alert("No se pudo conectar con el servidor para actualizar.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleNewActivityChange = (e) => {
@@ -92,7 +118,6 @@ export const ItineraryTab = ({ tripItinerary, setTripItinerary }) => {
         const token = localStorage.getItem("token");
 
         try {
-            // Asumimos que la ruta de tu backend es /api/activity/<id> (cámbiala si es diferente)
             const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/activity/${activityId}`, {
                 method: "DELETE",
                 headers: {
@@ -180,7 +205,9 @@ export const ItineraryTab = ({ tripItinerary, setTripItinerary }) => {
                                 <div className="input-group full-width"><label>Descripción</label><textarea name="notes" rows="3" value={tempActivityData.notes} onChange={handleActivityChange}></textarea></div>
                                 <div className="modal-actions-itinerary">
                                     <button className="btn-modal-cancel" onClick={() => setIsEditingActivity(false)}>Cancelar</button>
-                                    <button className="btn-modal-confirm" onClick={saveActivityChanges}>Guardar</button>
+                                    <button className="btn-modal-confirm" onClick={saveActivityChanges} disabled={loading}>
+                                        {loading ? "Guardando..." : "Guardar"}
+                                    </button>
                                 </div>
                             </div>
                         ) : (
@@ -266,7 +293,7 @@ export const ItineraryTab = ({ tripItinerary, setTripItinerary }) => {
                                 <input type="text" name="destination" value={newActivity.destination} onChange={handleNewActivityChange} required />
                             </div>
                             <div className="input-group full-width">
-                                <label>Descripción</label>
+                                <label>Descripción / Enlaces</label>
                                 <textarea name="notes" rows="3" value={newActivity.notes} onChange={handleNewActivityChange}></textarea>
                             </div>
                             <div className="modal-actions-itinerary">

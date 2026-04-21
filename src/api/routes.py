@@ -360,6 +360,43 @@ def trip_detail(trip_id):
         "messages": messages_list,
     }), 200
 
+# --- 🧑‍🤝‍🧑 NUEVO ENDPOINT: INVITAR VIAJERO A UN VIAJE EXISTENTE ---
+@api.route("/add-traveler/<int:trip_id>", methods=["POST"])
+@jwt_required()
+def add_traveler(trip_id):
+    user = get_current_user()
+    
+    # Verificamos que quien invita ya sea parte del viaje
+    validate_user_trip(user, trip_id)
+
+    data = get_json_payload()
+    email = data.get("email", "").strip().lower()
+
+    if not email:
+        raise APIException("Debes proporcionar el correo electrónico del viajero", status_code=400)
+
+    # 1. Buscamos si el usuario existe en la base de datos
+    new_traveler_user = User.query.filter_by(email=email).one_or_none()
+    if not new_traveler_user:
+        raise APIException("No existe ningún usuario registrado con este correo", status_code=404)
+
+    # 2. Verificamos que no esté ya en el viaje
+    existing_link = Traveler.query.filter_by(user_id=new_traveler_user.id, trip_id=trip_id).one_or_none()
+    if existing_link:
+        raise APIException("Este usuario ya forma parte del viaje", status_code=400)
+
+    # 3. Lo añadimos al viaje
+    new_traveler = Traveler(
+        user_id=new_traveler_user.id,
+        trip_id=trip_id
+    )
+    db.session.add(new_traveler)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Viajero añadido correctamente al itinerario",
+        "traveler": new_traveler_user.serialize()
+    }), 200
 
 # 🔐 Endpoint que registra una nueva actividad
 @api.route("/new-activity/<int:trip_id>", methods=["POST"])
@@ -409,7 +446,42 @@ def delete_activity(activity_id):
     }), 200
 
 
+<<<<<<< fix-bugs-v2
+# --- ✏️ NUEVO ENDPOINT: EDITAR ACTIVIDAD ---
+@api.route("/activity/<int:activity_id>", methods=["PUT"])
+@jwt_required()
+def update_activity(activity_id):
+    user = get_current_user()
+    data = get_json_payload()
+
+    # Buscamos la actividad en la base de datos
+    activity = db.session.get(Itinerary, activity_id)
+    if not activity:
+        raise APIException("Actividad no encontrada", status_code=404)
+
+    # Verificamos que el usuario pertenezca al viaje de esta actividad
+    validate_user_trip(user, activity.trip_id)
+
+    # Actualizamos los campos
+    activity.title = data.get("title", activity.title).strip()
+    activity.destination = data.get("destination", activity.destination).strip()
+    activity.hour = data.get("hour", activity.hour).strip()
+    activity.starting_date = data.get("starting_date", activity.starting_date).strip()
+    activity.notes = data.get("notes", activity.notes).strip()
+
+    # Guardamos los cambios
+    db.session.commit()
+
+    return jsonify({
+        "message": "Actividad actualizada correctamente",
+        "itinerary": activity.serialize()
+    }), 200
+
+
+# --- CORRECCIÓN 2: NEW_EXPENSE (Bucle doble eliminado) ---
+=======
 # 🔐 Endpoint que registra un nuevo gasto
+>>>>>>> develop
 @api.route("/new-expense/<int:trip_id>", methods=["POST"])
 @jwt_required()
 def new_expense(trip_id):
@@ -621,6 +693,9 @@ def delete_account():
     db.session.delete(user)
     db.session.commit()
 
+<<<<<<< fix-bugs-v2
+    return jsonify({"message": "Cuenta eliminada correctamente"}), 200
+=======
     return jsonify({"message": "Cuenta eliminada correctamente"}), 200
 
 
@@ -681,3 +756,4 @@ def add_traveler(trip_id):
     return jsonify({
         "message": "Viajero/s añadidos correctamente"
     }), 200
+>>>>>>> develop
