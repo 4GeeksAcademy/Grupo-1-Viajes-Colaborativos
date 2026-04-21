@@ -17,11 +17,11 @@ from api.utils import APIException
 
 api = Blueprint("api", __name__)
 
-
+# Funcion que recupera el body de una peticion
 def get_json_payload():
     return request.get_json(silent=True) or {}
 
-
+# Funcion que crea el token JWT
 def build_auth_response(user, status_code, message):
     access_token = create_access_token(identity=str(user.id))
     return jsonify({
@@ -30,7 +30,7 @@ def build_auth_response(user, status_code, message):
         "user": user.serialize()
     }), status_code
 
-
+# Funcion que comprueba y devuelve el usuario según su token
 def get_current_user():
     identity = get_jwt_identity()
     if identity is None:
@@ -48,7 +48,7 @@ def get_current_user():
 
     return user
 
-
+# Funcion que valida las credenciales al registrarse
 def validate_credentials(payload, require_name=False):
     name = payload.get("name", "").strip()
     email = payload.get("email", "").strip().lower()
@@ -68,7 +68,7 @@ def validate_credentials(payload, require_name=False):
 
     return name, email, password
 
-
+# Funcion que valida los datos de un nuevo viaje
 def validate_new_trip(payload):
 
     title = payload.get("title").strip()
@@ -119,7 +119,7 @@ def validate_new_trip(payload):
 
     return trip
 
-
+# Funcion que valida los datos de una nueva actividad
 def validate_new_itinerary(payload):
 
     title = payload.get("title").strip()
@@ -154,6 +154,7 @@ def validate_new_itinerary(payload):
 
     return itinerary
 
+# Funcion que valida los datos de un nuevo gasto
 def validate_new_expense(payload):
     amount = payload.get("amount")
     description = payload.get("description")
@@ -179,6 +180,7 @@ def validate_new_expense(payload):
 
     return expense
 
+# Funcion que comprueba si el usuario está registrado en el viaje
 def validate_user_trip(user, trip_id):
         
     applicant = Traveler.query.filter(
@@ -189,6 +191,13 @@ def validate_user_trip(user, trip_id):
     
     return True
 
+
+#------------------------------
+#         ENDPOINTS
+#------------------------------
+
+
+# Enpoint que realiza el login del usuario
 @api.route("/login", methods=["POST"])
 @api.route("/signin", methods=["POST"])
 def sign_in():
@@ -202,6 +211,7 @@ def sign_in():
     return build_auth_response(user, 200, "Login correcto")
 
 
+# Endpoint que registra un nuevo usuario
 @api.route("/sign-up", methods=["POST"])
 @api.route("/signup", methods=["POST"])
 @api.route("/register", methods=["POST"])
@@ -225,7 +235,7 @@ def sign_up():
 
     return build_auth_response(new_user, 201, "Usuario creado correctamente")
 
-
+# 🔐 Endpoint que devuelve todos los viajes del usuario logueado con filtro opcional 
 @api.route("/travels", methods=["GET"])
 @api.route("/trips", methods=["GET"])
 @jwt_required()
@@ -253,6 +263,7 @@ def travels():
     }), 200
 
 
+# 🔐 Endpoint que devuelve todos los datos del usuario logueado
 @api.route("/profile", methods=["GET"])
 @api.route("/me", methods=["GET"])
 @jwt_required()
@@ -261,6 +272,7 @@ def me():
     return jsonify({"user": user.serialize()}), 200
 
 
+# 🔐 Endpoint que registra un nuevo viaje y todos los viajeros
 @api.route("/new_trip", methods=["POST"])
 @api.route("/newtrip", methods=["POST"])
 @jwt_required()
@@ -305,6 +317,7 @@ def new_trip():
     }), 201
 
 
+# 🔐 Endpoint que devuelve todos los detalles del viaje, itinerarios, gastos, documentos y mensajes
 @api.route("/trip-detail/<int:trip_id>", methods=["GET"])
 @jwt_required()
 def trip_detail(trip_id):
@@ -348,6 +361,7 @@ def trip_detail(trip_id):
     }), 200
 
 
+# 🔐 Endpoint que registra una nueva actividad
 @api.route("/new-activity/<int:trip_id>", methods=["POST"])
 @jwt_required()
 def new_activity(trip_id):
@@ -372,7 +386,7 @@ def new_activity(trip_id):
     }), 201
 
 
-# --- 🗑️ NUEVO ENDPOINT: ELIMINAR ACTIVIDAD ---
+# 🔐 Endpoint que elimina una actividad
 @api.route("/activity/<int:activity_id>", methods=["DELETE"])
 @jwt_required()
 def delete_activity(activity_id):
@@ -395,7 +409,7 @@ def delete_activity(activity_id):
     }), 200
 
 
-# --- CORRECCIÓN 2: NEW_EXPENSE (Bucle doble eliminado) ---
+# 🔐 Endpoint que registra un nuevo gasto
 @api.route("/new-expense/<int:trip_id>", methods=["POST"])
 @jwt_required()
 def new_expense(trip_id):
@@ -450,6 +464,7 @@ def new_expense(trip_id):
     }), 201
 
 
+# 🔐 Endpoint que devuelve todas las actividades del viaje
 @api.route("/all-activity/<int:trip_id>", methods=["GET"])
 @jwt_required()
 def all_activity(trip_id):
@@ -465,6 +480,7 @@ def all_activity(trip_id):
     }), 200
 
 
+# 🔐 Endpoint que registra un nuevo mensaje
 @api.route("/new-message/<int:trip_id>", methods=["POST"])
 @jwt_required()
 def new_message(trip_id):
@@ -504,6 +520,7 @@ def new_message(trip_id):
     }), 201
 
 
+# 🔐 Endpoint que devuelve todos los gastos de un viaje
 @api.route("/all-expense/<int:trip_id>", methods=["GET"])
 @jwt_required()
 def all_expense(trip_id):
@@ -524,6 +541,8 @@ def all_expense(trip_id):
         "debts": [debt.serialize() for debt in debts]
     }), 200
 
+
+# 🔐 Endpoint que actualiza la imagen del viaje
 @api.route("/update-trip-image/<int:trip_id>", methods=["PUT"])
 @jwt_required()
 def update_trip_image(trip_id):
@@ -549,17 +568,14 @@ def update_trip_image(trip_id):
     }), 200
 
 
-# ==========================================
-# ENDPOINTS DEL PERFIL DE USUARIO
-# ==========================================
-
-@api.route("/profile", methods=["PUT"])
+# 🔐 Endpoint que actualiza el prefil del usuario
+@api.route("/update-profile", methods=["PUT"])
 @jwt_required()
 def update_profile():
     user = get_current_user()
     data = get_json_payload()
 
-    # Actualizamos solo los datos que existen en tu modelo
+    # Actualizamos solo los datos que existen en el modelo
     user.name = data.get("firstName", user.name)
     user.last_name = data.get("lastName", user.last_name)
     user.email = data.get("email", user.email)
@@ -571,6 +587,7 @@ def update_profile():
         "user": user.serialize()
     }), 200
 
+# 🔐 Endpoint que actualiza la contraseña del usuario
 @api.route("/update-password", methods=["PUT"])
 @jwt_required()
 def update_password():
@@ -593,6 +610,8 @@ def update_password():
 
     return jsonify({"message": "Contraseña actualizada correctamente"}), 200
 
+
+# 🔐 Endpoint que elimina la cuenta del usuario
 @api.route("/delete-account", methods=["DELETE"])
 @jwt_required()
 def delete_account():
@@ -605,71 +624,31 @@ def delete_account():
     return jsonify({"message": "Cuenta eliminada correctamente"}), 200
 
 
-# ==========================================
-# ENDPOINTS DEL PERFIL DE USUARIO
-# ==========================================
-
-@api.route("/profile", methods=["PUT"])
+# 🔐 Endpoint que elimina un gasto
+@api.route("/delete-expense/<int:expense_id>", methods=['DELETE'])
 @jwt_required()
-def update_profile():
+def delete_expense(expense_id):
     user = get_current_user()
-    data = get_json_payload()
 
-    # Actualizamos solo los 3 datos que existen en tu modelo
-    user.name = data.get("firstName", user.name)
-    user.last_name = data.get("lastName", user.last_name)
-    user.email = data.get("email", user.email)
+    # Buscamos la actividad por su ID
+    expense = db.session.get(Expense, expense_id)
+    if not expense:
+        raise APIException("Gasto no encontrada", status_code=404)
 
+    # Verificamos que el usuario tiene permisos en el viaje asociado a esta actividad
+    validate_user_trip(user, expense.trip_id)
+
+    # Buscamos todos todas las deudas por su expense_id
+    debts = db.session.get(Debt, expense_id)
+
+    # Elimina todas las deudas
+    for debt in debts:
+        db.session.delete(debt)
+
+    # Eliminamos la actividad y guardamos los cambios
+    db.session.delete(expense)
     db.session.commit()
 
     return jsonify({
-        "message": "Perfil actualizado correctamente", 
-        "user": user.serialize()
+        "message": "Gasto eliminada correctamente"
     }), 200
-
-@api.route("/update-password", methods=["PUT"])
-@jwt_required()
-def update_password():
-    user = get_current_user()
-    data = get_json_payload()
-
-    current_password = data.get("current")
-    new_password = data.get("new")
-
-    if not current_password or not new_password:
-        raise APIException("Faltan datos", status_code=400)
-
-    # Verificamos que la contraseña antigua sea correcta
-    if not user.check_password(current_password):
-        raise APIException("La contraseña actual es incorrecta", status_code=401)
-
-    # Hasheamos y guardamos la nueva contraseña
-    user.set_password(new_password)
-    db.session.commit()
-
-    return jsonify({"message": "Contraseña actualizada correctamente"}), 200
-
-@api.route("/delete-account", methods=["DELETE"])
-@jwt_required()
-def delete_account():
-    user = get_current_user()
-    
-    # Eliminamos al usuario de la base de datos de forma permanente
-    db.session.delete(user)
-    db.session.commit()
-
-    return jsonify({"message": "Cuenta eliminada correctamente"}), 200
-# ENDPOINT QUE MODIFICA LOS DATOS DEL USUARIO
-# 1º: recibe el JWT y saca el usuario
-
-# 2º: debe recibir el tipo de modificacion (perfil o contraseña) y los datos a modificar
-
-# 3º: modifica los datos necesarios
-
-# 4º: devuelve los datos actualizados del usuario
-
-
-# ENDPOINT QUE CREA EL PDF DEL ITIENERARIO COMPLETO
-
-
-# ENDPOINT QUE CREA EL PDF DE LOS GASTOS COMPLETOS
