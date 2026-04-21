@@ -630,12 +630,12 @@ def delete_account():
 def delete_expense(expense_id):
     user = get_current_user()
 
-    # Buscamos la actividad por su ID
+    # Buscamos el gasto por su ID
     expense = db.session.get(Expense, expense_id)
     if not expense:
         raise APIException("Gasto no encontrada", status_code=404)
 
-    # Verificamos que el usuario tiene permisos en el viaje asociado a esta actividad
+    # Verificamos que el usuario tiene permisos en el viaje asociado a esta gasto
     validate_user_trip(user, expense.trip_id)
 
     # Buscamos todos todas las deudas por su expense_id
@@ -645,10 +645,39 @@ def delete_expense(expense_id):
     for debt in debts:
         db.session.delete(debt)
 
-    # Eliminamos la actividad y guardamos los cambios
+    # Eliminamos la deuda y guardamos los cambios
     db.session.delete(expense)
     db.session.commit()
 
     return jsonify({
         "message": "Gasto eliminada correctamente"
+    }), 200
+
+
+# 🔐 Endpoint que añade un nuevo viajero al viaje
+@api.route("/add-traveler/<int:trip_id>", methods=["POST"])
+@jwt_required()
+def add_traveler(trip_id):
+
+    user = get_current_user()
+    data = get_json_payload()
+
+    validate_user_trip(user, trip_id)
+
+    payload_users = data.get("users", [])
+    users = User.query.filter(User.email.in_(payload_users)).all()
+    travelers_ids = [u.id for u in users]
+
+    for traveler_id in travelers_ids:
+        traveler = Traveler(
+            user_id=traveler_id,
+            trip_id=trip_id
+        )
+
+        db.session.add(traveler)
+
+    db.session.commit()    
+
+    return jsonify({
+        "message": "Viajero/s añadidos correctamente"
     }), 200
