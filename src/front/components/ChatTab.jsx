@@ -14,13 +14,17 @@ export const ChatTab = () => {
     const currentUserString = localStorage.getItem("user");
     const currentUser = currentUserString ? JSON.parse(currentUserString) : null;
 
-    // Auto-scroll al último mensaje
+    // Auto-scroll al último mensaje (ajustado para que no salte la página entera)
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     };
 
+    // 👻 FIX: Solo hacemos scroll automático si realmente el usuario acaba de enviar un mensaje, 
+    // no cuando la página carga vacía por primera vez.
     useEffect(() => {
-        scrollToBottom();
+        if (messages.length > 0) {
+            scrollToBottom();
+        }
     }, [messages]);
 
     // 2. FUNCIÓN: Leer mensajes de la base de datos
@@ -69,7 +73,6 @@ export const ChatTab = () => {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                // 🛠️ EL FIX ESTÁ AQUÍ: Rigo exige "content"
                 body: JSON.stringify({ content: newMessage }) 
             });
 
@@ -97,7 +100,6 @@ export const ChatTab = () => {
                             <div key={msg.id || index} className={`message-wrapper ${isMe ? "me" : "others"}`}>
                                 {!isMe && <span className="message-user">{msg.user_name || "Viajero"}</span>}
                                 <div className="message-bubble">
-                                    {/* 🛠️ EL OTRO FIX: Renderizamos msg.content en lugar de msg.text */}
                                     <p>{msg.content}</p>
                                     <span className="message-time">
                                         {msg.date_time 
@@ -109,7 +111,19 @@ export const ChatTab = () => {
                         );
                     })
                 ) : (
-                    <p style={{ textAlign: "center", color: "#94a3b8", marginTop: "20px", fontSize: "0.9rem" }}>
+                    // 🎨 FIX VISUAL: Le ponemos un fondo blanco semitransparente, padding y texto oscuro
+                    <p style={{ 
+                        textAlign: "center", 
+                        color: "var(--brand-navy, #1E3A5F)", 
+                        background: "rgba(255, 255, 255, 0.85)",
+                        padding: "10px 15px",
+                        borderRadius: "8px",
+                        marginTop: "20px", 
+                        fontSize: "0.95rem",
+                        fontWeight: "600",
+                        display: "inline-block",
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.1)"
+                    }}>
                         Aún no hay mensajes. ¡Escribe el primero!
                     </p>
                 )}

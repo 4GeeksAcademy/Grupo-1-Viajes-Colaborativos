@@ -21,6 +21,10 @@ export const TripDetails = () => {
     const [newImageUrl, setNewImageUrl] = useState("");
     const [isUpdatingImage, setIsUpdatingImage] = useState(false);
 
+    // 📸 NUEVOS ESTADOS PARA MODALES DE OPCIÓN D
+    const [showAddTravelerModal, setShowAddTravelerModal] = useState(false);
+    const [showAddDocModal, setShowAddDocModal] = useState(false);
+
     const stateTranslations = {
         "PLANNING": { text: "Planificando", color: "#3498db" },
         "ONGOING": { text: "En curso", color: "#2ecc71" },
@@ -142,26 +146,25 @@ export const TripDetails = () => {
             <div className="trip-hero" style={{
                 backgroundImage: `linear-gradient(rgba(30, 58, 95, 0.7), rgba(30, 58, 95, 0.4)), url('${heroImage}')`
             }}>
+                
+                {/* 🛠️ FIX DEFINITIVO: Botón fuera del hero-content y sin posiciones forzadas en línea.
+                    Ahora tu archivo CSS tiene el control absoluto en móvil y PC. */}
+                <Link 
+                    to="/my-trips" 
+                    className="btn-back-light" 
+                    style={{ 
+                        cursor: "pointer", 
+                        zIndex: 9999,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        textDecoration: "none"
+                    }}
+                >
+                    <i className="fa-solid fa-arrow-left"></i> Volver
+                </Link>
+
                 <div className="hero-content" style={{ position: "relative", width: "100%" }}>
-                    
-                    {/* 🛠️ FIX: Botón de volver a prueba de balas usando Link */}
-                    <Link 
-                        to="/my-trips" 
-                        className="btn-back-light" 
-                        style={{ 
-                            cursor: "pointer", 
-                            position: "absolute",
-                            top: "20px",
-                            left:"20px",
-                            zIndex: 9999,
-                            display: "inline-block",
-                            alignItems: "center",
-                            gap: "8px",
-                            textDecoration: "none"
-                        }}
-                    >
-                        <i className="fa-solid fa-arrow-left"></i> Volver
-                    </Link>
                     
                     <span className="hero-badge" style={{ backgroundColor: currentState.color }}>
                         {currentState.text}
@@ -235,10 +238,19 @@ export const TripDetails = () => {
                             )}
 
                             {activeTab === "documentos" && (
-                                <div className="empty-state">
+                                <div className="empty-state" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <i className="fa-regular fa-folder-open"></i>
                                     <h3>Aún no hay documentos</h3>
                                     <p>Sube aquí tus reservas de hotel o vuelos.</p>
+                                    
+                                    {/* 📸 NUEVO: Botón Añadir Documento */}
+                                    <button 
+                                        className="btn-action" 
+                                        style={{ marginTop: "15px", width: "auto", padding: "10px 20px" }}
+                                        onClick={() => setShowAddDocModal(true)}
+                                    >
+                                        <i className="fa-solid fa-upload"></i> Subir Documento
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -285,9 +297,42 @@ export const TripDetails = () => {
                                 );
                             })}
                         </ul>
+                        
+                        {/* 📸 NUEVO: Botón Añadir Viajero */}
+                        <button 
+                            className="btn-invite" 
+                            style={{ width: "100%", marginTop: "10px", padding: "10px", border: "1px dashed var(--brand-teal)", background: "transparent", color: "var(--brand-teal)", borderRadius: "8px", cursor: "pointer", fontWeight: "bold" }}
+                            onClick={() => setShowAddTravelerModal(true)}
+                        >
+                            <i className="fa-solid fa-user-plus"></i> Invitar Viajero
+                        </button>
                     </div>
                 </div>
             </div>
+
+            {/* --- MODALES SIMULADOS PARA DOCUMENTOS Y VIAJEROS --- */}
+            {showAddTravelerModal && (
+                <div className="modal-overlay" onClick={() => setShowAddTravelerModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center', padding: '30px' }}>
+                        <h2><i className="fa-solid fa-envelope-open-text" style={{color: "var(--brand-teal)", fontSize: "2rem", marginBottom: "15px"}}></i></h2>
+                        <h3>Invitar a un amigo</h3>
+                        <p style={{color: "#64748b", margin: "15px 0"}}>Próximamente podrás añadir viajeros escribiendo su correo electrónico aquí.</p>
+                        <button className="btn-modal-confirm" onClick={() => setShowAddTravelerModal(false)}>Entendido</button>
+                    </div>
+                </div>
+            )}
+
+            {showAddDocModal && (
+                <div className="modal-overlay" onClick={() => setShowAddDocModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center', padding: '30px' }}>
+                        <h2><i className="fa-solid fa-file-pdf" style={{color: "#e74c3c", fontSize: "2rem", marginBottom: "15px"}}></i></h2>
+                        <h3>Gestor de Archivos</h3>
+                        <p style={{color: "#64748b", margin: "15px 0"}}>La subida de billetes y reservas (PDF/Imágenes) estará disponible en la próxima actualización.</p>
+                        <button className="btn-modal-confirm" onClick={() => setShowAddDocModal(false)}>Entendido</button>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 };

@@ -1,0 +1,133 @@
+/* =========================================
+   ESTILOS DEL FOOTER (Expedition)
+   ========================================= */
+.expedition-footer {
+    background-color: var(--brand-navy, #1E3A5F); /* Usamos el color de tu Navbar */
+    color: white;
+    padding: 60px 20px 20px 20px;
+    margin-top: auto; /* Magia para que siempre se quede al fondo de la página */
+    font-family: 'Poppins', sans-serif;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* MARCA */
+.footer-brand h3 {
+    font-size: 1.8rem;
+    margin: 0 0 15px 0;
+    color: var(--brand-teal, #2EC4B6);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.footer-brand p {
+    color: #cbd5e1;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    max-width: 350px;
+}
+
+/* ENLACES Y TÍTULOS */
+.footer-links h4, .footer-social h4 {
+    color: white;
+    margin: 0 0 20px 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.footer-links ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li {
+    margin-bottom: 12px;
+}
+
+.footer-links a {
+    color: #cbd5e1;
+    text-decoration: none;
+    transition: color 0.3s ease, transform 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.footer-links a i {
+    font-size: 0.8rem;
+    color: var(--brand-teal, #2EC4B6);
+}
+
+.footer-links a:hover {
+    color: white;
+    transform: translateX(5px); /* Pequeño efecto de moverse a la derecha al pasar el ratón */
+}
+
+/* REDES SOCIALES */
+.social-icons {
+    display: flex;
+    gap: 15px;
+}
+
+.social-icons a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    border-radius: 50%;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 1.3rem;
+}
+
+.social-icons a:hover {
+    background: var(--brand-teal, #2EC4B6);
+    color: var(--brand-navy, #1E3A5F);
+    transform: translateY(-5px); /* Salta un poco hacia arriba */
+}
+
+/* COPYRIGHT */
+.footer-bottom {
+    text-align: center;
+    padding-top: 25px;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+/* RESPONSIVE PARA MÓVILES */
+@media (max-width: 768px) {
+    .footer-content {
+        grid-template-columns: 1fr; /* Todo en una sola columna */
+        text-align: center;
+        gap: 35px;
+    }
+
+    .footer-brand p {
+        margin: 0 auto; /* Centra el texto de la descripción */
+    }
+
+    .footer-brand h3 {
+        justify-content: center;
+    }
+
+    .footer-links a {
+        justify-content: center;
+    }
+
+    .social-icons {
+        justify-content: center;
+    }
+}

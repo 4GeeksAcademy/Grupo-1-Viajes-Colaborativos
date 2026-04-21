@@ -6,12 +6,15 @@ import ScrollToTop from "../components/ScrollToTop";
 
 export const Layout = () => {
     return (
-        <div>
-            <ScrollToTop>
-                <Navbar />
-                <Outlet /> {/* AQUÍ se inyectan las páginas */}
-                <Footer />
-            </ScrollToTop>
+        <div className="app-container" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+            <Navbar />
+            
+            {/* Aquí es donde React Router inyecta el contenido de tus vistas */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <Outlet /> 
+            </div>
+            
+            <Footer /> {/* 👈 Y aquí ponemos el Footer para que siempre esté abajo */}
         </div>
     );
 };
