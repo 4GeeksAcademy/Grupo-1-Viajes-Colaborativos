@@ -446,8 +446,7 @@ def delete_activity(activity_id):
     }), 200
 
 
-<<<<<<< fix-bugs-v2
-# --- ✏️ NUEVO ENDPOINT: EDITAR ACTIVIDAD ---
+# 🔐 Endpoint que actualiza una actividad
 @api.route("/activity/<int:activity_id>", methods=["PUT"])
 @jwt_required()
 def update_activity(activity_id):
@@ -478,10 +477,7 @@ def update_activity(activity_id):
     }), 200
 
 
-# --- CORRECCIÓN 2: NEW_EXPENSE (Bucle doble eliminado) ---
-=======
 # 🔐 Endpoint que registra un nuevo gasto
->>>>>>> develop
 @api.route("/new-expense/<int:trip_id>", methods=["POST"])
 @jwt_required()
 def new_expense(trip_id):
@@ -659,6 +655,7 @@ def update_profile():
         "user": user.serialize()
     }), 200
 
+
 # 🔐 Endpoint que actualiza la contraseña del usuario
 @api.route("/update-password", methods=["PUT"])
 @jwt_required()
@@ -693,9 +690,6 @@ def delete_account():
     db.session.delete(user)
     db.session.commit()
 
-<<<<<<< fix-bugs-v2
-    return jsonify({"message": "Cuenta eliminada correctamente"}), 200
-=======
     return jsonify({"message": "Cuenta eliminada correctamente"}), 200
 
 
@@ -714,7 +708,7 @@ def delete_expense(expense_id):
     validate_user_trip(user, expense.trip_id)
 
     # Buscamos todos todas las deudas por su expense_id
-    debts = db.session.get(Debt, expense_id)
+    debts = Debt.query.filter_by(expense_id=expense_id).all()
 
     # Elimina todas las deudas
     for debt in debts:
@@ -756,4 +750,3 @@ def add_traveler(trip_id):
     return jsonify({
         "message": "Viajero/s añadidos correctamente"
     }), 200
->>>>>>> develop
