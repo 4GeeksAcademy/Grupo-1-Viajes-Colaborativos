@@ -4,6 +4,7 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 import os
 import string
 import random
+from dotenv import load_dotenv
 from datetime import timedelta
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import (
@@ -33,12 +34,13 @@ from api.models import db, User, Trip, Traveler, Itinerary, Expense, Debt, Docum
 
 api = Blueprint("api", __name__)
 
+load_dotenv()
 
 # Configuracion de Cloudinary
 cloudinary.config(
-    cloud_name = "dkcijbi66", 
-    api_key = "272544312927851", 
-    api_secret = "CEII0DQWzmmRcalNjH7aLXlMTEU",
+    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME"), 
+    api_key = os.getenv("CLOUDINARY_API_KEY"), 
+    api_secret = os.getenv("CLOUDINARY_API_SECRET"),
     secure=True
 )
 
