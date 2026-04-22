@@ -48,8 +48,8 @@ export const Navbar = () => {
                     )}
                 </div>
 
-                {/* 3. DERECHA */}
-                <div className="nav-right" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                {/* 3. DERECHA (Estilos movidos a CSS para poder adaptarlos en móvil) */}
+                <div className="nav-right">
                     {isAuthenticated ? (
                         <>
                             {/* 🔔 BOTÓN DE NOTIFICACIONES */}
@@ -57,35 +57,35 @@ export const Navbar = () => {
                                 <div 
                                     className="notification-icon" 
                                     onClick={() => setShowNotifications(!showNotifications)}
-                                    style={{ cursor: "pointer", fontSize: "1.2rem", color: "var(--brand-navy)", position: "relative" }}
                                 >
                                     <i className="fa-regular fa-bell"></i>
                                     {/* Puntito rojo de aviso */}
-                                    <span style={{ position: "absolute", top: "-2px", right: "-2px", width: "8px", height: "8px", backgroundColor: "#e74c3c", borderRadius: "50%" }}></span>
+                                    <span className="notification-dot"></span>
                                 </div>
 
                                 {/* DESPLEGABLE DE NOTIFICACIONES */}
                                 {showNotifications && (
-                                    <div style={{ position: "absolute", top: "40px", right: "-10px", width: "250px", background: "white", borderRadius: "8px", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", zIndex: 1000, padding: "10px" }}>
-                                        <h4 style={{ margin: "5px 10px 10px", color: "var(--brand-navy)", fontSize: "0.9rem" }}>Notificaciones</h4>
-                                        <div style={{ padding: "15px", textAlign: "center", color: "#64748b", fontSize: "0.85rem" }}>
-                                            <i className="fa-solid fa-check-circle" style={{ color: "var(--brand-teal)", fontSize: "1.5rem", marginBottom: "10px", display: "block" }}></i>
+                                    <div className="notifications-dropdown">
+                                        <h4>Notificaciones</h4>
+                                        <div className="notifications-empty">
+                                            <i className="fa-solid fa-check-circle"></i>
                                             Todo al día. No tienes notificaciones nuevas.
                                         </div>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="logout-text desktop-only" onClick={handleLogout} style={{ cursor: "pointer" }}>
+                            <div className="logout-text desktop-only" onClick={handleLogout}>
                                 Cerrar sesión
                             </div>
-                            <div className="profile-icon" onClick={() => navigate("/profile")} style={{ cursor: "pointer" }}>
+                            
+                            <div className="profile-icon" onClick={() => navigate("/profile")}>
                                 <i className="fa-solid fa-user"></i>
                             </div>
                         </>
                     ) : (
                         !isLoginPage && (
-                            <div className="logout-text desktop-only" onClick={() => navigate("/login")} style={{ cursor: "pointer", fontWeight: "600", color: "var(--brand-navy)" }}>
+                            <div className="logout-text desktop-only" onClick={() => navigate("/login")}>
                                 Iniciar sesión
                             </div>
                         )
@@ -105,11 +105,11 @@ export const Navbar = () => {
                     )}
                     <hr style={{ border: "0.5px solid #f1f5f9", margin: "5px 0" }} />
                     {isAuthenticated ? (
-                        <div style={{ padding: "10px 20px", color: "#e74c3c", cursor: "pointer", fontWeight: "bold" }} onClick={handleLogout}>
+                        <div className="mobile-logout-btn" onClick={handleLogout}>
                             Cerrar sesión
                         </div>
                     ) : (
-                        <Link to="/login" onClick={() => setMenuOpen(false)} style={{ color: "var(--brand-navy)", fontWeight: "bold" }}>
+                        <Link to="/login" onClick={() => setMenuOpen(false)} className="mobile-login-btn">
                             Iniciar sesión
                         </Link>
                     )}

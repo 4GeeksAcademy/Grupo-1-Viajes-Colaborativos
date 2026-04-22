@@ -21,9 +21,19 @@ export const TripDetails = () => {
     const [newImageUrl, setNewImageUrl] = useState("");
     const [isUpdatingImage, setIsUpdatingImage] = useState(false);
 
+    // 📱 ESTADO PARA EL MENÚ MÓVIL
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
+
     // 📸 ESTADOS PARA MODALES
     const [showAddTravelerModal, setShowAddTravelerModal] = useState(false);
     const [showAddDocModal, setShowAddDocModal] = useState(false);
+    
+    // ⚙️ NUEVOS ESTADOS PARA GESTIONAR VIAJE
+    const [showEditTripModal, setShowEditTripModal] = useState(false);
+    const [isUpdatingTrip, setIsUpdatingTrip] = useState(false);
+    const [editTripData, setEditTripData] = useState({
+        title: "", destination: "", budget: "", starting_date: "", ending_date: "", state: "PLANNING", notes: ""
+    });
 
     // 🧑‍🤝‍🧑 NUEVOS ESTADOS PARA INVITAR VIAJERO
     const [inviteEmail, setInviteEmail] = useState("");
@@ -35,7 +45,6 @@ export const TripDetails = () => {
         "FINISHED": { text: "Finalizado", color: "#95a5a6" }
     };
 
-    // Extraemos el fetch a una función para poder reutilizarlo al actualizar la imagen o invitar amigos
     const fetchTripDetails = async () => {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -69,7 +78,7 @@ export const TripDetails = () => {
         if (id) fetchTripDetails();
     }, [id, navigate, dispatch]);
 
-    // 📸 FUNCIÓN PARA ACTUALIZAR LA IMAGEN EN EL BACKEND
+    // 📸 FUNCIÓN PARA ACTUALIZAR LA IMAGEN
     const handleImageUpdate = async () => {
         setIsUpdatingImage(true);
         const token = localStorage.getItem("token");
@@ -87,7 +96,7 @@ export const TripDetails = () => {
             if (response.ok) {
                 setIsEditingImage(false);
                 setNewImageUrl("");
-                fetchTripDetails(); // Recargamos los datos para que se vea la foto nueva
+                fetchTripDetails(); 
             } else {
                 alert("Hubo un error al actualizar la imagen.");
             }
@@ -98,7 +107,7 @@ export const TripDetails = () => {
         }
     };
 
-    // 🧑‍🤝‍🧑 FUNCIÓN PARA INVITAR VIAJERO AL BACKEND
+    // 🧑‍🤝‍🧑 FUNCIÓN PARA INVITAR VIAJERO
     const handleInviteTraveler = async (e) => {
         e.preventDefault();
         if (!inviteEmail.trim()) return;
@@ -119,8 +128,8 @@ export const TripDetails = () => {
             if (response.ok) {
                 alert("✅ ¡Viajero añadido con éxito!");
                 setShowAddTravelerModal(false);
-                setInviteEmail(""); // Limpiamos el input
-                fetchTripDetails(); // Recargamos la página para actualizar balances y avatares
+                setInviteEmail("");
+                fetchTripDetails(); 
             } else {
                 const errorData = await response.json();
                 alert(`⚠️ Error: ${errorData.message}`);
@@ -130,6 +139,75 @@ export const TripDetails = () => {
             alert("No se pudo conectar con el servidor.");
         } finally {
             setIsInviting(false);
+        }
+    };
+
+    // ⚙️ ABRIR MODAL DE EDICIÓN Y CARGAR DATOS
+    const openEditModal = () => {
+        if (store.currentTrip) {
+            setEditTripData({
+                title: store.currentTrip.title || "",
+                destination: store.currentTrip.destination || "",
+                budget: store.currentTrip.budget || "",
+                starting_date: store.currentTrip.starting_date || "",
+                ending_date: store.currentTrip.ending_date || "",
+                state: store.currentTrip.state || "PLANNING",
+                notes: store.currentTrip.notes || ""
+            });
+            setShowEditTripModal(true);
+        }
+    };
+
+    // ⚙️ FUNCIÓN PARA ACTUALIZAR DATOS DEL VIAJE
+    const handleUpdateTrip = async (e) => {
+        e.preventDefault();
+        setIsUpdatingTrip(true);
+        const token = localStorage.getItem("token");
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/trip/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(editTripData)
+            });
+
+            if (response.ok) {
+                setShowEditTripModal(false);
+                fetchTripDetails(); 
+                alert("Datos del viaje actualizados.");
+            } else {
+                const errorData = await response.json();
+                alert(`Error: ${errorData.message}`);
+            }
+        } catch (error) {
+            console.error("Error al actualizar el viaje:", error);
+        } finally {
+            setIsUpdatingTrip(false);
+        }
+    };
+
+    // 🏃‍♂️ FUNCIÓN PARA ABANDONAR EL VIAJE
+    const handleLeaveTrip = async () => {
+        if (window.confirm("¿Estás seguro de que quieres abandonar este viaje? Dejarás de tener acceso al itinerario y los gastos compartidos.")) {
+            const token = localStorage.getItem("token");
+            try {
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/leave-trip/${id}`, {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    navigate("/my-trips"); 
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.message}`);
+                }
+            } catch (error) {
+                console.error("Error al salir del viaje:", error);
+            }
         }
     };
 
@@ -203,42 +281,72 @@ export const TripDetails = () => {
                     <span className="hero-badge" style={{ backgroundColor: currentState.color }}>
                         {currentState.text}
                     </span>
-                    <h1>{trip.title}</h1>
-                    <p><i className="fa-regular fa-calendar"></i> {formattedDates}</p>
 
-                    <div style={{ position: "absolute", bottom: "10px", right: "20px" }}>
+                    {/* --- NUEVO LAYOUT TÍTULO + MENÚ MÓVIL --- */}
+                    <div className="hero-title-row">
+                        <div className="hero-text-area">
+                            <h1>{trip.title}</h1>
+                            <p><i className="fa-regular fa-calendar"></i> {formattedDates}</p>
+                        </div>
+
+                        {/* MENÚ DESPLEGABLE (Solo visible en móvil) */}
+                        <div className="mobile-menu-container">
+                            {!isEditingImage && (
+                                <button 
+                                    className="btn-mobile-toggle" 
+                                    onClick={() => setShowMobileMenu(!showMobileMenu)}
+                                >
+                                    <i className="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                            )}
+
+                            {showMobileMenu && !isEditingImage && (
+                                <div className="mobile-dropdown-menu">
+                                    <button onClick={() => { setShowMobileMenu(false); openEditModal(); }}>
+                                        <i className="fa-solid fa-gear"></i> Gestionar Viaje
+                                    </button>
+                                    <button onClick={() => { setShowMobileMenu(false); setIsEditingImage(true); setNewImageUrl(trip.image_url || ""); }}>
+                                        <i className="fa-solid fa-camera"></i> Cambiar Foto
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* --- BOTONES DE ACCIÓN (ESCRITORIO / INPUT DE FOTO) --- */}
+                    <div className={`hero-action-buttons ${isEditingImage ? 'editing-active' : ''}`}>
+                        {/* BOTÓN DE GESTIONAR VIAJE (Se oculta en móvil vía CSS) */}
+                        {!isEditingImage && (
+                            <button onClick={openEditModal} className="btn-hero-action desktop-only-btn">
+                                <i className="fa-solid fa-gear"></i> Gestionar Viaje
+                            </button>
+                        )}
+
+                        {/* BOTÓN / INPUT DE CAMBIAR FOTO */}
                         {!isEditingImage ? (
-                            <button 
-                                onClick={() => { setIsEditingImage(true); setNewImageUrl(trip.image_url || ""); }}
-                                style={{ background: "rgba(255,255,255,0.2)", border: "1px solid white", color: "white", padding: "8px 12px", borderRadius: "8px", cursor: "pointer", backdropFilter: "blur(4px)" }}
-                            >
+                            <button onClick={() => { setIsEditingImage(true); setNewImageUrl(trip.image_url || ""); }} className="btn-hero-action desktop-only-btn">
                                 <i className="fa-solid fa-camera"></i> Cambiar Foto
                             </button>
                         ) : (
-                            <div style={{ background: "white", padding: "10px", borderRadius: "8px", display: "flex", gap: "10px", alignItems: "center", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}>
+                            <div className="edit-image-container">
                                 <input 
                                     type="url" 
                                     placeholder="Pega la nueva URL..." 
                                     value={newImageUrl}
                                     onChange={(e) => setNewImageUrl(e.target.value)}
-                                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "250px" }}
+                                    className="edit-image-input"
                                 />
-                                <button 
-                                    onClick={handleImageUpdate}
-                                    disabled={isUpdatingImage}
-                                    style={{ background: "var(--brand-teal)", color: "white", border: "none", padding: "8px 15px", borderRadius: "4px", cursor: "pointer" }}
-                                >
-                                    {isUpdatingImage ? "..." : "Guardar"}
+                                <button onClick={handleImageUpdate} disabled={isUpdatingImage} className="btn-hero-save">
+                                    {isUpdatingImage ? "..." : <i className="fa-solid fa-check"></i>}
                                 </button>
-                                <button 
-                                    onClick={() => setIsEditingImage(false)}
-                                    style={{ background: "#e2e8f0", color: "#334155", border: "none", padding: "8px 10px", borderRadius: "4px", cursor: "pointer" }}
-                                >
+                                <button onClick={() => setIsEditingImage(false)} className="btn-hero-cancel">
                                     <i className="fa-solid fa-xmark"></i>
                                 </button>
                             </div>
                         )}
                     </div>
+                    {/* ----------------------------------------------- */}
+
                 </div>
             </div>
 
@@ -338,7 +446,9 @@ export const TripDetails = () => {
                 </div>
             </div>
 
-            {/* --- MODALES REVISADOS --- */}
+            {/* --- MODALES --- */}
+
+            {/* MODAL INVITAR VIAJERO */}
             {showAddTravelerModal && (
                 <div className="modal-overlay" onClick={() => setShowAddTravelerModal(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center', padding: '30px', maxWidth: '400px' }}>
@@ -379,6 +489,83 @@ export const TripDetails = () => {
                 </div>
             )}
 
+            {/* MODAL GESTIONAR VIAJE */}
+            {showEditTripModal && (
+                <div className="modal-overlay" onClick={() => setShowEditTripModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ padding: '30px', maxWidth: '500px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
+                        <h3 style={{ marginBottom: "20px", color: "#1e293b", display: "flex", alignItems: "center", gap: "10px" }}>
+                            <i className="fa-solid fa-pen-to-square" style={{ color: "var(--brand-teal)" }}></i> Configuración del Viaje
+                        </h3>
+                        
+                        <form onSubmit={handleUpdateTrip} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                            <div>
+                                <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", color: "#64748b", fontWeight: "bold" }}>Título</label>
+                                <input type="text" value={editTripData.title} onChange={(e) => setEditTripData({...editTripData, title: e.target.value})} required style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #cbd5e1" }} />
+                            </div>
+                            
+                            <div style={{ display: "flex", gap: "15px" }}>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", color: "#64748b", fontWeight: "bold" }}>Destino</label>
+                                    <input type="text" value={editTripData.destination} onChange={(e) => setEditTripData({...editTripData, destination: e.target.value})} required style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #cbd5e1" }} />
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", color: "#64748b", fontWeight: "bold" }}>Presupuesto Total (€)</label>
+                                    <input type="number" value={editTripData.budget} onChange={(e) => setEditTripData({...editTripData, budget: e.target.value})} required style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #cbd5e1" }} />
+                                </div>
+                            </div>
+
+                            <div style={{ display: "flex", gap: "15px" }}>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", color: "#64748b", fontWeight: "bold" }}>Fecha Inicio</label>
+                                    <input type="date" value={editTripData.starting_date} onChange={(e) => setEditTripData({...editTripData, starting_date: e.target.value})} required style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #cbd5e1" }} />
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", color: "#64748b", fontWeight: "bold" }}>Fecha Fin</label>
+                                    <input type="date" value={editTripData.ending_date} onChange={(e) => setEditTripData({...editTripData, ending_date: e.target.value})} required style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #cbd5e1" }} />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", color: "#64748b", fontWeight: "bold" }}>Estado del Viaje</label>
+                                <select value={editTripData.state} onChange={(e) => setEditTripData({...editTripData, state: e.target.value})} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #cbd5e1", backgroundColor: "white" }}>
+                                    <option value="PLANNING">Planificando</option>
+                                    <option value="ONGOING">En curso</option>
+                                    <option value="FINISHED">Finalizado</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", color: "#64748b", fontWeight: "bold" }}>Notas adicionales (Opcional)</label>
+                                <textarea rows="3" value={editTripData.notes} onChange={(e) => setEditTripData({...editTripData, notes: e.target.value})} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #cbd5e1", resize: "vertical" }}></textarea>
+                            </div>
+
+                            {/* Botones de acción del formulario */}
+                            <div style={{ display: "flex", gap: "10px", marginTop: "10px", paddingTop: "15px", borderTop: "1px solid #e2e8f0" }}>
+                                <button type="button" onClick={() => setShowEditTripModal(false)} style={{ flex: 1, padding: "12px", borderRadius: "8px", border: "none", background: "#f1f5f9", color: "#64748b", cursor: "pointer", fontWeight: "bold" }}>
+                                    Cancelar
+                                </button>
+                                <button type="submit" disabled={isUpdatingTrip} style={{ flex: 1, padding: "12px", borderRadius: "8px", border: "none", background: "var(--brand-teal)", color: "white", cursor: isUpdatingTrip ? "not-allowed" : "pointer", fontWeight: "bold" }}>
+                                    {isUpdatingTrip ? "Guardando..." : "Guardar Cambios"}
+                                </button>
+                            </div>
+
+                            {/* Zona de peligro: Abandonar Viaje */}
+                            <div style={{ marginTop: "20px", padding: "15px", background: "#fff1f2", borderRadius: "8px", border: "1px dashed #fda4af", textAlign: "center" }}>
+                                <p style={{ color: "#be123c", fontSize: "0.9rem", marginBottom: "10px", fontWeight: "bold" }}>¿Ya no vas a este viaje?</p>
+                                <button 
+                                    type="button" 
+                                    onClick={handleLeaveTrip}
+                                    style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "none", background: "#e11d48", color: "white", cursor: "pointer", fontWeight: "bold" }}
+                                >
+                                    <i className="fa-solid fa-person-walking-arrow-right"></i> Abandonar Viaje
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL DOCUMENTOS */}
             {showAddDocModal && (
                 <div className="modal-overlay" onClick={() => setShowAddDocModal(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center', padding: '30px' }}>

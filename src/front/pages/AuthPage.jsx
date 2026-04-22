@@ -19,6 +19,7 @@ export const AuthPage = () => {
     // --- ESTADOS PARA RECUPERAR CONTRASEÑA ---
     const [showForgotModal, setShowForgotModal] = useState(false);
     const [recoveryEmail, setRecoveryEmail] = useState("");
+    const [isRecovering, setIsRecovering] = useState(false);
 
     useEffect(() => {
         if (location.state?.tab === "register") {
@@ -66,7 +67,7 @@ export const AuthPage = () => {
         }
     };
 
-    // --- 🚀 NUEVO: FUNCIÓN LOGIN CON GOOGLE ---
+    // --- 🚀 FUNCIÓN LOGIN CON GOOGLE ---
     const handleGoogleSuccess = async (credentialResponse) => {
         setLoading(true);
         try {
@@ -92,11 +93,34 @@ export const AuthPage = () => {
         }
     };
 
+    // --- 🔑 FUNCIÓN PARA RECUPERAR CONTRASEÑA ---
     const handleForgotPasswordSubmit = async (e) => {
         e.preventDefault();
-        alert(`Si el correo ${recoveryEmail} existe, recibirás un enlace de recuperación.`);
-        setShowForgotModal(false);
-        setRecoveryEmail("");
+        if (!recoveryEmail.trim()) return;
+
+        setIsRecovering(true);
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/forgot-password`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: recoveryEmail.trim().toLowerCase() })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(`✅ ${data.message}`);
+                setShowForgotModal(false);
+                setRecoveryEmail("");
+            } else {
+                alert(`⚠️ Error: ${data.message || data.msg || "Ocurrió un error al procesar tu solicitud."}`);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("⚠️ No se pudo conectar con el servidor.");
+        } finally {
+            setIsRecovering(false);
+        }
     };
 
     return (
@@ -190,6 +214,7 @@ export const AuthPage = () => {
                     </span>
                 </div>
 
+                {/* MODAL DE RECUPERACIÓN DE CONTRASEÑA */}
                 {showForgotModal && (
                     <div className="modal-overlay" onClick={() => setShowForgotModal(false)} style={{ zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)' }}>
                         <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '400px', textAlign: 'center', position: 'relative' }}>
@@ -204,8 +229,10 @@ export const AuthPage = () => {
                                     <input type="email" placeholder="ejemplo@travel.com" value={recoveryEmail} onChange={(e) => setRecoveryEmail(e.target.value)} required style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
                                 </div>
                                 <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                                    <button type="button" onClick={() => setShowForgotModal(false)} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#e2e8f0', color: '#334155', cursor: 'pointer', fontWeight: 'bold', flex: 1 }}>Cancelar</button>
-                                    <button type="submit" style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: 'var(--brand-teal, #2EC4B6)', color: 'white', cursor: 'pointer', fontWeight: 'bold', flex: 1 }}>Enviar</button>
+                                    <button type="button" onClick={() => setShowForgotModal(false)} disabled={isRecovering} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#e2e8f0', color: '#334155', cursor: 'pointer', fontWeight: 'bold', flex: 1 }}>Cancelar</button>
+                                    <button type="submit" disabled={isRecovering} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: 'var(--brand-teal, #2EC4B6)', color: 'white', cursor: isRecovering ? 'not-allowed' : 'pointer', fontWeight: 'bold', flex: 1, opacity: isRecovering ? 0.7 : 1 }}>
+                                        {isRecovering ? "Enviando..." : "Enviar"}
+                                    </button>
                                 </div>
                             </form>
                         </div>

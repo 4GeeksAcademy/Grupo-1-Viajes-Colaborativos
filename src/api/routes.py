@@ -2,6 +2,8 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
+import string
+import random
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import (
     create_access_token,
@@ -856,3 +858,40 @@ def add_travelers(trip_id):
     return jsonify({
         "message": "Viajero/s añadidos correctamente"
     }), 200
+
+# 🔐 Endpoint para recuperar contraseña olvidada
+@api.route("/forgot-password", methods=["POST"])
+def forgot_password():
+    data = get_json_payload()
+    email = data.get("email", "").strip().lower()
+
+    if not email:
+        raise APIException("Debes proporcionar un correo electrónico", status_code=400)
+
+    user = User.query.filter_by(email=email).one_or_none()
+    if not user:
+        raise APIException("No existe ningún usuario con este correo", status_code=404)
+
+    # 1. Generamos una contraseña temporal aleatoria de 8 caracteres
+    temp_password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+
+    # 2. Actualizamos la contraseña del usuario en la base de datos
+    user.set_password(temp_password)
+    db.session.commit()
+
+    # 3. Enviamos el correo
+    send_email_notification(
+        "Recuperación de contraseña - Expedition",
+        [email],
+        f"""
+        <div style="font-family: sans-serif; color: #1E3A5F;">
+            <h2>Recuperación de contraseña</h2>
+            <p>Hola {user.name},</p>
+            <p>Se ha solicitado un restablecimiento de contraseña para tu cuenta.</p>
+            <p>Tu nueva contraseña temporal es: <strong style="color: #2EC4B6; font-size: 1.2rem;">{temp_password}</strong></p>
+            <p>Por favor, inicia sesión con esta contraseña y cámbiala por una nueva desde tu perfil lo antes posible.</p>
+        </div>
+        """
+    )
+
+    return jsonify({"message": "Te hemos enviado un correo con tu nueva contraseña temporal"}), 200
