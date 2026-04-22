@@ -1,3 +1,7 @@
+import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from flask import jsonify, url_for
 
 class APIException(Exception):
@@ -23,8 +27,6 @@ def has_no_empty_params(rule):
 def generate_sitemap(app):
     links = ['/admin/']
     for rule in app.url_map.iter_rules():
-        # Filter out rules we can't navigate to in a browser
-        # and rules that require parameters
         if "GET" in rule.methods and has_no_empty_params(rule):
             url = url_for(rule.endpoint, **(rule.defaults or {}))
             if "/admin/" not in url:
@@ -39,3 +41,34 @@ def generate_sitemap(app):
         <p>Start working on your project by following the <a href="https://start.4geeksacademy.com/starters/full-stack" target="_blank">Quick Start</a></p>
         <p>Remember to specify a real endpoint path like: </p>
         <ul style="text-align: left;">"""+links_html+"</ul></div>"
+
+# --- 📧 NUEVO: MOTOR DE ENVÍO DE CORREOS ---
+def send_email_notification(subject, recipients, html_body):
+    sender_email = os.getenv("MAIL_USERNAME")
+    sender_password = os.getenv("MAIL_PASSWORD") # Contraseña de aplicación de Google
+
+    if not sender_email or not sender_password:
+        print("⚠️ Advertencia: Credenciales de correo no configuradas en .env")
+        return
+
+    # Si hay un solo destinatario en texto, lo convertimos a lista
+    if isinstance(recipients, str):
+        recipients = [recipients]
+
+    msg = MIMEMultipart("alternative")
+    msg['Subject'] = subject
+    msg['From'] = sender_email
+    msg['To'] = ", ".join(recipients)
+
+    part = MIMEText(html_body, "html")
+    msg.attach(part)
+
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, recipients, msg.as_string())
+        server.quit()
+        print(f"📧 Correo enviado con éxito a {recipients}")
+    except Exception as e:
+        print(f"❌ Error enviando correo a {recipients}: {e}")
