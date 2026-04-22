@@ -831,6 +831,73 @@ def delete_expense(expense_id):
     }), 200
 
 
+# 🔐 RESTAURADO: Endpoint para editar la información general del viaje
+@api.route("/trip/<int:trip_id>", methods=["PUT"])
+@jwt_required()
+def update_trip(trip_id):
+    user = get_current_user()
+    validate_user_trip(user, trip_id)
+    data = get_json_payload()
+
+    trip = db.session.get(Trip, trip_id)
+    if not trip:
+        raise APIException("Viaje no encontrado", status_code=404)
+
+    # Actualizamos los campos
+    trip.title = data.get("title", trip.title).strip()
+    trip.destination = data.get("destination", trip.destination).strip()
+    trip.budget = float(data.get("budget", trip.budget))
+    trip.notes = data.get("notes", trip.notes).strip()
+    trip.starting_date = data.get("starting_date", trip.starting_date)
+    trip.ending_date = data.get("ending_date", trip.ending_date)
+    
+    # Manejo del Enum de estado
+    new_state = data.get("state")
+    if new_state:
+        try:
+            trip.state = StateTypes(new_state)
+        except ValueError:
+            pass # Si el estado no es válido, ignoramos el cambio de estado
+
+    db.session.commit()
+
+    # 📧 NOTIFICACIÓN: Cambios en el viaje
+    trip_emails = get_trip_emails(trip_id)
+    send_email_notification(
+        f"Actualización en el viaje: {trip.title}", 
+        trip_emails, 
+        f"<p>El usuario <b>{user.name}</b> ha actualizado los detalles generales del viaje (fechas, presupuesto o destino). Revisa los cambios en la app.</p>"
+    )
+
+    return jsonify({"message": "Viaje actualizado correctamente", "trip": trip.serialize()}), 200
+
+
+# 🔐 RESTAURADO: Endpoint para abandonar un viaje
+@api.route("/leave-trip/<int:trip_id>", methods=["DELETE"])
+@jwt_required()
+def leave_trip(trip_id):
+    user = get_current_user()
+    
+    # Buscamos la relación en la tabla Traveler
+    traveler_link = Traveler.query.filter_by(user_id=user.id, trip_id=trip_id).one_or_none()
+    
+    if not traveler_link:
+        raise APIException("No formas parte de este viaje", status_code=404)
+
+    # 📧 NOTIFICACIÓN: Alguien abandona (Opcional, antes de borrarlo)
+    trip_emails = get_trip_emails(trip_id)
+    send_email_notification(
+        "Un viajero ha dejado el grupo", 
+        trip_emails, 
+        f"<p>El usuario <b>{user.name}</b> ha decidido abandonar el viaje.</p>"
+    )
+
+    db.session.delete(traveler_link)
+    db.session.commit()
+
+    return jsonify({"message": "Has abandonado el viaje correctamente"}), 200
+
+
 # 🔐 Endpoint que añade un nuevo viajero al viaje (Antiguo, manteniéndolo por si acaso)
 @api.route("/add-travelers/<int:trip_id>", methods=["POST"])
 @jwt_required()
