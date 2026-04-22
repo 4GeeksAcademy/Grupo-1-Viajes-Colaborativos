@@ -224,7 +224,7 @@ def sign_in():
     return build_auth_response(user, 200, "Login correcto")
 
 
-# --- 🚀 NUEVO ENDPOINT: GOOGLE LOGIN ---
+# Enpoint que realiza el login del usuario con google
 @api.route("/google-login", methods=["POST"])
 def google_login():
     data = get_json_payload()
@@ -255,7 +255,6 @@ def google_login():
         return build_auth_response(user, 200, "Login con Google exitoso")
     except ValueError:
         raise APIException("Token de Google inválido", status_code=401)
-# ---------------------------------------
 
 
 # Endpoint que registra un nuevo usuario
@@ -288,6 +287,7 @@ def sign_up():
     )
 
     return build_auth_response(new_user, 201, "Usuario creado correctamente")
+
 
 # 🔐 Endpoint que devuelve todos los viajes del usuario logueado con filtro opcional 
 @api.route("/travels", methods=["GET"])
@@ -420,7 +420,8 @@ def trip_detail(trip_id):
         "messages": messages_list,
     }), 200
 
-# --- 🧑‍🤝‍🧑 ENDPOINT: INVITAR VIAJERO A UN VIAJE EXISTENTE ---
+
+# 🔐 Endpoint que registra un nuevo viajero a un viaje ya creado
 @api.route("/add-traveler/<int:trip_id>", methods=["POST"])
 @jwt_required()
 def add_traveler(trip_id):
@@ -465,6 +466,7 @@ def add_traveler(trip_id):
         "message": "Viajero añadido correctamente al itinerario",
         "traveler": new_traveler_user.serialize()
     }), 200
+
 
 # 🔐 Endpoint que registra una nueva actividad
 @api.route("/new-activity/<int:trip_id>", methods=["POST"])
@@ -831,7 +833,7 @@ def delete_expense(expense_id):
     }), 200
 
 
-# 🔐 RESTAURADO: Endpoint para editar la información general del viaje
+# 🔐 Endpoint para editar la información general del viaje
 @api.route("/trip/<int:trip_id>", methods=["PUT"])
 @jwt_required()
 def update_trip(trip_id):
