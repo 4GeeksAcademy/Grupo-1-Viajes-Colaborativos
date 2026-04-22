@@ -17,12 +17,29 @@ from google.auth.transport import requests as google_requests
 from api.utils import APIException, send_email_notification
 # ----------------------------------------------------
 
+# --- 🚀 NUEVAS IMPORTACIONES PARA CLOUDINARY ---
+import cloudinary
+import cloudinary.uploader
+from cloudinary.utils import cloudinary_url
+# ----------------------------------------------------
+
+
 import enum
 from sqlalchemy import func
 from collections import defaultdict
 from api.models import db, User, Trip, Traveler, Itinerary, Expense, Debt, Document, Chat, Message, StateTypes, CategoryTypes
 
 api = Blueprint("api", __name__)
+
+
+# Configuracion de Cloudinary
+cloudinary.config(
+    cloud_name = "dkcijbi66", 
+    api_key = "272544312927851", 
+    api_secret = "<CEII0DQWzmmRcalNjH7aLXlMTEU>",
+    secure=True
+)
+
 
 # Funcion que recupera el body de una peticion
 def get_json_payload():
@@ -936,3 +953,31 @@ def forgot_password():
     )
 
     return jsonify({"message": "Te hemos enviado un correo con tu nueva contraseña temporal"}), 200
+
+
+
+# 🔐 Endpoint para registrar y subir un documento
+@api.route("/add-document/<int:trip_id>", methods=["POST"])
+@jwt_required()
+def add_document(trip_id):
+
+    user = get_current_user()
+    data = get_json_payload()
+
+    validate_user_trip(user,trip_id)
+
+    #Sube el archivo a cloudinary
+    file = data.get("document")
+
+    upload_result = cloudinary.uploader.upload(file, folder="document")
+
+    document = Document(
+        title = data.get(str("title")),
+        url = upload_result["secure_url"],
+        trip_id = trip_id
+    )
+
+    db.session.add(document)
+    db.session.commit()
+
+    return jsonify({"message": "Se ha subido un nuevo documento con exito"}), 200
