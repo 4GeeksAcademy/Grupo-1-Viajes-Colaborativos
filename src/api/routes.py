@@ -30,7 +30,7 @@ from cloudinary.utils import cloudinary_url
 import enum
 from sqlalchemy import func
 from collections import defaultdict
-from api.models import db, User, Trip, Traveler, Itinerary, Expense, Debt, Document, Chat, Message, StateTypes, CategoryTypes
+from api.models import db, User, Trip, Traveler, Itinerary, Expense, Debt, Document, Chat, Message, StateTypes, CategoryTypes, Notification
 
 api = Blueprint("api", __name__)
 
@@ -387,6 +387,31 @@ def resend_verification():
     return jsonify({"message": "Correo de verificación reenviado."}), 200
 
 
+# 🔔 NUEVOS ENDPOINTS PARA NOTIFICACIONES IN-APP 🔔
+
+@api.route("/notifications", methods=["GET"])
+@jwt_required()
+def get_notifications():
+    user = get_current_user()
+    # Traemos las notificaciones del usuario, las más recientes primero
+    notis = Notification.query.filter_by(user_id=user.id).order_by(Notification.date_time.desc()).all()
+    return jsonify([n.serialize() for n in notis]), 200
+
+@api.route("/notifications/read", methods=["PUT"])
+@jwt_required()
+def mark_notifications_read():
+    user = get_current_user()
+    notis = Notification.query.filter_by(user_id=user.id, is_read=False).all()
+    
+    for n in notis:
+        n.is_read = True
+        
+    db.session.commit()
+    return jsonify({"message": "Notificaciones marcadas como leídas"}), 200
+
+# --------------------------------------------------
+
+
 # 🔐 Endpoint que devuelve todos los viajes del usuario logueado con filtro opcional 
 @api.route("/travels", methods=["GET"])
 @api.route("/trips", methods=["GET"])
@@ -553,6 +578,15 @@ def add_traveler(trip_id):
         trip_id=trip_id
     )
     db.session.add(new_traveler)
+    
+    # 🔔 CREAR LA NOTIFICACIÓN IN-APP PARA EL INVITADO
+    trip = db.session.get(Trip, trip_id)
+    noti = Notification(
+        user_id=new_traveler_user.id,
+        message=f"¡{user.name} te ha invitado al viaje: {trip.title}!"
+    )
+    db.session.add(noti)
+    
     db.session.commit()
 
     # 📧 NOTIFICACIÓN: Añadir nuevos integrantes

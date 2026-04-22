@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import "../styles/Navbar.css";
 import logoExpedition from "../assets/img/EXPEDITION-LOGO.png";
@@ -6,8 +6,10 @@ import logoExpedition from "../assets/img/EXPEDITION-LOGO.png";
 export const Navbar = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     
-    // 🔔 NUEVO: Estado para el menú de notificaciones
+    // 🔔 ESTADOS PARA NOTIFICACIONES
     const [showNotifications, setShowNotifications] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [hasUnread, setHasUnread] = useState(false);
     
     const navigate = useNavigate();
     const location = useLocation();
@@ -15,11 +17,66 @@ export const Navbar = () => {
     const isLoginPage = location.pathname === "/login"; 
     const isAuthenticated = !!localStorage.getItem("token");
 
+    // 🔔 FUNCIÓN PARA OBTENER NOTIFICACIONES DEL BACKEND
+    const fetchNotifications = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/notifications`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setNotifications(data);
+                // Comprobar si hay alguna no leída para encender el punto rojo
+                const unread = data.some(n => !n.is_read);
+                setHasUnread(unread);
+            }
+        } catch (error) {
+            console.error("Error al cargar notificaciones:", error);
+        }
+    };
+
+    // 🔔 FUNCIÓN PARA MARCAR COMO LEÍDAS
+    const markAsRead = async () => {
+        if (!hasUnread) return; // Si ya están leídas, no hace nada
+
+        const token = localStorage.getItem("token");
+        try {
+            await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/notifications/read`, {
+                method: "PUT",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            setHasUnread(false);
+            fetchNotifications(); // Recargar para actualizar visualmente
+        } catch (error) {
+            console.error("Error al marcar como leídas:", error);
+        }
+    };
+
+    // 🔄 Efecto para cargar notificaciones cuando el usuario inicia sesión o navega
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetchNotifications();
+        }
+    }, [isAuthenticated, location.pathname]);
+
+
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         setMenuOpen(false);
         navigate("/login");
+    };
+
+    // Al abrir el menú de notificaciones, las marcamos como leídas
+    const toggleNotifications = () => {
+        const isOpening = !showNotifications;
+        setShowNotifications(isOpening);
+        if (isOpening) {
+            markAsRead();
+        }
     };
 
     return (
@@ -48,7 +105,7 @@ export const Navbar = () => {
                     )}
                 </div>
 
-                {/* 3. DERECHA (Estilos movidos a CSS para poder adaptarlos en móvil) */}
+                {/* 3. DERECHA */}
                 <div className="nav-right">
                     {isAuthenticated ? (
                         <>
@@ -56,21 +113,41 @@ export const Navbar = () => {
                             <div style={{ position: 'relative' }}>
                                 <div 
                                     className="notification-icon" 
-                                    onClick={() => setShowNotifications(!showNotifications)}
+                                    onClick={toggleNotifications}
                                 >
                                     <i className="fa-regular fa-bell"></i>
-                                    {/* Puntito rojo de aviso */}
-                                    <span className="notification-dot"></span>
+                                    {/* El punto rojo ahora solo sale si hay notificaciones sin leer */}
+                                    {hasUnread && <span className="notification-dot"></span>}
                                 </div>
 
                                 {/* DESPLEGABLE DE NOTIFICACIONES */}
                                 {showNotifications && (
-                                    <div className="notifications-dropdown">
-                                        <h4>Notificaciones</h4>
-                                        <div className="notifications-empty">
-                                            <i className="fa-solid fa-check-circle"></i>
-                                            Todo al día. No tienes notificaciones nuevas.
-                                        </div>
+                                    <div className="notifications-dropdown" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                                        <h4 style={{ margin: "5px 10px 10px", color: "var(--brand-navy)", fontSize: "0.9rem" }}>Notificaciones</h4>
+                                        
+                                        {notifications.length === 0 ? (
+                                            <div className="notifications-empty" style={{ padding: "15px", textAlign: "center", color: "#64748b", fontSize: "0.85rem" }}>
+                                                <i className="fa-solid fa-check-circle" style={{ color: "var(--brand-teal)", fontSize: "1.5rem", marginBottom: "10px", display: "block" }}></i>
+                                                Todo al día. No tienes notificaciones nuevas.
+                                            </div>
+                                        ) : (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                                {notifications.map((noti) => (
+                                                    <div key={noti.id} style={{ 
+                                                        padding: "10px", 
+                                                        borderBottom: "1px solid #f1f5f9",
+                                                        backgroundColor: noti.is_read ? "transparent" : "#f0fdfa"
+                                                    }}>
+                                                        <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--brand-navy)" }}>
+                                                            {noti.message}
+                                                        </p>
+                                                        <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>
+                                                            {new Date(noti.date_time).toLocaleDateString()}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

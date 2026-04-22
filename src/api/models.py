@@ -44,6 +44,8 @@ class User(db.Model):
         "Debt", foreign_keys="[Debt.debtor_id]", back_populates="debtors")
     debts_to_receive = relationship(
         "Debt", foreign_keys="[Debt.creditor_id]", back_populates="creditors")
+    # 🔔 Relación con notificaciones
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
 
     def set_password(self, password: str) -> None:
         self.password = generate_password_hash(password)
@@ -261,5 +263,25 @@ class Message(db.Model):
             "content": self.content,
             "date_time": str(self.date_time),
             "chat_id": self.chat_id,
+            "user_id": self.user_id
+        }
+
+# 🔔 NUEVO: MODELO DE NOTIFICACIONES IN-APP
+class Notification(db.Model):
+    __tablename__ = 'notification'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    message: Mapped[str] = mapped_column(String(250), nullable=False)
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    date_time: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
+
+    user = relationship("User", back_populates="notifications")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "message": self.message,
+            "is_read": self.is_read,
+            "date_time": str(self.date_time),
             "user_id": self.user_id
         }
