@@ -38,7 +38,7 @@ api = Blueprint("api", __name__)
 cloudinary.config(
     cloud_name = "dkcijbi66", 
     api_key = "272544312927851", 
-    api_secret = "<CEII0DQWzmmRcalNjH7aLXlMTEU>",
+    api_secret = "CEII0DQWzmmRcalNjH7aLXlMTEU",
     secure=True
 )
 
