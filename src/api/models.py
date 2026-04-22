@@ -211,6 +211,8 @@ class Document(db.Model):
     url: Mapped[str] = mapped_column(String(250), nullable=False)
     trip_id: Mapped[int] = mapped_column(
         ForeignKey("trip.id", ondelete="CASCADE"))
+    public_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    resource_type: Mapped[str] = mapped_column(String(25), nullable=False)
 
     trips = relationship("Trip", back_populates="documents")
 

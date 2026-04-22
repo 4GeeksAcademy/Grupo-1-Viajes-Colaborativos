@@ -1,8 +1,8 @@
-"""is_verified
+"""empty message
 
-Revision ID: f3c40b6aaee3
+Revision ID: 9a3ea13e3aa5
 Revises: 
-Create Date: 2026-04-22 18:12:34.710669
+Create Date: 2026-04-22 19:47:24.084938
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'f3c40b6aaee3'
+revision = '9a3ea13e3aa5'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -52,6 +52,8 @@ def upgrade():
     sa.Column('title', sa.String(length=50), nullable=False),
     sa.Column('url', sa.String(length=250), nullable=False),
     sa.Column('trip_id', sa.Integer(), nullable=False),
+    sa.Column('public_id', sa.String(length=255), nullable=False),
+    sa.Column('resource_type', sa.String(length=25), nullable=False),
     sa.ForeignKeyConstraint(['trip_id'], ['trip.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
