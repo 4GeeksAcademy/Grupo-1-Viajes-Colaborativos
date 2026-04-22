@@ -1088,6 +1088,7 @@ def forgot_password():
 def add_document(trip_id):
 
     user = get_current_user()
+    ensure_verified(user) # 🛡️ BLOQUEO
     data = get_json_payload()
 
     validate_user_trip(user,trip_id)
@@ -1100,7 +1101,9 @@ def add_document(trip_id):
     document = Document(
         title = str(data.get("title")),
         url = upload_result["secure_url"],
-        trip_id = trip_id
+        trip_id = trip_id,
+        public_id = upload_result["public_id"],
+        resource_type = upload_result["resource_type"]
     )
 
     db.session.add(document)
@@ -1115,6 +1118,7 @@ def add_document(trip_id):
 def update_document(document_id):
 
     user = get_current_user()
+    ensure_verified(user) # 🛡️ BLOQUEO
     data = get_json_payload()
 
     document = db.session.get(Document, document_id)
@@ -1130,3 +1134,34 @@ def update_document(document_id):
     db.session.commit()
 
     return jsonify({"message": "Se ha modificado el documento"}), 200
+
+
+# 🔐 Endpoint para eliminar un documento
+@api.route("/delete-document/<int:document_id>", methods=["DELETE"])
+@jwt_required()
+def delete_document(document_id):
+
+    user = get_current_user()
+    ensure_verified(user) # 🛡️ BLOQUEO
+
+    file = db.session.get(Document, document_id)
+    if not file:
+        raise APIException("Documento no encontrado", status_code=404)
+
+    trip = db.session.get(Trip, file.trip_id)
+
+    validate_user_trip(user, trip.id)
+
+    if file.public_id:
+        if file.resource_type is "raw": 
+            cloudinary.uploader.destroy(
+                file.public_id,
+                resource_type="raw"
+            )
+        if file.resource_type is "image":
+            cloudinary.uploader.destroy(file.public_id)
+
+    db.session.delete(file)
+    db.session.commit()
+
+    return jsonify({"message": "Se ha eliminado el documento"}), 200
