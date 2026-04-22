@@ -1,6 +1,7 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
+import os
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import (
     create_access_token,
@@ -8,12 +9,16 @@ from flask_jwt_extended import (
     jwt_required
 )
 
+# --- 🚀 NUEVAS IMPORTACIONES PARA GOOGLE Y EMAILS ---
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+from api.utils import APIException, send_email_notification
+# ----------------------------------------------------
+
 import enum
 from sqlalchemy import func
 from collections import defaultdict
 from api.models import db, User, Trip, Traveler, Itinerary, Expense, Debt, Document, Chat, Message, StateTypes, CategoryTypes
-from api.utils import APIException
-
 
 api = Blueprint("api", __name__)
 
@@ -191,6 +196,12 @@ def validate_user_trip(user, trip_id):
     
     return True
 
+# --- 📧 HELPER: OBTENER TODOS LOS CORREOS DE UN VIAJE ---
+def get_trip_emails(trip_id):
+    travelers = Traveler.query.filter_by(trip_id=trip_id).all()
+    return [t.users.email for t in travelers]
+# --------------------------------------------------------
+
 
 #------------------------------
 #         ENDPOINTS
@@ -209,6 +220,40 @@ def sign_in():
         raise APIException("Email o contraseña incorrecta", status_code=401)
 
     return build_auth_response(user, 200, "Login correcto")
+
+
+# --- 🚀 NUEVO ENDPOINT: GOOGLE LOGIN ---
+@api.route("/google-login", methods=["POST"])
+def google_login():
+    data = get_json_payload()
+    token = data.get("credential")
+
+    try:
+        client_id = os.getenv("GOOGLE_CLIENT_ID")
+        idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), client_id)
+        
+        email = idinfo['email']
+        name = idinfo.get('name', 'Usuario de Google')
+
+        user = User.query.filter_by(email=email).one_or_none()
+        
+        if not user:
+            user = User(email=email, name=name)
+            user.set_password("google_oauth_random_password_xyz123")
+            db.session.add(user)
+            db.session.commit()
+            
+            # 📧 NOTIFICACIÓN: Registro (Google)
+            send_email_notification(
+                "¡Bienvenido a Expedition!", 
+                [email], 
+                f"<h1>Hola {name}</h1><p>Gracias por unirte a Expedition con Google.</p>"
+            )
+
+        return build_auth_response(user, 200, "Login con Google exitoso")
+    except ValueError:
+        raise APIException("Token de Google inválido", status_code=401)
+# ---------------------------------------
 
 
 # Endpoint que registra un nuevo usuario
@@ -232,6 +277,13 @@ def sign_up():
 
     db.session.add(new_user)
     db.session.commit()
+
+    # 📧 NOTIFICACIÓN: Registro Normal
+    send_email_notification(
+        "¡Bienvenido a Expedition!", 
+        [email], 
+        f"<h1>Hola {name}</h1><p>Tu cuenta ha sido creada exitosamente. ¡Prepárate para explorar el mundo!</p>"
+    )
 
     return build_auth_response(new_user, 201, "Usuario creado correctamente")
 
@@ -309,7 +361,13 @@ def new_trip():
     db.session.add(chat)
     db.session.commit()
 
-    # CORREO INFORMATIVO PENDIENTE
+    # 📧 NOTIFICACIÓN: Crear nuevo viaje
+    trip_emails = get_trip_emails(trip.id)
+    send_email_notification(
+        f"Nuevo Viaje: {trip.title}", 
+        trip_emails, 
+        f"<h3>¡Prepara las maletas!</h3><p>Se ha creado un nuevo viaje a {trip.destination}. Entra a Expedition para ver los detalles.</p>"
+    )
 
     return jsonify({
         "message": "Viaje creado correctamente",
@@ -360,7 +418,7 @@ def trip_detail(trip_id):
         "messages": messages_list,
     }), 200
 
-# --- 🧑‍🤝‍🧑 NUEVO ENDPOINT: INVITAR VIAJERO A UN VIAJE EXISTENTE ---
+# --- 🧑‍🤝‍🧑 ENDPOINT: INVITAR VIAJERO A UN VIAJE EXISTENTE ---
 @api.route("/add-traveler/<int:trip_id>", methods=["POST"])
 @jwt_required()
 def add_traveler(trip_id):
@@ -393,6 +451,14 @@ def add_traveler(trip_id):
     db.session.add(new_traveler)
     db.session.commit()
 
+    # 📧 NOTIFICACIÓN: Añadir nuevos integrantes
+    trip_emails = get_trip_emails(trip_id)
+    send_email_notification(
+        "¡Nuevo viajero en el equipo!", 
+        trip_emails, 
+        f"<p>El usuario <b>{new_traveler_user.name}</b> se ha unido al viaje. ¡Salúdenlo en el chat!</p>"
+    )
+
     return jsonify({
         "message": "Viajero añadido correctamente al itinerario",
         "traveler": new_traveler_user.serialize()
@@ -415,7 +481,13 @@ def new_activity(trip_id):
     db.session.commit()
     db.session.refresh(itinerary)
 
-    # CORREO INFORMATIVO PENDIENTE
+    # 📧 NOTIFICACIÓN: Añadir actividad
+    trip_emails = get_trip_emails(trip_id)
+    send_email_notification(
+        "Nueva Actividad Añadida", 
+        trip_emails, 
+        f"<p>Se ha añadido la actividad <b>{itinerary.title}</b> a tu itinerario.</p>"
+    )
 
     return jsonify({
         "message": "Actividad añadida correctamente",
@@ -436,10 +508,20 @@ def delete_activity(activity_id):
 
     # Verificamos que el usuario tiene permisos en el viaje asociado a esta actividad
     validate_user_trip(user, activity.trip_id)
+    
+    trip_id_to_notify = activity.trip_id
 
     # Eliminamos la actividad y guardamos los cambios
     db.session.delete(activity)
     db.session.commit()
+
+    # 📧 NOTIFICACIÓN: Eliminar actividad
+    trip_emails = get_trip_emails(trip_id_to_notify)
+    send_email_notification(
+        "Actividad Cancelada", 
+        trip_emails, 
+        "<p>Una actividad ha sido eliminada del itinerario.</p>"
+    )
 
     return jsonify({
         "message": "Actividad eliminada correctamente"
@@ -524,7 +606,13 @@ def new_expense(trip_id):
         
     db.session.commit()
 
-    # CORREO INFORMATIVO PENDIENTE
+    # 📧 NOTIFICACIÓN: Añadir gasto
+    trip_emails = get_trip_emails(trip_id)
+    send_email_notification(
+        "Nuevo Gasto Añadido", 
+        trip_emails, 
+        f"<p>Se ha registrado un nuevo gasto: <b>{expense.description}</b> por {expense.amount}€.</p>"
+    )
 
     return jsonify({
         "message": "Gasto añadida correctamente",
@@ -630,6 +718,14 @@ def update_trip_image(trip_id):
     trip.image_url = new_image_url
     db.session.commit()
 
+    # 📧 NOTIFICACIÓN: Actualizar imagen
+    trip_emails = get_trip_emails(trip_id)
+    send_email_notification(
+        "Imagen de Viaje Actualizada", 
+        trip_emails, 
+        f"<p>¡La portada de tu viaje a {trip.destination} tiene un nuevo look!</p>"
+    )
+
     return jsonify({
         "message": "Imagen de portada actualizada correctamente",
         "image_url": trip.image_url
@@ -706,6 +802,8 @@ def delete_expense(expense_id):
 
     # Verificamos que el usuario tiene permisos en el viaje asociado a esta gasto
     validate_user_trip(user, expense.trip_id)
+    
+    trip_id_to_notify = expense.trip_id
 
     # Buscamos todos todas las deudas por su expense_id
     debts = Debt.query.filter_by(expense_id=expense_id).all()
@@ -718,15 +816,23 @@ def delete_expense(expense_id):
     db.session.delete(expense)
     db.session.commit()
 
+    # 📧 NOTIFICACIÓN: Eliminar gasto
+    trip_emails = get_trip_emails(trip_id_to_notify)
+    send_email_notification(
+        "Gasto Eliminado", 
+        trip_emails, 
+        "<p>Se ha eliminado un gasto y se han recalculado los balances.</p>"
+    )
+
     return jsonify({
         "message": "Gasto eliminada correctamente"
     }), 200
 
 
-# 🔐 Endpoint que añade un nuevo viajero al viaje
-@api.route("/add-traveler/<int:trip_id>", methods=["POST"])
+# 🔐 Endpoint que añade un nuevo viajero al viaje (Antiguo, manteniéndolo por si acaso)
+@api.route("/add-travelers/<int:trip_id>", methods=["POST"])
 @jwt_required()
-def add_traveler(trip_id):
+def add_travelers(trip_id):
 
     user = get_current_user()
     data = get_json_payload()

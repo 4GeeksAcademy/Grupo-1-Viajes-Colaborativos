@@ -20,6 +20,8 @@ flask-jwt-extended = "==4.6.0"
 wtforms = "==3.1.2"
 sqlalchemy = "*"
 flask-cors = "*"
+google-auth = "*"
+requests = "*"
 
 [requires]
 python_version = "3.13"
