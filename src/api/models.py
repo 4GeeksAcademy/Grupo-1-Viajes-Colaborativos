@@ -34,6 +34,7 @@ class User(db.Model):
     email: Mapped[str] = mapped_column(
         String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Relationships
     travelers = relationship("Traveler", back_populates="users")
@@ -55,7 +56,8 @@ class User(db.Model):
             "id": self.id,
             "name": self.name,
             "last_name": self.last_name,
-            "email": self.email
+            "email": self.email,
+            "is_verified": self.is_verified # 🛡️ Lo enviamos al frontend
         }
     
     def serialize_name(self):
@@ -96,18 +98,18 @@ class Trip(db.Model):
             "ending_date": str(self.ending_date),
             "budget": self.budget,
             "notes": self.notes,
-            "image_url": self.image_url # 📸 Incluido en serialización
+            "image_url": self.image_url 
         }
     
     def serialize_common_trips(self):
         return {
             "id": self.id,
             "title": self.title,
-            "destination": self.destination, # Añadido para ayudar con imágenes genéricas si hace falta
+            "destination": self.destination, 
             "state": self.state.value,
             "starting_date": str(self.starting_date),
             "ending_date": str(self.ending_date),
-            "image_url": self.image_url # 📸 Incluido en serialización reducida
+            "image_url": self.image_url 
         }
 
 
@@ -261,4 +263,3 @@ class Message(db.Model):
             "chat_id": self.chat_id,
             "user_id": self.user_id
         }
-        

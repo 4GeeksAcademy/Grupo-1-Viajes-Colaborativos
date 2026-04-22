@@ -4,11 +4,13 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 import os
 import string
 import random
+from datetime import timedelta
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import (
     create_access_token,
     get_jwt_identity,
-    jwt_required
+    jwt_required,
+    decode_token
 )
 
 # --- 🚀 NUEVAS IMPORTACIONES PARA GOOGLE Y EMAILS ---
@@ -54,6 +56,11 @@ def get_current_user():
         raise APIException("Authenticated user was not found", status_code=404)
 
     return user
+
+# 🛡️ HELPER: BLOQUEA A USUARIOS NO VERIFICADOS
+def ensure_verified(user):
+    if not getattr(user, 'is_verified', False):
+        raise APIException("Debes verificar tu correo electrónico para realizar esta acción.", status_code=403)
 
 # Funcion que valida las credenciales al registrarse
 def validate_credentials(payload, require_name=False):
@@ -242,6 +249,7 @@ def google_login():
         if not user:
             user = User(email=email, name=name)
             user.set_password("google_oauth_random_password_xyz123")
+            user.is_verified = True # 🛡️ Los correos de Google ya están verificados
             db.session.add(user)
             db.session.commit()
             
@@ -272,21 +280,92 @@ def sign_up():
 
     new_user = User(
         email=email,
-        name=name
+        name=name,
+        is_verified=False # 🛡️ Empieza sin verificar
     )
     new_user.set_password(password)
 
     db.session.add(new_user)
     db.session.commit()
 
-    # 📧 NOTIFICACIÓN: Registro Normal
+    # 🛡️ Generamos enlace de verificación (Caduca en 1 día)
+    verify_token = create_access_token(identity=str(new_user.id), expires_delta=timedelta(days=1))
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    verify_url = f"{frontend_url}/verify?token={verify_token}"
+
+    # 📧 NOTIFICACIÓN: Registro Normal con enlace
     send_email_notification(
-        "¡Bienvenido a Expedition!", 
+        "Verifica tu cuenta - Expedition", 
         [email], 
-        f"<h1>Hola {name}</h1><p>Tu cuenta ha sido creada exitosamente. ¡Prepárate para explorar el mundo!</p>"
+        f"""
+        <div style="font-family: sans-serif; color: #1E3A5F;">
+            <h1>¡Bienvenido a Expedition, {name}!</h1>
+            <p>Tu cuenta ha sido creada exitosamente. Para poder crear viajes y gestionar gastos, necesitamos verificar tu correo.</p>
+            <br>
+            <a href="{verify_url}" style="background-color: #2EC4B6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                Verificar mi cuenta
+            </a>
+            <br><br>
+            <p>Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
+            <p style="font-size: 0.8rem; color: #64748b;">{verify_url}</p>
+        </div>
+        """
     )
 
-    return build_auth_response(new_user, 201, "Usuario creado correctamente")
+    return build_auth_response(new_user, 201, "Usuario creado. Revisa tu correo para verificar tu cuenta.")
+
+
+# 🛡️ NUEVO: Endpoint para procesar la verificación
+@api.route("/verify-email", methods=["POST"])
+def verify_email():
+    data = get_json_payload()
+    token = data.get("token")
+
+    if not token:
+        raise APIException("Falta el token de verificación", status_code=400)
+
+    try:
+        decoded = decode_token(token)
+        user_id = decoded["sub"]
+        
+        user = db.session.get(User, int(user_id))
+        if not user:
+            raise APIException("Usuario no encontrado", status_code=404)
+
+        user.is_verified = True
+        db.session.commit()
+
+        return jsonify({"message": "¡Cuenta verificada con éxito! Ya puedes usar todas las funciones."}), 200
+    except Exception as e:
+        raise APIException("El enlace de verificación es inválido o ha expirado.", status_code=400)
+
+
+# 🛡️ NUEVO: Endpoint para reenviar el correo de verificación
+@api.route("/resend-verification", methods=["POST"])
+@jwt_required()
+def resend_verification():
+    user = get_current_user()
+
+    if user.is_verified:
+        raise APIException("Tu cuenta ya está verificada.", status_code=400)
+
+    verify_token = create_access_token(identity=str(user.id), expires_delta=timedelta(days=1))
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    verify_url = f"{frontend_url}/verify?token={verify_token}"
+
+    send_email_notification(
+        "Verifica tu cuenta - Expedition", 
+        [user.email], 
+        f"""
+        <div style="font-family: sans-serif; color: #1E3A5F;">
+            <h2>Verificación de correo</h2>
+            <p>Haz clic en el botón de abajo para verificar tu cuenta de Expedition.</p>
+            <a href="{verify_url}" style="background-color: #2EC4B6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Verificar mi cuenta</a>
+        </div>
+        """
+    )
+
+    return jsonify({"message": "Correo de verificación reenviado."}), 200
 
 
 # 🔐 Endpoint que devuelve todos los viajes del usuario logueado con filtro opcional 
@@ -333,6 +412,8 @@ def me():
 def new_trip():
 
     user = get_current_user()
+    ensure_verified(user) # 🛡️ BLOQUEO
+
     data = get_json_payload()
 
     payload_users = data.get("users", [])
@@ -426,6 +507,7 @@ def trip_detail(trip_id):
 @jwt_required()
 def add_traveler(trip_id):
     user = get_current_user()
+    ensure_verified(user) # 🛡️ BLOQUEO
     
     # Verificamos que quien invita ya sea parte del viaje
     validate_user_trip(user, trip_id)
@@ -474,6 +556,7 @@ def add_traveler(trip_id):
 def new_activity(trip_id):
 
     user = get_current_user()
+    ensure_verified(user) # 🛡️ BLOQUEO
     data = get_json_payload()
 
     validate_user_trip(user, trip_id)
@@ -504,6 +587,7 @@ def new_activity(trip_id):
 @jwt_required()
 def delete_activity(activity_id):
     user = get_current_user()
+    ensure_verified(user) # 🛡️ BLOQUEO
 
     # Buscamos la actividad por su ID
     activity = db.session.get(Itinerary, activity_id)
@@ -537,6 +621,7 @@ def delete_activity(activity_id):
 @jwt_required()
 def update_activity(activity_id):
     user = get_current_user()
+    ensure_verified(user) # 🛡️ BLOQUEO
     data = get_json_payload()
 
     # Buscamos la actividad en la base de datos
@@ -569,6 +654,7 @@ def update_activity(activity_id):
 def new_expense(trip_id):
 
     user = get_current_user()
+    ensure_verified(user) # 🛡️ BLOQUEO
     data = get_json_payload()
 
     validate_user_trip(user, trip_id)
@@ -645,6 +731,7 @@ def all_activity(trip_id):
 @jwt_required()
 def new_message(trip_id):
     user = get_current_user()
+    ensure_verified(user) # 🛡️ BLOQUEO
     validate_user_trip(user, trip_id)
     
     data = get_json_payload()
@@ -707,6 +794,7 @@ def all_expense(trip_id):
 @jwt_required()
 def update_trip_image(trip_id):
     user = get_current_user()
+    ensure_verified(user) # 🛡️ BLOQUEO
     
     # Verificamos que el usuario pertenezca a este viaje
     validate_user_trip(user, trip_id)
@@ -798,6 +886,7 @@ def delete_account():
 @jwt_required()
 def delete_expense(expense_id):
     user = get_current_user()
+    ensure_verified(user) # 🛡️ BLOQUEO
 
     # Buscamos el gasto por su ID
     expense = db.session.get(Expense, expense_id)
@@ -833,11 +922,12 @@ def delete_expense(expense_id):
     }), 200
 
 
-# 🔐 Endpoint para editar la información general del viaje
+# 🔐 RESTAURADO: Endpoint para editar la información general del viaje
 @api.route("/trip/<int:trip_id>", methods=["PUT"])
 @jwt_required()
 def update_trip(trip_id):
     user = get_current_user()
+    ensure_verified(user) # 🛡️ BLOQUEO
     validate_user_trip(user, trip_id)
     data = get_json_payload()
 
