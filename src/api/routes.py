@@ -898,34 +898,6 @@ def leave_trip(trip_id):
     return jsonify({"message": "Has abandonado el viaje correctamente"}), 200
 
 
-# 🔐 Endpoint que añade un nuevo viajero al viaje (Antiguo, manteniéndolo por si acaso)
-@api.route("/add-travelers/<int:trip_id>", methods=["POST"])
-@jwt_required()
-def add_travelers(trip_id):
-
-    user = get_current_user()
-    data = get_json_payload()
-
-    validate_user_trip(user, trip_id)
-
-    payload_users = data.get("users", [])
-    users = User.query.filter(User.email.in_(payload_users)).all()
-    travelers_ids = [u.id for u in users]
-
-    for traveler_id in travelers_ids:
-        traveler = Traveler(
-            user_id=traveler_id,
-            trip_id=trip_id
-        )
-
-        db.session.add(traveler)
-
-    db.session.commit()    
-
-    return jsonify({
-        "message": "Viajero/s añadidos correctamente"
-    }), 200
-
 # 🔐 Endpoint para recuperar contraseña olvidada
 @api.route("/forgot-password", methods=["POST"])
 def forgot_password():
