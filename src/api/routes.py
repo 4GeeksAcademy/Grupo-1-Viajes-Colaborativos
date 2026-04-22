@@ -1062,7 +1062,7 @@ def add_document(trip_id):
     upload_result = cloudinary.uploader.upload(file, folder="document")
 
     document = Document(
-        title = data.get(str("title")),
+        title = str(data.get("title")),
         url = upload_result["secure_url"],
         trip_id = trip_id
     )
@@ -1071,3 +1071,26 @@ def add_document(trip_id):
     db.session.commit()
 
     return jsonify({"message": "Se ha subido un nuevo documento con exito"}), 200
+
+
+# 🔐 Endpoint para modificar un documento
+@api.route("/update-document/<int:document_id>", methods=["PUT"])
+@jwt_required()
+def update_document(document_id):
+
+    user = get_current_user()
+    data = get_json_payload()
+
+    document = db.session.get(Document, document_id)
+    if not document:
+        raise APIException("Documento no encontrado", status_code=404)
+    
+    trip = db.session.get(Trip, document.trip_id)
+
+    validate_user_trip(user, trip.id)
+
+    document.title = str(data.get("title").strip())
+
+    db.session.commit()
+
+    return jsonify({"message": "Se ha modificado el documento"}), 200
