@@ -828,6 +828,7 @@ def delete_expense(expense_id):
 
     return jsonify({
         "message": "Gasto eliminada correctamente"
+<<<<<<< feature/gestionar-viaje
     }), 200
 
 
@@ -895,3 +896,6 @@ def forgot_password():
     )
 
     return jsonify({"message": "Te hemos enviado un correo con tu nueva contraseña temporal"}), 200
+=======
+    }), 200
+>>>>>>> develop
