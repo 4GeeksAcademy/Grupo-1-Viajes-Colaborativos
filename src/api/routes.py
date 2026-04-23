@@ -1354,17 +1354,7 @@ def update_expense(expense_id):
             
         for debt in debts:
             if debt.amount > 0:
-                db.session.delete(debt)
-
-        for debtor_id in debtors_ids:
-            new_debt = Debt(
-                amount = debtors_amount,
-                debtor_id = debtor_id, 
-                creditor_id = payer_id_int, 
-                expense_id = expense_id
-            )
-            db.session.add(debt)
-
+                debt.amount = debtors_amount
 
     expense.amount = amount
     expense.description = description
