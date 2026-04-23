@@ -16,6 +16,9 @@ export const TripDetails = () => {
     const [tripItinerary, setTripItinerary] = useState([]);
     const [expensesList, setExpensesList] = useState([]);
     
+    // 📄 ESTADO PARA LOS DOCUMENTOS
+    const [documentsList, setDocumentsList] = useState([]);
+    
     // 📸 ESTADOS PARA LA EDICIÓN DE IMAGEN
     const [isEditingImage, setIsEditingImage] = useState(false);
     const [newImageUrl, setNewImageUrl] = useState("");
@@ -28,16 +31,21 @@ export const TripDetails = () => {
     const [showAddTravelerModal, setShowAddTravelerModal] = useState(false);
     const [showAddDocModal, setShowAddDocModal] = useState(false);
     
-    // ⚙️ NUEVOS ESTADOS PARA GESTIONAR VIAJE
+    // ⚙️ ESTADOS PARA GESTIONAR VIAJE
     const [showEditTripModal, setShowEditTripModal] = useState(false);
     const [isUpdatingTrip, setIsUpdatingTrip] = useState(false);
     const [editTripData, setEditTripData] = useState({
         title: "", destination: "", budget: "", starting_date: "", ending_date: "", state: "PLANNING", notes: ""
     });
 
-    // 🧑‍🤝‍🧑 NUEVOS ESTADOS PARA INVITAR VIAJERO
+    // 🧑‍🤝‍🧑 ESTADOS PARA INVITAR VIAJERO
     const [inviteEmail, setInviteEmail] = useState("");
     const [isInviting, setIsInviting] = useState(false);
+
+    // 📄 ESTADOS PARA SUBIR DOCUMENTOS
+    const [docTitle, setDocTitle] = useState("");
+    const [docFile, setDocFile] = useState(null);
+    const [isUploadingDoc, setIsUploadingDoc] = useState(false);
 
     const stateTranslations = {
         "PLANNING": { text: "Planificando", color: "#3498db" },
@@ -66,8 +74,12 @@ export const TripDetails = () => {
                 dispatch({ type: "load_trip_details", payload: data });
                 setTripItinerary(data.itinerary || []);
                 setExpensesList(data.expense || []);
+                setDocumentsList(data.document || []);
             } else {
-                if (response.status === 401) navigate("/login");
+                if (response.status === 401) {
+                    localStorage.removeItem("token");
+                    navigate("/login");
+                }
             }
         } catch (error) {
             console.error("Error de conexión con el backend:", error);
@@ -77,6 +89,18 @@ export const TripDetails = () => {
     useEffect(() => {
         if (id) fetchTripDetails();
     }, [id, navigate, dispatch]);
+
+    // 📸 MANEJADOR PARA CONVERTIR FOTO DE PORTADA A BASE64
+    const handleHeroFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = () => {
+                setNewImageUrl(reader.result); 
+            };
+        }
+    };
 
     // 📸 FUNCIÓN PARA ACTUALIZAR LA IMAGEN
     const handleImageUpdate = async () => {
@@ -98,7 +122,8 @@ export const TripDetails = () => {
                 setNewImageUrl("");
                 fetchTripDetails(); 
             } else {
-                alert("Hubo un error al actualizar la imagen.");
+                const errorData = await response.json();
+                alert(`Error al actualizar imagen: ${errorData.message}`);
             }
         } catch (error) {
             console.error("Error:", error);
@@ -211,6 +236,81 @@ export const TripDetails = () => {
         }
     };
 
+    // 📄 MANEJADOR PARA CONVERTIR ARCHIVO A BASE64 (DOCUMENTOS)
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = () => {
+                setDocFile(reader.result); 
+            };
+        }
+    };
+
+    // 📄 FUNCIÓN PARA ENVIAR EL DOCUMENTO AL BACKEND
+    const handleUploadDocument = async (e) => {
+        e.preventDefault();
+        if (!docTitle.trim() || !docFile) {
+            alert("Por favor, ponle un título y selecciona un archivo.");
+            return;
+        }
+
+        setIsUploadingDoc(true);
+        const token = localStorage.getItem("token");
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/add-document/${id}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    title: docTitle,
+                    document: docFile 
+                })
+            });
+
+            if (response.ok) {
+                alert("¡Documento subido correctamente a la nube!");
+                setShowAddDocModal(false);
+                setDocTitle("");
+                setDocFile(null);
+                fetchTripDetails(); 
+            } else {
+                const errorData = await response.json();
+                alert(`Error al subir: ${errorData.message}`);
+            }
+        } catch (error) {
+            console.error("Error subiendo documento:", error);
+            alert("Hubo un error de conexión.");
+        } finally {
+            setIsUploadingDoc(false);
+        }
+    };
+
+    // 🗑️ FUNCIÓN PARA ELIMINAR DOCUMENTO
+    const handleDeleteDocument = async (docId) => {
+        if (!window.confirm("¿Estás seguro de que quieres eliminar este documento? Se borrará para todos.")) return;
+
+        const token = localStorage.getItem("token");
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/delete-document/${docId}`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                fetchTripDetails(); 
+            } else {
+                alert("Error al eliminar el documento.");
+            }
+        } catch (error) {
+            console.error("Error al borrar documento:", error);
+        }
+    };
+
     if (!store.currentTrip) {
         return (
             <div className="trip-details-wrapper" style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: "100px" }}>
@@ -282,25 +382,21 @@ export const TripDetails = () => {
                         {currentState.text}
                     </span>
 
-                    {/* --- NUEVO LAYOUT TÍTULO + MENÚ MÓVIL --- */}
                     <div className="hero-title-row">
                         <div className="hero-text-area">
                             <h1>{trip.title}</h1>
                             <p><i className="fa-regular fa-calendar"></i> {formattedDates}</p>
                         </div>
 
-                        {/* MENÚ DESPLEGABLE (Solo visible en móvil) */}
                         <div className="mobile-menu-container">
-                            {!isEditingImage && (
-                                <button 
-                                    className="btn-mobile-toggle" 
-                                    onClick={() => setShowMobileMenu(!showMobileMenu)}
-                                >
-                                    <i className="fa-solid fa-ellipsis-vertical"></i>
-                                </button>
-                            )}
+                            <button 
+                                className="btn-mobile-toggle" 
+                                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                            >
+                                <i className="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
 
-                            {showMobileMenu && !isEditingImage && (
+                            {showMobileMenu && (
                                 <div className="mobile-dropdown-menu">
                                     <button onClick={() => { setShowMobileMenu(false); openEditModal(); }}>
                                         <i className="fa-solid fa-gear"></i> Gestionar Viaje
@@ -313,40 +409,16 @@ export const TripDetails = () => {
                         </div>
                     </div>
 
-                    {/* --- BOTONES DE ACCIÓN (ESCRITORIO / INPUT DE FOTO) --- */}
-                    <div className={`hero-action-buttons ${isEditingImage ? 'editing-active' : ''}`}>
-                        {/* BOTÓN DE GESTIONAR VIAJE (Se oculta en móvil vía CSS) */}
-                        {!isEditingImage && (
-                            <button onClick={openEditModal} className="btn-hero-action desktop-only-btn">
-                                <i className="fa-solid fa-gear"></i> Gestionar Viaje
-                            </button>
-                        )}
+                    {/* BOTONES DE ESCRITORIO */}
+                    <div className="hero-action-buttons desktop-only-btn">
+                        <button onClick={openEditModal} className="btn-hero-action">
+                            <i className="fa-solid fa-gear"></i> Gestionar Viaje
+                        </button>
 
-                        {/* BOTÓN / INPUT DE CAMBIAR FOTO */}
-                        {!isEditingImage ? (
-                            <button onClick={() => { setIsEditingImage(true); setNewImageUrl(trip.image_url || ""); }} className="btn-hero-action desktop-only-btn">
-                                <i className="fa-solid fa-camera"></i> Cambiar Foto
-                            </button>
-                        ) : (
-                            <div className="edit-image-container">
-                                <input 
-                                    type="url" 
-                                    placeholder="Pega la nueva URL..." 
-                                    value={newImageUrl}
-                                    onChange={(e) => setNewImageUrl(e.target.value)}
-                                    className="edit-image-input"
-                                />
-                                <button onClick={handleImageUpdate} disabled={isUpdatingImage} className="btn-hero-save">
-                                    {isUpdatingImage ? "..." : <i className="fa-solid fa-check"></i>}
-                                </button>
-                                <button onClick={() => setIsEditingImage(false)} className="btn-hero-cancel">
-                                    <i className="fa-solid fa-xmark"></i>
-                                </button>
-                            </div>
-                        )}
+                        <button onClick={() => { setIsEditingImage(true); setNewImageUrl(trip.image_url || ""); }} className="btn-hero-action">
+                            <i className="fa-solid fa-camera"></i> Cambiar Foto
+                        </button>
                     </div>
-                    {/* ----------------------------------------------- */}
-
                 </div>
             </div>
 
@@ -376,18 +448,48 @@ export const TripDetails = () => {
                                 />
                             )}
 
+                            {/* 📄 PESTAÑA DE DOCUMENTOS CON LISTA REAL */}
                             {activeTab === "documentos" && (
-                                <div className="empty-state" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                    <i className="fa-regular fa-folder-open"></i>
-                                    <h3>Aún no hay documentos</h3>
-                                    <p>Sube aquí tus reservas de hotel o vuelos.</p>
-                                    <button 
-                                        className="btn-action" 
-                                        style={{ marginTop: "15px", width: "auto", padding: "10px 20px" }}
-                                        onClick={() => setShowAddDocModal(true)}
-                                    >
-                                        <i className="fa-solid fa-upload"></i> Subir Documento
-                                    </button>
+                                <div className="documents-tab-content" style={{ padding: "20px 0" }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                                        <h3 style={{ margin: 0, color: "var(--brand-navy)" }}>Archivos del Viaje</h3>
+                                        <button 
+                                            className="btn-action" 
+                                            style={{ width: "auto", padding: "8px 15px", fontSize: "0.9rem" }}
+                                            onClick={() => setShowAddDocModal(true)}
+                                        >
+                                            <i className="fa-solid fa-upload"></i> Subir Documento
+                                        </button>
+                                    </div>
+
+                                    {documentsList.length === 0 ? (
+                                        <div className="empty-state" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: "40px", background: "#f8fafc", borderRadius: "12px", border: "1px dashed #cbd5e1" }}>
+                                            <i className="fa-regular fa-folder-open" style={{ fontSize: "3rem", color: "#94a3b8", marginBottom: "15px" }}></i>
+                                            <h3 style={{ color: "#334155" }}>Aún no hay documentos</h3>
+                                            <p style={{ color: "#64748b" }}>Sube aquí tus reservas de hotel, vuelos o tickets.</p>
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: "grid", gap: "15px", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
+                                            {documentsList.map((doc) => (
+                                                <div key={doc.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "white", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "15px", boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
+                                                    <div style={{ display: "flex", alignItems: "center", gap: "12px", overflow: "hidden" }}>
+                                                        <i className="fa-solid fa-file-pdf" style={{ fontSize: "1.8rem", color: "#e74c3c" }}></i>
+                                                        <span style={{ fontWeight: "bold", color: "#334155", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "150px" }} title={doc.title}>
+                                                            {doc.title}
+                                                        </span>
+                                                    </div>
+                                                    <div style={{ display: "flex", gap: "8px" }}>
+                                                        <a href={doc.url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-teal)", background: "#f0fdfa", padding: "8px 12px", borderRadius: "6px", textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center" }} title="Ver/Descargar">
+                                                            <i className="fa-solid fa-eye"></i>
+                                                        </a>
+                                                        <button onClick={() => handleDeleteDocument(doc.id)} style={{ color: "#e74c3c", background: "#fff1f2", border: "none", padding: "8px 12px", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }} title="Eliminar">
+                                                            <i className="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -447,6 +549,60 @@ export const TripDetails = () => {
             </div>
 
             {/* --- MODALES --- */}
+
+            {/* MODAL CAMBIAR FOTO DE PORTADA (NUEVO) */}
+            {isEditingImage && (
+                <div className="modal-overlay" onClick={() => setIsEditingImage(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ padding: '30px', maxWidth: '400px', width: '90%' }}>
+                        <h3 style={{ marginBottom: "15px", color: "#1e293b", textAlign: "center", display: "flex", justifyContent: "center", alignItems: "center", gap: "10px" }}>
+                            <i className="fa-solid fa-image" style={{ color: "var(--brand-teal)" }}></i> 
+                            Foto de portada
+                        </h3>
+                        <p style={{ color: "#64748b", fontSize: "0.9rem", textAlign: "center", marginBottom: "20px" }}>
+                            Sube una imagen de tu ordenador o pega un enlace de internet.
+                        </p>
+
+                        {newImageUrl && newImageUrl.startsWith("data:image") ? (
+                            <div style={{ padding: "15px", background: "#f0fdfa", border: "1px dashed var(--brand-teal)", borderRadius: "8px", textAlign: "center" }}>
+                                <i className="fa-solid fa-circle-check" style={{ fontSize: "2rem", color: "var(--brand-teal)", marginBottom: "10px" }}></i>
+                                <p style={{ margin: "0", color: "var(--brand-navy)", fontWeight: "bold", fontSize: "0.9rem" }}>¡Imagen lista!</p>
+                                <button type="button" onClick={() => setNewImageUrl(trip.image_url || "")} style={{ marginTop: "10px", background: "transparent", border: "none", color: "#e74c3c", cursor: "pointer", textDecoration: "underline", fontSize: "0.8rem" }}>Elegir otra distinta</button>
+                            </div>
+                        ) : (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                                <div>
+                                    <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", color: "#1e293b", fontWeight: "bold" }}>Subir archivo</label>
+                                    <input 
+                                        type="file" 
+                                        accept="image/png, image/jpeg, image/jpg"
+                                        onChange={handleHeroFileChange}
+                                        style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px dashed #94a3b8", background: "#f8fafc", cursor: "pointer" }}
+                                    />
+                                </div>
+                                <div style={{ textAlign: "center", color: "#cbd5e1", fontSize: "0.8rem", fontWeight: "bold" }}>— O PEGA UNA URL —</div>
+                                <div>
+                                    <input 
+                                        type="url" 
+                                        placeholder="https://ejemplo.com/foto.jpg" 
+                                        value={newImageUrl} 
+                                        onChange={(e) => setNewImageUrl(e.target.value)}
+                                        style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #cbd5e1" }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+                            <button onClick={() => { setIsEditingImage(false); setNewImageUrl(""); }} style={{ flex: 1, padding: "12px", borderRadius: "8px", border: "none", background: "#e2e8f0", color: "#475569", cursor: "pointer", fontWeight: "bold" }}>
+                                Cancelar
+                            </button>
+                            <button onClick={handleImageUpdate} disabled={isUpdatingImage || !newImageUrl} style={{ flex: 1, padding: "12px", borderRadius: "8px", border: "none", background: "var(--brand-teal)", color: "white", cursor: (isUpdatingImage || !newImageUrl) ? "not-allowed" : "pointer", fontWeight: "bold" }}>
+                                {isUpdatingImage ? "Guardando..." : "Guardar foto"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* MODAL INVITAR VIAJERO */}
             {showAddTravelerModal && (
@@ -565,14 +721,68 @@ export const TripDetails = () => {
                 </div>
             )}
 
-            {/* MODAL DOCUMENTOS */}
+            {/* 📄 MODAL SUBIR DOCUMENTOS */}
             {showAddDocModal && (
                 <div className="modal-overlay" onClick={() => setShowAddDocModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ textAlign: 'center', padding: '30px' }}>
-                        <h2><i className="fa-solid fa-file-pdf" style={{color: "#e74c3c", fontSize: "2rem", marginBottom: "15px"}}></i></h2>
-                        <h3>Gestor de Archivos</h3>
-                        <p style={{color: "#64748b", margin: "15px 0"}}>La subida de billetes y reservas (PDF/Imágenes) estará disponible en la próxima actualización.</p>
-                        <button className="btn-modal-confirm" onClick={() => setShowAddDocModal(false)}>Entendido</button>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ padding: '30px', maxWidth: '400px', width: '90%' }}>
+                        <h3 style={{ marginBottom: "20px", color: "#1e293b", textAlign: "center", display: "flex", justifyContent: "center", alignItems: "center", gap: "10px" }}>
+                            <i className="fa-solid fa-cloud-arrow-up" style={{ color: "var(--brand-teal)" }}></i> 
+                            Subir Documento
+                        </h3>
+                        <p style={{ color: "#64748b", fontSize: "0.9rem", textAlign: "center", marginBottom: "20px" }}>
+                            Sube una imagen o PDF con tus reservas o billetes para que todos puedan verlo.
+                        </p>
+
+                        <form onSubmit={handleUploadDocument} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                            <div>
+                                <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", color: "#1e293b", fontWeight: "bold" }}>Título del documento</label>
+                                <input 
+                                    type="text" 
+                                    value={docTitle} 
+                                    onChange={(e) => setDocTitle(e.target.value)} 
+                                    placeholder="Ej: Billetes de avión ida" 
+                                    required 
+                                    style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #cbd5e1" }} 
+                                />
+                            </div>
+
+                            <div>
+                                <label style={{ display: "block", marginBottom: "5px", fontSize: "0.9rem", color: "#1e293b", fontWeight: "bold" }}>Archivo (PDF o Imagen)</label>
+                                
+                                {docFile ? (
+                                    <div style={{ padding: "15px", background: "#f0fdfa", border: "1px dashed var(--brand-teal)", borderRadius: "8px", textAlign: "center" }}>
+                                        <i className="fa-solid fa-file-circle-check" style={{ fontSize: "2rem", color: "var(--brand-teal)", marginBottom: "10px" }}></i>
+                                        <p style={{ margin: "0", color: "var(--brand-navy)", fontWeight: "bold", fontSize: "0.9rem" }}>¡Documento cargado!</p>
+                                        <button type="button" onClick={() => setDocFile(null)} style={{ marginTop: "10px", background: "transparent", border: "none", color: "#e74c3c", cursor: "pointer", textDecoration: "underline", fontSize: "0.8rem" }}>Elegir otro distinto</button>
+                                    </div>
+                                ) : (
+                                    <input 
+                                        type="file" 
+                                        accept=".pdf, image/png, image/jpeg, image/jpg"
+                                        onChange={handleFileChange} 
+                                        required 
+                                        style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px dashed #94a3b8", background: "#f8fafc", cursor: "pointer" }} 
+                                    />
+                                )}
+                            </div>
+
+                            <div style={{ display: "flex", gap: "10px", marginTop: "15px" }}>
+                                <button 
+                                    type="button" 
+                                    onClick={() => { setShowAddDocModal(false); setDocFile(null); setDocTitle(""); }} 
+                                    style={{ flex: 1, padding: "12px", borderRadius: "8px", border: "none", background: "#e2e8f0", color: "#475569", cursor: "pointer", fontWeight: "bold" }}
+                                >
+                                    Cancelar
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    disabled={isUploadingDoc || !docFile} 
+                                    style={{ flex: 1, padding: "12px", borderRadius: "8px", border: "none", background: "var(--brand-teal)", color: "white", cursor: (isUploadingDoc || !docFile) ? "not-allowed" : "pointer", fontWeight: "bold" }}
+                                >
+                                    {isUploadingDoc ? "Subiendo..." : "Subir archivo"}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

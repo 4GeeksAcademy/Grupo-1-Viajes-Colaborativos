@@ -1,8 +1,8 @@
-"""empty message
+"""base de datos unificada equipo
 
-Revision ID: 9a3ea13e3aa5
+Revision ID: c278a7cd4022
 Revises: 
-Create Date: 2026-04-22 19:47:24.084938
+Create Date: 2026-04-23 14:52:48.121645
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '9a3ea13e3aa5'
+revision = 'c278a7cd4022'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -78,6 +78,15 @@ def upgrade():
     sa.ForeignKeyConstraint(['trip_id'], ['trip.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('notification',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('message', sa.String(length=250), nullable=False),
+    sa.Column('is_read', sa.Boolean(), nullable=False),
+    sa.Column('date_time', sa.DateTime(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('traveler',
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('trip_id', sa.Integer(), nullable=False),
@@ -114,6 +123,7 @@ def downgrade():
     op.drop_table('message')
     op.drop_table('debt')
     op.drop_table('traveler')
+    op.drop_table('notification')
     op.drop_table('itinerary')
     op.drop_table('expense')
     op.drop_table('document')
