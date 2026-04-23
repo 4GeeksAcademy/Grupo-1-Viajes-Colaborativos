@@ -9,7 +9,8 @@ export const Profile = () => {
     const [user, setUser] = useState({
         firstName: "",
         lastName: "",
-        email: ""
+        email: "",
+        is_verified: false // 🛡️ ESTADO NUEVO
     });
 
     const [notifications, setNotifications] = useState({
@@ -23,6 +24,7 @@ export const Profile = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [passwordData, setPasswordData] = useState({ current: "", new: "", confirm: "" });
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isResending, setIsResending] = useState(false);
 
     // 1. OBTENER DATOS DEL USUARIO AL ENTRAR
     useEffect(() => {
@@ -43,7 +45,8 @@ export const Profile = () => {
                     setUser({
                         firstName: data.user.name || "",
                         lastName: data.user.last_name || "",
-                        email: data.user.email || ""
+                        email: data.user.email || "",
+                        is_verified: data.user.is_verified || false // 🛡️ Cargamos el estado real
                     });
                 } else {
                     if (response.status === 401) navigate("/login");
@@ -96,6 +99,28 @@ export const Profile = () => {
         } catch (error) {
             console.error("Error:", error);
             alert("Error de conexión con el servidor.");
+        }
+    };
+
+    // 🛡️ REENVIAR CORREO DE VERIFICACIÓN
+    const handleResendVerification = async () => {
+        setIsResending(true);
+        const token = localStorage.getItem("token");
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/resend-verification`, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert("✉️ Correo enviado. Revisa tu bandeja de entrada o spam.");
+            } else {
+                alert(`⚠️ Error: ${data.message}`);
+            }
+        } catch (error) {
+            alert("Error de conexión.");
+        } finally {
+            setIsResending(false);
         }
     };
 
@@ -193,10 +218,34 @@ export const Profile = () => {
                             </button>
                         </div>
                         <div className="profile-title">
-                            <h2>{user.firstName} {user.lastName}</h2>
+                            <h2>
+                                {user.firstName} {user.lastName}
+                                {/* 🛡️ INSIGNIA DE VERIFICACIÓN */}
+                                {user.is_verified ? (
+                                    <i className="fa-solid fa-circle-check" title="Cuenta verificada" style={{ color: "#2ecc71", marginLeft: "10px", fontSize: "1.2rem" }}></i>
+                                ) : (
+                                    <i className="fa-solid fa-circle-exclamation" title="Cuenta no verificada" style={{ color: "#e74c3c", marginLeft: "10px", fontSize: "1.2rem" }}></i>
+                                )}
+                            </h2>
                             <p><i className="fa-solid fa-award"></i> Explorador • Premium</p>
                         </div>
                     </div>
+
+                    {/* 🛡️ AVISO PARA VERIFICAR CORREO */}
+                    {!user.is_verified && (
+                        <div style={{ background: "#fff1f2", border: "1px dashed #fda4af", padding: "15px", borderRadius: "8px", marginBottom: "25px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+                            <div style={{ color: "#be123c", fontSize: "0.9rem" }}>
+                                <strong><i className="fa-solid fa-triangle-exclamation"></i> Tu cuenta no está verificada.</strong> No podrás crear viajes ni añadir gastos hasta que la verifiques.
+                            </div>
+                            <button 
+                                onClick={handleResendVerification} 
+                                disabled={isResending}
+                                style={{ background: "#e11d48", color: "white", border: "none", padding: "8px 15px", borderRadius: "6px", cursor: isResending ? "not-allowed" : "pointer", fontWeight: "bold" }}
+                            >
+                                {isResending ? "Enviando..." : "Reenviar enlace"}
+                            </button>
+                        </div>
+                    )}
 
                     <form onSubmit={handleSubmit} className="profile-form">
                         {/* 1. INFORMACIÓN PERSONAL */}

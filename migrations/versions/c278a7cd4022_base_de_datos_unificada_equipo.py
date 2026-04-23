@@ -1,8 +1,8 @@
-"""empty message
+"""base de datos unificada equipo
 
-Revision ID: db5582af4e3f
+Revision ID: c278a7cd4022
 Revises: 
-Create Date: 2026-04-20 18:01:14.315356
+Create Date: 2026-04-23 14:52:48.121645
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'db5582af4e3f'
+revision = 'c278a7cd4022'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -36,6 +36,7 @@ def upgrade():
     sa.Column('last_name', sa.String(length=50), nullable=True),
     sa.Column('email', sa.String(length=120), nullable=False),
     sa.Column('password', sa.String(), nullable=False),
+    sa.Column('is_verified', sa.Boolean(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
@@ -51,6 +52,8 @@ def upgrade():
     sa.Column('title', sa.String(length=50), nullable=False),
     sa.Column('url', sa.String(length=250), nullable=False),
     sa.Column('trip_id', sa.Integer(), nullable=False),
+    sa.Column('public_id', sa.String(length=255), nullable=False),
+    sa.Column('resource_type', sa.String(length=25), nullable=False),
     sa.ForeignKeyConstraint(['trip_id'], ['trip.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -73,6 +76,15 @@ def upgrade():
     sa.Column('notes', sa.String(length=150), nullable=True),
     sa.Column('trip_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['trip_id'], ['trip.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('notification',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('message', sa.String(length=250), nullable=False),
+    sa.Column('is_read', sa.Boolean(), nullable=False),
+    sa.Column('date_time', sa.DateTime(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('traveler',
@@ -111,6 +123,7 @@ def downgrade():
     op.drop_table('message')
     op.drop_table('debt')
     op.drop_table('traveler')
+    op.drop_table('notification')
     op.drop_table('itinerary')
     op.drop_table('expense')
     op.drop_table('document')

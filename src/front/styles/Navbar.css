@@ -1,10 +1,10 @@
 /* =========================================
    NAVBAR EXPEDITION (Fondo 100% Transparente)
    ========================================= */
-.navbar-expedition {
+   .navbar-expedition {
     width: 100%;
     height: 90px; 
-    background-color: transparent; /* 100% invisible para no cortar la foto */
+    background-color: transparent; 
     position: absolute;
     top: 0;
     z-index: 9999; 
@@ -34,12 +34,12 @@
 }
 
 .logo-img {
-    height: 200px; /* Tu medida original intacta */
+    height: 200px; /* Tu medida original intacta en PC */
     width: auto;
     max-width: 250px; 
     display: block;
     object-fit: contain;
-    filter: drop-shadow(0 4px 10px white); /* fondo para las imagenes*/
+    filter: drop-shadow(0 4px 10px white); 
 }
 
 .nav-logo {
@@ -47,7 +47,7 @@
 }
 
 .menu-btn {
-    background: rgba(255, 255, 255, 0.9); /* Fondito para que se vea en móvil */
+    background: rgba(255, 255, 255, 0.9);
     border: none;
     font-size: 1.3rem;
     color: var(--brand-navy, #1E3A5F); 
@@ -67,7 +67,6 @@
     left: 50%;
     transform: translateX(-50%); 
     
-    /* 🎨 EL FIX: Una cápsula blanca elegante que solo abraza a las letras */
     background: rgba(255, 255, 255, 0.95);
     padding: 10px 30px;
     border-radius: 40px;
@@ -95,12 +94,12 @@
 }
 
 /* =========================================
-   DERECHA (Logout y Perfil)
+   DERECHA (Logout, Notificaciones y Perfil)
    ========================================= */
 .nav-right {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
 }
 
 .logout-text {
@@ -110,7 +109,6 @@
     cursor: pointer;
     transition: all 0.3s;
     
-    /* 🎨 Le damos su propia cápsula al botón de cerrar sesión */
     background: rgba(255, 255, 255, 0.95);
     padding: 8px 18px;
     border-radius: 30px;
@@ -120,6 +118,56 @@
 .logout-text:hover {
     color: var(--brand-orange, #FF7A59); 
     transform: translateY(-2px);
+}
+
+.notification-icon {
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--brand-navy, #1E3A5F);
+    position: relative;
+    padding: 5px;
+}
+
+.notification-dot {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    background-color: #e74c3c;
+    border-radius: 50%;
+}
+
+.notifications-dropdown {
+    position: absolute;
+    top: 40px;
+    right: -10px;
+    width: 250px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    z-index: 1000;
+    padding: 10px;
+}
+
+.notifications-dropdown h4 {
+    margin: 5px 10px 10px;
+    color: var(--brand-navy, #1E3A5F);
+    font-size: 0.9rem;
+}
+
+.notifications-empty {
+    padding: 15px;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.notifications-empty i {
+    color: var(--brand-teal, #2EC4B6);
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    display: block;
 }
 
 .profile-icon {
@@ -134,6 +182,7 @@
     border: 2px solid var(--brand-teal, #2EC4B6); 
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     transition: all 0.3s;
+    cursor: pointer;
 }
 
 .profile-icon:hover {
@@ -173,6 +222,18 @@
     color: var(--brand-orange, #FF7A59); 
 }
 
+.mobile-logout-btn {
+    padding: 10px 20px;
+    color: #e74c3c;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.mobile-login-btn {
+    color: var(--brand-navy, #1E3A5F) !important;
+    font-weight: bold !important;
+}
+
 /* =========================================
    ADAPTACIÓN RESPONSIVA
    ========================================= */
@@ -190,8 +251,68 @@
     }
 }
 
+/* 📱 FIX PARA PANTALLAS MÓVILES (Menos de 500px) */
+@media (max-width: 500px) {
+    .nav-container {
+        padding: 0 15px; /* Reducimos el padding lateral para ganar espacio */
+    }
+    
+    .nav-left {
+        gap: 10px; /* Acercamos el menú al logo */
+    }
+
+    .logo-img {
+        height: 120px; /* Reducimos la altura del logo masivo */
+        max-width: 140px; 
+    }
+
+    .nav-right {
+        gap: 12px; /* Juntamos la campana y el perfil */
+    }
+
+    .profile-icon {
+        width: 38px; /* Perfil ligeramente más pequeño */
+        height: 38px;
+    }
+}
+
+/* 📱 FIX EXTREMO PARA PANTALLAS MINI (320px como iPhone SE) */
+@media (max-width: 360px) {
+    .nav-container {
+        padding: 0 8px; /* Casi al borde para salvar cada píxel */
+    }
+
+    .nav-left {
+        gap: 5px;
+    }
+
+    .menu-btn {
+        padding: 6px 8px;
+        font-size: 1.1rem;
+    }
+
+    .logo-img {
+        height: 100px;
+        max-width: 115px;
+    }
+
+    .nav-right {
+        gap: 8px;
+    }
+
+    .profile-icon {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+    
+    .notification-icon {
+        font-size: 1.1rem;
+    }
+}
+
 /* =========================================
-   MODO LOGIN (Le quitamos las cápsulas porque ahí el fondo es claro)
+   MODO LOGIN
    ========================================= */
 .navbar-login-mode .nav-center,
 .navbar-login-mode .logout-text {

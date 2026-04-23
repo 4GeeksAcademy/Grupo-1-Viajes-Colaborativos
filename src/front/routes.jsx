@@ -16,6 +16,7 @@ import { TripDetails } from "./pages/TripDetails";
 import { Profile } from "./pages/Profile";
 import { ExploreDestination } from "./pages/ExploreDestination"; // <-- NUEVA IMPORTACIÓN
 import { DestinationDetails } from "./pages/DestinationDetails";
+import { VerifyEmail } from "./pages/VerifyEmail"; // 🛡️ IMPORTACIÓN DE LA NUEVA PÁGINA
 
 
 export const router = createBrowserRouter(
@@ -34,6 +35,9 @@ export const router = createBrowserRouter(
 
             {/* Ruta para el sistema de Autenticación (Login/Registro) */}
             <Route path="/login" element={<AuthPage />} />
+
+            {/* 🛡️ NUEVA RUTA PARA VERIFICAR EL CORREO */}
+            <Route path="/verify" element={<VerifyEmail />} />
 
             {/* Ruta para el sistema de Autenticación (mytrips) */}
             <Route element={<MyTrips />} path="/my-trips" />

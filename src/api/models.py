@@ -34,6 +34,7 @@ class User(db.Model):
     email: Mapped[str] = mapped_column(
         String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Relationships
     travelers = relationship("Traveler", back_populates="users")
@@ -43,6 +44,8 @@ class User(db.Model):
         "Debt", foreign_keys="[Debt.debtor_id]", back_populates="debtors")
     debts_to_receive = relationship(
         "Debt", foreign_keys="[Debt.creditor_id]", back_populates="creditors")
+    # 🔔 Relación con notificaciones
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
 
     def set_password(self, password: str) -> None:
         self.password = generate_password_hash(password)
@@ -55,7 +58,8 @@ class User(db.Model):
             "id": self.id,
             "name": self.name,
             "last_name": self.last_name,
-            "email": self.email
+            "email": self.email,
+            "is_verified": self.is_verified # 🛡️ Lo enviamos al frontend
         }
     
     def serialize_name(self):
@@ -96,18 +100,18 @@ class Trip(db.Model):
             "ending_date": str(self.ending_date),
             "budget": self.budget,
             "notes": self.notes,
-            "image_url": self.image_url # 📸 Incluido en serialización
+            "image_url": self.image_url 
         }
     
     def serialize_common_trips(self):
         return {
             "id": self.id,
             "title": self.title,
-            "destination": self.destination, # Añadido para ayudar con imágenes genéricas si hace falta
+            "destination": self.destination, 
             "state": self.state.value,
             "starting_date": str(self.starting_date),
             "ending_date": str(self.ending_date),
-            "image_url": self.image_url # 📸 Incluido en serialización reducida
+            "image_url": self.image_url 
         }
 
 
@@ -209,6 +213,8 @@ class Document(db.Model):
     url: Mapped[str] = mapped_column(String(250), nullable=False)
     trip_id: Mapped[int] = mapped_column(
         ForeignKey("trip.id", ondelete="CASCADE"))
+    public_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    resource_type: Mapped[str] = mapped_column(String(25), nullable=False)
 
     trips = relationship("Trip", back_populates="documents")
 
@@ -261,4 +267,23 @@ class Message(db.Model):
             "chat_id": self.chat_id,
             "user_id": self.user_id
         }
-        
+
+# 🔔 NUEVO: MODELO DE NOTIFICACIONES IN-APP
+class Notification(db.Model):
+    __tablename__ = 'notification'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    message: Mapped[str] = mapped_column(String(250), nullable=False)
+    is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    date_time: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"))
+
+    user = relationship("User", back_populates="notifications")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "message": self.message,
+            "is_read": self.is_read,
+            "date_time": str(self.date_time),
+            "user_id": self.user_id
+        }
