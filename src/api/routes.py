@@ -975,6 +975,11 @@ def update_password():
 def delete_account():
     user = get_current_user()
     
+    travelers = Traveler.query.filter_by(user_id=user.id).all()
+
+    for traveler in travelers:
+        db.session.delete(traveler)
+
     # Eliminamos al usuario de la base de datos de forma permanente
     db.session.delete(user)
     db.session.commit()
