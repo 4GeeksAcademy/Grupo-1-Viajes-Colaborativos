@@ -975,6 +975,11 @@ def update_password():
 def delete_account():
     user = get_current_user()
     
+    travelers = Traveler.query.filter_by(user_id=user.id).all()
+
+    for traveler in travelers:
+        db.session.delete(traveler)
+
     # Eliminamos al usuario de la base de datos de forma permanente
     db.session.delete(user)
     db.session.commit()
@@ -1198,9 +1203,27 @@ def update_document(document_id):
 
     validate_user_trip(user, trip.id)
 
+    old_document_title = document.title
+
     document.title = str(data.get("title").strip())
 
     db.session.commit()
+
+    # 📧 NUEVO: NOTIFICACIÓN DE DOCUMENTO MODIFICADO
+    trip_emails = get_trip_emails(document.trip_id)
+    trip = db.session.get(Trip, document.trip_id)
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">¡Papeles en regla! 📄</h2>
+    <p>El usuario <strong>{user.name}</strong> acaba de modificar un documento importante de la carpeta compartida del viaje a {trip.destination}.</p>
+    <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2EC4B6;">
+        <strong>Archivo:</strong> {old_document_title} -> {document.title}
+    </div>
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{frontend_url}/trip-details/{trip.id}" style="background-color: #2EC4B6; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Ver documento</a>
+    </div>
+    """
+    send_email_notification(f"Documento modificado en {trip.title}", trip_emails, get_email_template(body))
 
     return jsonify({"message": "Se ha modificado el documento"}), 200
 
@@ -1228,9 +1251,132 @@ def delete_document(document_id):
                 resource_type="raw"
             )
         if file.resource_type == "image": 
-            cloudinary.uploader.destroy(file.public_id)
+            cloudinary.uploader.destroy(file.public_id)  
+
+    # 📧 NUEVO: NOTIFICACIÓN DE DOCUMENTO ELIMINADO
+    trip_emails = get_trip_emails(file.trip_id)
+    trip = db.session.get(Trip, file.trip_id)
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">¡Papeles en regla! 📄</h2>
+    <p>El usuario <strong>{user.name}</strong> acaba de eliminar un documento de la carpeta compartida del viaje a {trip.destination}.</p>
+    <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2EC4B6;">
+        <strong>Archivo:</strong> {file.title}
+    </div>
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{frontend_url}/trip-details/{trip.id}" style="background-color: #2EC4B6; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Ver documento</a>
+    </div>
+    """
+    send_email_notification(f"Documento modificado en {trip.title}", trip_emails, get_email_template(body))
 
     db.session.delete(file)
     db.session.commit()
 
     return jsonify({"message": "Se ha eliminado el documento"}), 200
+
+# 🔐 Endpoint para modificar una deuda
+@api.route("/update-debt/<int:debt_id>", methods=["PUT"])
+@jwt_required()
+def update_debt(debt_id):
+
+    user = get_current_user()
+    ensure_verified(user) # BLOQUEO
+    data = get_json_payload()
+
+    debt = db.session.get(Debt, debt_id)
+    if not debt:
+        raise APIException("Deuda no encontrada", status_code=404)
+
+    expense = db.session.get(Expense, debt.expense_id)
+
+    validate_user_trip(user, expense.trip_id)
+
+    old_debt_amount = debt.amount
+
+    debt.amount = float(data.get["amount", 0.0])
+
+    db.session.commit()
+
+    # 📧 NUEVO: NOTIFICACIÓN DE DEUDA MODIFICADO
+    trip_emails = get_trip_emails(expense.trip_id)
+    trip = db.session.get(Trip, expense.trip_id)
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">¡Papeles en regla! 📄</h2>
+    <p>El usuario <strong>{user.name}</strong> acaba de modificar una deuda importante de la carpeta compartida del viaje a {trip.destination}.</p>
+    <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2EC4B6;">
+        <strong>Gasto:</strong> {expense.description}
+        <strong>Deuda:</strong> {old_debt_amount} -> {debt.amount}
+    </div>
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{frontend_url}/trip-details/{trip.id}" style="background-color: #2EC4B6; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Ver deuda</a>
+    </div>
+    """
+    send_email_notification(f"Documento modificado en {trip.title}", trip_emails, get_email_template(body))
+
+    return jsonify({"message": "Se ha modificado la deuda"}), 200
+
+
+# 🔐 Endpoint para modificar un gasto
+@api.route("/update-expense/<int:expense_id>", methods=["PUT"])
+@jwt_required()
+def update_expense(expense_id):
+
+    user = get_current_user()
+    ensure_verified(user) # BLOQUEO
+    data = get_json_payload()
+
+    expense = db.session.get(Expense, expense_id)
+    if not expense:
+        raise APIException("Gasto no encontrada", status_code=404)
+
+    validate_user_trip(user, expense.trip_id)
+
+    amount = float(data.get["amount"])
+    description = data.get["description"]
+    debtors = data.get["debtors", []]
+
+    debtors_ids = [int(debtor.get("id")) for debtor in debtors]
+
+    payer_id_int = int(expense.payer_id)
+
+    old_expense = expense
+
+    if payer_id_int in debtors_ids:
+        debtors_ids.remove(payer_id_int)        
+
+    if expense.amount != amount:
+        debts = Debt.query.filter_by(expense_id=expense_id).all()
+        if len(debtors_ids) > 0:
+            debtors_amount = float(amount) / len(debtors_ids)
+        else:
+            debtors_amount = float(amount)
+            
+        for debt in debts:
+            if debt.amount > 0:
+                debt.amount = debtors_amount
+
+    expense.amount = amount
+    expense.description = description
+
+    db.session.commit()
+
+    # 📧 NUEVO: NOTIFICACIÓN DE DEUDA MODIFICADO
+    trip_emails = get_trip_emails(expense.trip_id)
+    trip = db.session.get(Trip, expense.trip_id)
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">¡Papeles en regla! 📄</h2>
+    <p>El usuario <strong>{user.name}</strong> acaba de modificar un gasto importante de la carpeta compartida del viaje a {trip.destination}.</p>
+    <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2EC4B6;">
+        <strong>Gasto:</strong> {old_expense.description} -> {expense.description}
+        <strong>cantidad:</strong> {old_expense.amount} -> {expense.amount}
+    </div>
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{frontend_url}/trip-details/{trip.id}" style="background-color: #2EC4B6; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Ver gasto</a>
+    </div>
+    """
+    send_email_notification(f"Documento modificado en {trip.title}", trip_emails, get_email_template(body))
+
+
+    return jsonify({"message": "Se ha modificado el gasto"}), 200
