@@ -1248,7 +1248,7 @@ def delete_document(document_id):
         if file.resource_type == "image": 
             cloudinary.uploader.destroy(file.public_id)  
 
-    # 📧 NUEVO: NOTIFICACIÓN DE DOCUMENTO SUBIDO
+    # 📧 NUEVO: NOTIFICACIÓN DE DOCUMENTO ELIMINADO
     trip_emails = get_trip_emails(file.trip_id)
     trip = db.session.get(Trip, file.trip_id)
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
@@ -1268,3 +1268,45 @@ def delete_document(document_id):
     db.session.commit()
 
     return jsonify({"message": "Se ha eliminado el documento"}), 200
+
+# 🔐 Endpoint para modificar una deuda
+@api.route("/update-debt/<int:debt_id>", methods=["PUT"])
+@jwt_required()
+def update_debt(debt_id):
+
+    user = get_current_user()
+    ensure_verified(user) # BLOQUEO
+    data = get_json_payload()
+
+    debt = db.session.get(Debt, debt_id)
+    if not debt:
+        raise APIException("Deuda no encontrada", status_code=404)
+
+    expense = db.session.get(Expense, debt.expense_id)
+
+    validate_user_trip(user, expense.trip_id)
+
+    old_debt_amount = debt.amount
+
+    debt.amount = float(data.get["amount", 0.0])
+
+    db.session.commit()
+
+    # 📧 NUEVO: NOTIFICACIÓN DE DEUDA MODIFICADO
+    trip_emails = get_trip_emails(expense.trip_id)
+    trip = db.session.get(Trip, expense.trip_id)
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">¡Papeles en regla! 📄</h2>
+    <p>El usuario <strong>{user.name}</strong> acaba de modificar una deuda importante de la carpeta compartida del viaje a {trip.destination}.</p>
+    <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2EC4B6;">
+        <strong>Gasto:</strong> {expense.description}
+        <strong>Deuda:</strong> {old_debt_amount} -> {debt.amount}
+    </div>
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{frontend_url}/trip-details/{trip.id}" style="background-color: #2EC4B6; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Ver deuda</a>
+    </div>
+    """
+    send_email_notification(f"Documento modificado en {trip.title}", trip_emails, get_email_template(body))
+
+    return jsonify({"message": "Se ha modificado la deuda"}), 200
