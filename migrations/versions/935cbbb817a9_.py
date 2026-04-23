@@ -1,8 +1,8 @@
-"""base de datos unificada equipo
+"""empty message
 
-Revision ID: c278a7cd4022
+Revision ID: 935cbbb817a9
 Revises: 
-Create Date: 2026-04-23 14:52:48.121645
+Create Date: 2026-04-23 22:27:03.863049
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c278a7cd4022'
+revision = '935cbbb817a9'
 down_revision = None
 branch_labels = None
 depends_on = None
