@@ -44,6 +44,33 @@ cloudinary.config(
     secure=True
 )
 
+# ==========================================================
+# 🎨 PLANTILLA MAESTRA PARA CORREOS (DISEÑO PREMIUM)
+# ==========================================================
+def get_email_template(body_content):
+    return f"""
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; padding: 40px 20px; color: #334155;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+            
+            <div style="background-color: #1E3A5F; padding: 35px 20px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px; letter-spacing: 2px; text-transform: uppercase;">
+                    🌍 EXPEDITION
+                </h1>
+            </div>
+            
+            <div style="padding: 40px 30px; font-size: 16px; line-height: 1.6;">
+                {body_content}
+            </div>
+            
+            <div style="background-color: #f1f5f9; padding: 25px 20px; text-align: center; font-size: 13px; color: #64748b; border-top: 1px solid #e2e8f0;">
+                <p style="margin: 0 0 10px 0;">Has recibido este mensaje porque eres parte de una aventura en Expedition.</p>
+                <p style="margin: 0; font-weight: bold;">© 2026 Expedition Team</p>
+            </div>
+            
+        </div>
+    </div>
+    """
+# ==========================================================
 
 # Funcion que recupera el body de una peticion
 def get_json_payload():
@@ -273,11 +300,16 @@ def google_login():
             db.session.commit()
             
             # 📧 NOTIFICACIÓN: Registro (Google)
-            send_email_notification(
-                "¡Bienvenido a Expedition!", 
-                [email], 
-                f"<h1>Hola {name}</h1><p>Gracias por unirte a Expedition con Google.</p>"
-            )
+            frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+            body = f"""
+            <h2 style="color: #1E3A5F; margin-top: 0;">¡Hola {name}! 👋</h2>
+            <p>Qué alegría tenerte a bordo. Tu cuenta ha sido enlazada con Google correctamente y ya está lista para usarse.</p>
+            <p>Empieza ahora mismo a planificar tu próxima gran aventura, invita a tus amigos y lleva el control de los gastos sin estrés.</p>
+            <div style="text-align: center; margin-top: 35px;">
+                <a href="{frontend_url}/my-trips" style="background-color: #2EC4B6; color: white; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Ir a Mis Viajes</a>
+            </div>
+            """
+            send_email_notification("¡Bienvenido a Expedition! ✈️", [email], get_email_template(body))
 
         return build_auth_response(user, 200, "Login con Google exitoso")
     except ValueError:
@@ -313,23 +345,18 @@ def sign_up():
     verify_url = f"{frontend_url}/verify?token={verify_token}"
 
     # 📧 NOTIFICACIÓN: Registro Normal con enlace
-    send_email_notification(
-        "Verifica tu cuenta - Expedition", 
-        [email], 
-        f"""
-        <div style="font-family: sans-serif; color: #1E3A5F;">
-            <h1>¡Bienvenido a Expedition, {name}!</h1>
-            <p>Tu cuenta ha sido creada exitosamente. Para poder crear viajes y gestionar gastos, necesitamos verificar tu correo.</p>
-            <br>
-            <a href="{verify_url}" style="background-color: #2EC4B6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
-                Verificar mi cuenta
-            </a>
-            <br><br>
-            <p>Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
-            <p style="font-size: 0.8rem; color: #64748b;">{verify_url}</p>
-        </div>
-        """
-    )
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">¡Prepárate para despegar, {name}! 🚀</h2>
+    <p>Tu cuenta ha sido creada exitosamente. Para que puedas empezar a invitar a tus amigos y crear itinerarios increíbles, necesitamos confirmar que este es tu correo.</p>
+    <div style="text-align: center; margin: 35px 0;">
+        <a href="{verify_url}" style="background-color: #2EC4B6; color: white; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+            Verificar mi cuenta
+        </a>
+    </div>
+    <p style="font-size: 14px; color: #64748b;">Si el botón no funciona, copia y pega este enlace en tu navegador:</p>
+    <p style="font-size: 12px; color: #94a3b8; word-break: break-all;">{verify_url}</p>
+    """
+    send_email_notification("Confirma tu correo para empezar la aventura ✈️", [email], get_email_template(body))
 
     return build_auth_response(new_user, 201, "Usuario creado. Revisa tu correo para verificar tu cuenta.")
 
@@ -372,17 +399,14 @@ def resend_verification():
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
     verify_url = f"{frontend_url}/verify?token={verify_token}"
 
-    send_email_notification(
-        "Verifica tu cuenta - Expedition", 
-        [user.email], 
-        f"""
-        <div style="font-family: sans-serif; color: #1E3A5F;">
-            <h2>Verificación de correo</h2>
-            <p>Haz clic en el botón de abajo para verificar tu cuenta de Expedition.</p>
-            <a href="{verify_url}" style="background-color: #2EC4B6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Verificar mi cuenta</a>
-        </div>
-        """
-    )
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">Falta poco, {user.name}... ⏳</h2>
+    <p>Nos has pedido que te reenviemos el enlace de verificación. Haz clic en el botón de abajo para activar tu cuenta al 100%.</p>
+    <div style="text-align: center; margin: 35px 0;">
+        <a href="{verify_url}" style="background-color: #2EC4B6; color: white; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Verificar mi cuenta</a>
+    </div>
+    """
+    send_email_notification("Reenvío de verificación - Expedition", [user.email], get_email_template(body))
 
     return jsonify({"message": "Correo de verificación reenviado."}), 200
 
@@ -490,11 +514,16 @@ def new_trip():
 
     # 📧 NOTIFICACIÓN: Crear nuevo viaje
     trip_emails = get_trip_emails(trip.id)
-    send_email_notification(
-        f"Nuevo Viaje: {trip.title}", 
-        trip_emails, 
-        f"<h3>¡Prepara las maletas!</h3><p>Se ha creado un nuevo viaje a {trip.destination}. Entra a Expedition para ver los detalles.</p>"
-    )
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">¡Huele a vacaciones! 🧳</h2>
+    <p>Se acaba de crear un nuevo viaje con destino a <strong>{trip.destination}</strong> y tú estás en la lista de invitados.</p>
+    <p>Entra a Expedition para empezar a planificar el itinerario, hablar por el chat del grupo y organizar el presupuesto.</p>
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{frontend_url}/trip-details/{trip.id}" style="background-color: #2EC4B6; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Ver el viaje</a>
+    </div>
+    """
+    send_email_notification(f"Nuevo viaje a {trip.destination} 🌴", trip_emails, get_email_template(body))
 
     return jsonify({
         "message": "Viaje creado correctamente",
@@ -591,11 +620,12 @@ def add_traveler(trip_id):
 
     # 📧 NOTIFICACIÓN: Añadir nuevos integrantes
     trip_emails = get_trip_emails(trip_id)
-    send_email_notification(
-        "¡Nuevo viajero en el equipo!", 
-        trip_emails, 
-        f"<p>El usuario <b>{new_traveler_user.name}</b> se ha unido al viaje. ¡Salúdenlo en el chat!</p>"
-    )
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">¡La familia crece! 👯‍♂️</h2>
+    <p>El usuario <strong>{new_traveler_user.name}</strong> acaba de unirse al viaje a {trip.destination}.</p>
+    <p>¡Pasa por el chat del viaje para darle la bienvenida!</p>
+    """
+    send_email_notification(f"Nuevo integrante en {trip.title} 🎉", trip_emails, get_email_template(body))
 
     return jsonify({
         "message": "Viajero añadido correctamente al itinerario",
@@ -623,11 +653,13 @@ def new_activity(trip_id):
 
     # 📧 NOTIFICACIÓN: Añadir actividad
     trip_emails = get_trip_emails(trip_id)
-    send_email_notification(
-        "Nueva Actividad Añadida", 
-        trip_emails, 
-        f"<p>Se ha añadido la actividad <b>{itinerary.title}</b> a tu itinerario.</p>"
-    )
+    trip = db.session.get(Trip, trip_id)
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">¡Nuevos planes a la vista! 🗺️</h2>
+    <p>Se ha añadido la actividad <strong>{itinerary.title}</strong> a vuestro itinerario en el viaje a {trip.destination}.</p>
+    <p>Abre la app para ver los detalles, fechas y horarios.</p>
+    """
+    send_email_notification(f"Nueva actividad en {trip.title}", trip_emails, get_email_template(body))
 
     return jsonify({
         "message": "Actividad añadida correctamente",
@@ -651,6 +683,8 @@ def delete_activity(activity_id):
     validate_user_trip(user, activity.trip_id)
     
     trip_id_to_notify = activity.trip_id
+    activity_title = activity.title
+    trip = db.session.get(Trip, trip_id_to_notify)
 
     # Eliminamos la actividad y guardamos los cambios
     db.session.delete(activity)
@@ -658,11 +692,11 @@ def delete_activity(activity_id):
 
     # 📧 NOTIFICACIÓN: Eliminar actividad
     trip_emails = get_trip_emails(trip_id_to_notify)
-    send_email_notification(
-        "Actividad Cancelada", 
-        trip_emails, 
-        "<p>Una actividad ha sido eliminada del itinerario.</p>"
-    )
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">Cambio de planes 🔄</h2>
+    <p>La actividad <strong>{activity_title}</strong> ha sido eliminada del itinerario del viaje a {trip.destination}.</p>
+    """
+    send_email_notification(f"Actividad cancelada en {trip.title}", trip_emails, get_email_template(body))
 
     return jsonify({
         "message": "Actividad eliminada correctamente"
@@ -751,11 +785,17 @@ def new_expense(trip_id):
 
     # 📧 NOTIFICACIÓN: Añadir gasto
     trip_emails = get_trip_emails(trip_id)
-    send_email_notification(
-        "Nuevo Gasto Añadido", 
-        trip_emails, 
-        f"<p>Se ha registrado un nuevo gasto: <b>{expense.description}</b> por {expense.amount}€.</p>"
-    )
+    trip = db.session.get(Trip, trip_id)
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">¡Gasto anotado! 💸</h2>
+    <p>Se ha registrado un nuevo gasto en el bote del viaje a {trip.destination}.</p>
+    <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0;">
+        <strong>Concepto:</strong> {expense.description}<br>
+        <strong>Importe:</strong> {expense.amount} €
+    </div>
+    <p>Revisa la pestaña de "Gastos" en la app para ver cómo quedan los balances.</p>
+    """
+    send_email_notification(f"Nuevo gasto en {trip.title}", trip_emails, get_email_template(body))
 
     return jsonify({
         "message": "Gasto añadida correctamente",
@@ -853,23 +893,31 @@ def update_trip_image(trip_id):
     validate_user_trip(user, trip_id)
 
     data = get_json_payload()
-    new_image_url = data.get("image_url", "").strip()
+    image_data = data.get("image_url", "").strip()
 
     trip = db.session.get(Trip, trip_id)
     if not trip:
         raise APIException("Viaje no encontrado", status_code=404)
 
-    # Actualizamos la URL y guardamos
-    trip.image_url = new_image_url
+    # ☁️ LÓGICA CLOUDINARY INTELIGENTE
+    if image_data.startswith("data:image"):
+        # Si es un Base64 (archivo subido), lo manda a Cloudinary
+        upload_result = cloudinary.uploader.upload(image_data, folder="trip_backgrounds")
+        trip.image_url = upload_result["secure_url"]
+    else:
+        # Si es un texto normal, lo guarda como URL directamente
+        trip.image_url = image_data
+
     db.session.commit()
 
     # 📧 NOTIFICACIÓN: Actualizar imagen
     trip_emails = get_trip_emails(trip_id)
-    send_email_notification(
-        "Imagen de Viaje Actualizada", 
-        trip_emails, 
-        f"<p>¡La portada de tu viaje a {trip.destination} tiene un nuevo look!</p>"
-    )
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">¡Cambio de look! 🖼️</h2>
+    <p>El usuario <strong>{user.name}</strong> ha actualizado la foto de portada del viaje a {trip.destination}.</p>
+    <p>Entra a la aplicación para ver lo bien que ha quedado.</p>
+    """
+    send_email_notification(f"Nueva portada para {trip.title} 📸", trip_emails, get_email_template(body))
 
     return jsonify({
         "message": "Imagen de portada actualizada correctamente",
@@ -950,6 +998,7 @@ def delete_expense(expense_id):
     validate_user_trip(user, expense.trip_id)
     
     trip_id_to_notify = expense.trip_id
+    trip = db.session.get(Trip, trip_id_to_notify)
 
     # Buscamos todos todas las deudas por su expense_id
     debts = Debt.query.filter_by(expense_id=expense_id).all()
@@ -964,11 +1013,12 @@ def delete_expense(expense_id):
 
     # 📧 NOTIFICACIÓN: Eliminar gasto
     trip_emails = get_trip_emails(trip_id_to_notify)
-    send_email_notification(
-        "Gasto Eliminado", 
-        trip_emails, 
-        "<p>Se ha eliminado un gasto y se han recalculado los balances.</p>"
-    )
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">Ajuste de cuentas 📉</h2>
+    <p>Se ha eliminado un gasto del viaje a {trip.destination}.</p>
+    <p>Los balances y deudas de cada viajero se han recalculado automáticamente. Revisa la app para ver el nuevo estado de cuentas.</p>
+    """
+    send_email_notification(f"Gasto eliminado en {trip.title}", trip_emails, get_email_template(body))
 
     return jsonify({
         "message": "Gasto eliminada correctamente"
@@ -1008,11 +1058,12 @@ def update_trip(trip_id):
 
     # 📧 NOTIFICACIÓN: Cambios en el viaje
     trip_emails = get_trip_emails(trip_id)
-    send_email_notification(
-        f"Actualización en el viaje: {trip.title}", 
-        trip_emails, 
-        f"<p>El usuario <b>{user.name}</b> ha actualizado los detalles generales del viaje (fechas, presupuesto o destino). Revisa los cambios en la app.</p>"
-    )
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">¡Actualización importante! ⚙️</h2>
+    <p>El usuario <strong>{user.name}</strong> acaba de modificar los datos generales de vuestro viaje a {trip.destination}.</p>
+    <p>Se pueden haber ajustado las fechas, el presupuesto, el destino o el estado de la aventura. ¡Entra a revisarlo!</p>
+    """
+    send_email_notification(f"Cambios en el viaje: {trip.title}", trip_emails, get_email_template(body))
 
     return jsonify({"message": "Viaje actualizado correctamente", "trip": trip.serialize()}), 200
 
@@ -1022,6 +1073,7 @@ def update_trip(trip_id):
 @jwt_required()
 def leave_trip(trip_id):
     user = get_current_user()
+    trip = db.session.get(Trip, trip_id)
     
     # Buscamos la relación en la tabla Traveler
     traveler_link = Traveler.query.filter_by(user_id=user.id, trip_id=trip_id).one_or_none()
@@ -1031,11 +1083,12 @@ def leave_trip(trip_id):
 
     # 📧 NOTIFICACIÓN: Alguien abandona (Opcional, antes de borrarlo)
     trip_emails = get_trip_emails(trip_id)
-    send_email_notification(
-        "Un viajero ha dejado el grupo", 
-        trip_emails, 
-        f"<p>El usuario <b>{user.name}</b> ha decidido abandonar el viaje.</p>"
-    )
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">Una baja en el equipo 🚶‍♂️</h2>
+    <p>El usuario <strong>{user.name}</strong> ha decidido abandonar el viaje a {trip.destination}.</p>
+    <p>Los balances y responsabilidades de gastos deberán reorganizarse entre los viajeros restantes.</p>
+    """
+    send_email_notification(f"Alguien abandonó {trip.title}", trip_emails, get_email_template(body))
 
     db.session.delete(traveler_link)
     db.session.commit()
@@ -1064,22 +1117,22 @@ def forgot_password():
     db.session.commit()
 
     # 3. Enviamos el correo
-    send_email_notification(
-        "Recuperación de contraseña - Expedition",
-        [email],
-        f"""
-        <div style="font-family: sans-serif; color: #1E3A5F;">
-            <h2>Recuperación de contraseña</h2>
-            <p>Hola {user.name},</p>
-            <p>Se ha solicitado un restablecimiento de contraseña para tu cuenta.</p>
-            <p>Tu nueva contraseña temporal es: <strong style="color: #2EC4B6; font-size: 1.2rem;">{temp_password}</strong></p>
-            <p>Por favor, inicia sesión con esta contraseña y cámbiala por una nueva desde tu perfil lo antes posible.</p>
-        </div>
-        """
-    )
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">Recuperación de cuenta 🔑</h2>
+    <p>Hola {user.name}, hemos recibido una solicitud para restablecer tu contraseña.</p>
+    <p>Tu nueva clave temporal es:</p>
+    <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
+        <span style="font-size: 24px; font-weight: bold; color: #2EC4B6; letter-spacing: 3px;">{temp_password}</span>
+    </div>
+    <p>Inicia sesión con esta clave y cámbiala por una nueva desde tu perfil lo antes posible.</p>
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{frontend_url}/login" style="background-color: #1E3A5F; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Ir al Login</a>
+    </div>
+    """
+    send_email_notification("Recuperación de contraseña - Expedition", [email], get_email_template(body))
 
     return jsonify({"message": "Te hemos enviado un correo con tu nueva contraseña temporal"}), 200
-
 
 
 # 🔐 Endpoint para registrar y subir un documento
@@ -1108,6 +1161,22 @@ def add_document(trip_id):
 
     db.session.add(document)
     db.session.commit()
+
+    # 📧 NUEVO: NOTIFICACIÓN DE DOCUMENTO SUBIDO
+    trip_emails = get_trip_emails(trip_id)
+    trip = db.session.get(Trip, trip_id)
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    body = f"""
+    <h2 style="color: #1E3A5F; margin-top: 0;">¡Papeles en regla! 📄</h2>
+    <p>El usuario <strong>{user.name}</strong> acaba de subir un nuevo documento importante a la carpeta compartida del viaje a {trip.destination}.</p>
+    <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2EC4B6;">
+        <strong>Archivo:</strong> {document.title}
+    </div>
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{frontend_url}/trip-details/{trip.id}" style="background-color: #2EC4B6; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Ver documento</a>
+    </div>
+    """
+    send_email_notification(f"Nuevo documento en {trip.title}", trip_emails, get_email_template(body))
 
     return jsonify({"message": "Se ha subido un nuevo documento con exito"}), 200
 
@@ -1153,12 +1222,12 @@ def delete_document(document_id):
     validate_user_trip(user, trip.id)
 
     if file.public_id:
-        if file.resource_type is "raw": 
+        if file.resource_type == "raw": 
             cloudinary.uploader.destroy(
                 file.public_id,
                 resource_type="raw"
             )
-        if file.resource_type is "image":
+        if file.resource_type == "image": 
             cloudinary.uploader.destroy(file.public_id)
 
     db.session.delete(file)
