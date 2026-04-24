@@ -330,6 +330,7 @@ export const TripDetails = () => {
         ? store.travelers.map(t => t.name)
         : ["Usuario"];
 
+    // 🌟 MATEMÁTICAS MEJORADAS PARA EL BOTÓN SALDAR
     const calculateBalances = () => {
         let balances = {};
         allParticipants.forEach(p => balances[p] = 0);
@@ -338,12 +339,21 @@ export const TripDetails = () => {
             const amount = parseFloat(exp.amount) || 0;
             const splitArray = exp.splitWith || allParticipants;
             const splitAmount = amount / splitArray.length;
-            const payerName = exp.payer_name || allParticipants[0];
+            const payerName = exp.paidBy || exp.payer_name || allParticipants[0];
 
             if (balances[payerName] !== undefined) balances[payerName] += amount;
 
             splitArray.forEach(person => {
-                if (balances[person] !== undefined) balances[person] -= splitAmount;
+                if (balances[person] !== undefined) {
+                    balances[person] -= splitAmount;
+                    
+                    // Si la persona ya saldó su deuda, anulamos el cálculo para ella
+                    const isSettled = (exp.settledWith || []).includes(person);
+                    if (isSettled && person !== payerName) {
+                        balances[person] += splitAmount; // El deudor recupera el balance
+                        balances[payerName] -= splitAmount; // Al pagador se le resta lo que ya le pagaron
+                    }
+                }
             });
         });
         return balances;
@@ -354,7 +364,7 @@ export const TripDetails = () => {
 
     const heroImage = trip.image_url && trip.image_url.trim() !== "" 
         ? trip.image_url 
-        : `https://source.unsplash.com/1200x400/?${encodeURIComponent(trip.destination || 'travel')}`;
+        : `https://loremflickr.com/1920/1080/${encodeURIComponent(trip.destination || 'city')}?lock=${trip.id || 1}`;
 
     return (
         <div className="trip-details-wrapper">

@@ -3,12 +3,17 @@ import { useNavigate } from "react-router-dom";
 
 export const ExploreDestination = () => {
     const navigate = useNavigate();
-    const [searchQuery, setSearchQuery] = useState("");
+    
+    // Lo que el usuario está escribiendo en tiempo real
+    const [searchQuery, setSearchQuery] = useState(""); 
+    
+    // Lo que el usuario ha confirmado al darle a "Buscar" (Esto controla la API y el fondo)
+    const [submittedQuery, setSubmittedQuery] = useState(""); 
+    
     const [places, setPlaces] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // --- DATOS POR DEFECTO PARA LLENAR EL ESPACIO EN BLANCO ---
     const popularDestinations = [
         { id: "298184", name: "Tokio", category: "Japón", image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=500&q=80", description: "Una metrópolis que mezcla lo ultramoderno con lo tradicional." },
         { id: "187147", name: "París", category: "Francia", image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=500&q=80", description: "La ciudad de la luz. Arte, gastronomía y paseos inolvidables por el Sena." },
@@ -18,51 +23,83 @@ export const ExploreDestination = () => {
 
     // --- FUNCIÓN PARA LIMPIAR ETIQUETAS HTML ---
     const stripHtml = (htmlString) => {
-        if (!htmlString) return "";
+        if (!htmlString || typeof htmlString !== 'string') return "";
         return htmlString.replace(/<\/?[^>]+(>|$)/g, ""); 
     };
 
-    // --- FUNCIÓN PARA BUSCAR (SOLO SE EJECUTA AL DARLE A BUSCAR O ENTER) ---
+    // --- FONDO DINÁMICO ---
+    const bgImage = submittedQuery.trim() 
+        ? `https://loremflickr.com/1920/1080/city,travel?lock=999` 
+        : "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1920&q=80";
+
+    // --- FUNCIÓN PARA BUSCAR CON RAPIDAPI ---
     const handleSearch = async (e) => {
         e.preventDefault(); 
         
         if (!searchQuery.trim()) return;
 
+        setSubmittedQuery(searchQuery);
         setIsLoading(true);
         setError(null);
 
-        // Simulamos el tiempo de carga de la API
-        setTimeout(() => {
-            const fakeCities = [
-                {
-                    id: "293984", 
-                    name: `${searchQuery} (Prueba)`,
-                    category: "Ciudad Encontrada",
-                    rating: "4.8",
-                    image: `https://source.unsplash.com/500x300/?${encodeURIComponent(searchQuery)},city`,
-                    description: `Explora los mejores rincones, restaurantes y hoteles de ${searchQuery}.`
-                }
-            ];
-            
-            setPlaces(fakeCities);
+        const apiKey = import.meta.env.VITE_RAPIDAPI_KEY;
+        const apiHost = import.meta.env.VITE_RAPIDAPI_HOST;
+
+        const url = `https://${apiHost}/api/v1/hotels/searchLocation?query=${encodeURIComponent(searchQuery)}`;
+
+        const options = {
+            method: 'GET',
+            headers: {
+                'X-RapidAPI-Key': apiKey,
+                'X-RapidAPI-Host': apiHost
+            }
+        };
+
+        try {
+            const response = await fetch(url, options);
+            const result = await response.json();
+
+            if (result && result.data && result.data.length > 0) {
+                const searchData = result.data.map((item, index) => {
+                    const cleanName = stripHtml(item.name || item.title || "Destino");
+                    
+                    return {
+                        id: item.locationId || item.geoId,
+                        name: cleanName,
+                        category: item.secondaryText || "Destino",
+                        rating: "N/A", 
+                        image: `https://loremflickr.com/500/300/city,travel?lock=${index + 10}`,
+                        description: `Explora todo lo que ${cleanName} tiene para ofrecer.`
+                    }
+                });
+                
+                setPlaces(searchData);
+            } else {
+                setError("No encontramos resultados exactos, ¡intenta con otro destino!");
+                setPlaces([]);
+            }
+        } catch (err) {
+            console.error("Error al conectar con la API:", err);
+            setError("Hubo un problema de conexión. Revisa tus llaves de RapidAPI.");
+        } finally {
             setIsLoading(false);
-        }, 1200); 
+        }
     };
 
     return (
         <div style={{ fontFamily: "'Poppins', sans-serif", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
             
-            {/* HERO SECTION CON FONDO DINÁMICO */}
+            {/* HERO SECTION */}
             <div style={{ 
                 position: "relative",
-                backgroundImage: `linear-gradient(rgba(30, 58, 95, 0.7), rgba(30, 58, 95, 0.8)), url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1920&q=80')`,
+                backgroundImage: `linear-gradient(rgba(30, 58, 95, 0.7), rgba(30, 58, 95, 0.8)), url('${bgImage}')`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 padding: "120px 20px 80px", 
                 textAlign: "center",
-                color: "white"
+                color: "white",
+                transition: "background-image 0.5s ease-in-out"
             }}>
-                {/* Botón Volver (Posición absoluta arreglada para no chocar con Navbar) */}
                 <button 
                     onClick={() => navigate("/my-trips")}
                     style={{ 
@@ -92,10 +129,10 @@ export const ExploreDestination = () => {
 
                 <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative" }}>
                     <h1 style={{ fontSize: "3rem", marginBottom: "15px", textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}>
-                        Descubre el Mundo <span style={{fontSize: "1.5rem"}}></span>
+                        Descubre el Mundo
                     </h1>
                     <p style={{ fontSize: "1.2rem", marginBottom: "40px", color: "#e2e8f0", maxWidth: "700px", margin: "0 auto 40px" }}>
-                        Encuentra ciudades, atracciones y hoteles para tu próxima aventura sin gastar cuota de la API.
+                        Encuentra ciudades, atracciones y hoteles para tu próxima aventura.
                     </p>
 
                     <form onSubmit={handleSearch} style={{ display: "flex", justifyContent: "center", gap: "10px", maxWidth: "700px", margin: "0 auto" }}>
@@ -142,7 +179,7 @@ export const ExploreDestination = () => {
                 </div>
             </div>
 
-            {/* ÁREA DE RESULTADOS Y ESPACIO EN BLANCO */}
+            {/* ÁREA DE RESULTADOS */}
             <div style={{ padding: "50px 20px", maxWidth: "1200px", margin: "0 auto", flex: 1, width: "100%" }}>
                 
                 {error && <div style={{ color: "#e74c3c", textAlign: "center", marginBottom: "20px", padding: "15px", background: "#fdecea", borderRadius: "8px", border: "1px solid #f5b7b1" }}>{error}</div>}
@@ -182,11 +219,11 @@ export const ExploreDestination = () => {
                     </div>
                 )}
 
-                {/* RESULTADOS DE LA BÚSQUEDA */}
+                {/* RESULTADOS DE LA BÚSQUEDA REAL */}
                 {places.length > 0 && (
                     <div>
                         <h2 style={{ color: "var(--brand-navy, #1E3A5F)", marginBottom: "25px", fontSize: "1.8rem" }}>
-                            Resultados para "{searchQuery}"
+                            Resultados para "{submittedQuery}"
                         </h2>
                         
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "30px" }}>
@@ -217,22 +254,12 @@ export const ExploreDestination = () => {
                                             src={place.image} 
                                             alt={place.name} 
                                             style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-                                            onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=500&q=80" }}
                                         />
-                                        {place.rating !== "N/A" && (
-                                            <span style={{ 
-                                                position: "absolute", top: "15px", right: "15px", background: "rgba(255,255,255,0.95)", 
-                                                padding: "6px 12px", borderRadius: "20px", fontSize: "0.85rem", fontWeight: "bold", color: "var(--brand-navy)",
-                                                display: "flex", alignItems: "center", gap: "5px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)"
-                                            }}>
-                                                <i className="fa-solid fa-star" style={{ color: "#f1c40f" }}></i> {place.rating}
-                                            </span>
-                                        )}
                                     </div>
                                     <div style={{ padding: "20px", flex: 1, display: "flex", flexDirection: "column" }}>
                                         <span style={{ fontSize: "0.75rem", color: "var(--brand-teal)", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "1px" }}>{place.category}</span>
                                         <h3 style={{ color: "var(--brand-navy)", fontSize: "1.3rem", margin: "8px 0 12px" }}>{place.name}</h3>
-                                        <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: "1.6", marginBottom: "20px", flex: 1 }}>{place.description}</p>
+                                        <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: "1.6", margin: "0 0 20px", flex: 1 }}>{place.description}</p>
                                         <button style={{ 
                                             width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid #e2e8f0", background: "#f8fafc",
                                             color: "var(--brand-navy)", fontWeight: "600", cursor: "pointer", marginTop: "auto", transition: "background 0.2s"

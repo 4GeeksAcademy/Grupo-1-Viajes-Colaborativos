@@ -259,7 +259,7 @@ def get_trip_emails(trip_id):
 
 
 #------------------------------
-#         ENDPOINTS
+#        ENDPOINTS
 #------------------------------
 
 
@@ -1293,7 +1293,8 @@ def update_debt(debt_id):
 
     old_debt_amount = debt.amount
 
-    debt.amount = float(data.get["amount", 0.0])
+    # 🔥 ARREGLO: Cambiado [] por ()
+    debt.amount = float(data.get("amount", 0.0))
 
     db.session.commit()
 
@@ -1305,7 +1306,7 @@ def update_debt(debt_id):
     <h2 style="color: #1E3A5F; margin-top: 0;">¡Papeles en regla! 📄</h2>
     <p>El usuario <strong>{user.name}</strong> acaba de modificar una deuda importante de la carpeta compartida del viaje a {trip.destination}.</p>
     <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2EC4B6;">
-        <strong>Gasto:</strong> {expense.description}
+        <strong>Gasto:</strong> {expense.description}<br>
         <strong>Deuda:</strong> {old_debt_amount} -> {debt.amount}
     </div>
     <div style="text-align: center; margin-top: 30px;">
@@ -1332,9 +1333,10 @@ def update_expense(expense_id):
 
     validate_user_trip(user, expense.trip_id)
 
-    amount = float(data.get["amount"])
-    description = data.get["description"]
-    debtors = data.get["debtors", []]
+    # 🔥 ARREGLO: Cambiados [] por ()
+    amount = float(data.get("amount"))
+    description = data.get("description")
+    debtors = data.get("debtors", [])
 
     debtors_ids = [int(debtor.get("id")) for debtor in debtors]
 
@@ -1369,14 +1371,14 @@ def update_expense(expense_id):
     <h2 style="color: #1E3A5F; margin-top: 0;">¡Papeles en regla! 📄</h2>
     <p>El usuario <strong>{user.name}</strong> acaba de modificar un gasto importante de la carpeta compartida del viaje a {trip.destination}.</p>
     <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2EC4B6;">
-        <strong>Gasto:</strong> {old_expense.description} -> {expense.description}
-        <strong>cantidad:</strong> {old_expense.amount} -> {expense.amount}
+        <strong>Gasto:</strong> {old_expense.description} -> {expense.description}<br>
+        <strong>Cantidad:</strong> {old_expense.amount} -> {expense.amount}
     </div>
     <div style="text-align: center; margin-top: 30px;">
         <a href="{frontend_url}/trip-details/{trip.id}" style="background-color: #2EC4B6; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Ver gasto</a>
     </div>
     """
-    send_email_notification(f"Documento modificado en {trip.title}", trip_emails, get_email_template(body))
+    send_email_notification(f"Gasto modificado en {trip.title}", trip_emails, get_email_template(body))
 
 
     return jsonify({"message": "Se ha modificado el gasto"}), 200
