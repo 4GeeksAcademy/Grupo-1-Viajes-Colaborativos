@@ -6,7 +6,7 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
     const { id } = useParams(); 
 
     const [showExpenseModal, setShowExpenseModal] = useState(false);
-    const [showAllExpensesModal, setShowAllExpensesModal] = useState(false); // 📸 NUEVO MODAL "VER TODOS"
+    const [showAllExpensesModal, setShowAllExpensesModal] = useState(false); 
     const [isEditingExpense, setIsEditingExpense] = useState(false);
     const [selectedExpense, setSelectedExpense] = useState(null);
     const [loading, setLoading] = useState(false); 
@@ -28,7 +28,6 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
 
     const handleCheckboxChange = (participant) => {
         setExpenseData(prev => {
-            // Paracaídas de seguridad: si splitWith es undefined, usamos []
             const currentSplitWith = prev.splitWith || [];
             return {
                 ...prev, 
@@ -39,7 +38,6 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
         });
     };
 
-    // --- LA FUNCIÓN MÁGICA CONECTADA AL BACKEND ---
     const handleExpenseSubmit = async (e) => {
         e.preventDefault();
         const parsedAmount = parseFloat(expenseData.amount);
@@ -53,7 +51,6 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
             const payerObj = travelers.find(t => t.name === expenseData.paidBy);
             const payerId = payerObj ? payerObj.id : null;
 
-            // Paracaídas: asegurar que splitWith sea un arreglo
             const validSplitWith = expenseData.splitWith || [];
 
             const debtorsList = validSplitWith.map(name => {
@@ -111,10 +108,9 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
     };
 
     const handleEditExpenseClick = () => {
-        // Paracaídas al cargar datos para editar: evitamos que variables clave sean undefined
         setExpenseData({
             ...selectedExpense,
-            splitWith: selectedExpense.splitWith || allParticipants, // Por defecto marcamos a todos si viene vacío
+            splitWith: selectedExpense.splitWith || allParticipants, 
             settledWith: selectedExpense.settledWith || []
         });
         setIsEditingExpense(true);
@@ -130,7 +126,9 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
         }
     };
 
-    const toggleSettleDebt = (expenseId, personName) => {
+    // 🚀 MAGIA DEL BOTÓN SALDAR: Actualiza la UI al instante y llama al servidor
+    const toggleSettleDebt = async (expenseId, personName) => {
+        // 1. Actualización visual instantánea
         const updatedExpenses = expensesList.map(exp => {
             if (exp.id === expenseId) {
                 const settledList = exp.settledWith || [];
@@ -149,6 +147,23 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
             return exp;
         });
         setExpensesList(updatedExpenses);
+
+        // 2. Conexión al servidor de tu compañero
+        try {
+            const debtorObj = travelers.find(t => t.name === personName);
+            if (!debtorObj) return;
+
+            const token = localStorage.getItem("token");
+            await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/settle-debt/${expenseId}/${debtorObj.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+        } catch (error) {
+            console.error("Error al saldar la deuda en el servidor", error);
+        }
     };
 
     const getCategoryIcon = (category) => {
@@ -159,7 +174,6 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
         }
     };
 
-    // 📸 Extraemos solo los primeros 3 gastos para la vista principal
     const previewExpenses = expensesList.slice(0, 3);
 
     return (
@@ -199,7 +213,6 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
                             ))}
                         </div>
                         
-                        {/* 📸 BOTÓN PARA VER TODOS LOS GASTOS SI HAY MÁS DE 3 */}
                         {expensesList.length > 3 && (
                             <button 
                                 className="btn-action" 
@@ -230,8 +243,8 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
                         <div className="expenses-grid">
                             {expensesList.map((expense) => (
                                 <div key={expense.id} className="expense-card clickable" style={{ background: "white" }} onClick={() => {
-                                    setShowAllExpensesModal(false); // Cerramos el historial
-                                    setSelectedExpense(expense); // Abrimos el detalle
+                                    setShowAllExpensesModal(false); 
+                                    setSelectedExpense(expense); 
                                 }}>
                                     <div className="expense-card-icon">
                                         <i className={getCategoryIcon(expense.category)}></i>
@@ -301,7 +314,6 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
                                             <label key={i} className="checkbox-label">
                                                 <input 
                                                     type="checkbox" 
-                                                    // Paracaídas aquí: aseguramos que lea un array y no de error
                                                     checked={(expenseData.splitWith || []).includes(p)} 
                                                     onChange={() => handleCheckboxChange(p)} 
                                                 />
@@ -345,7 +357,6 @@ export const ExpensesTab = ({ expensesList, setExpensesList, travelers, allParti
                         <div className="breakdown-list">
                             <h4>División del gasto ({selectedExpense.splitWith ? selectedExpense.splitWith.length : 0} personas)</h4>
                             
-                            {/* Paracaídas aquí también al mapear */}
                             {(selectedExpense.splitWith || []).map((person, index) => {
                                 const amountPerPerson = (selectedExpense.amount / (selectedExpense.splitWith || allParticipants).length).toFixed(2);
                                 const isPayer = person === selectedExpense.paidBy;

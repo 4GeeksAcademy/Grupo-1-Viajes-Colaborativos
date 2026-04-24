@@ -7,17 +7,17 @@ export const Features = () => {
             <div className="feature-card">
                 <div className="icon">💰</div>
                 <h3>Gestión de Gastos</h3>
-                <p>Divide cuentas y liquida deudas fácilmente (Model: Expense/Debt).</p>
+                <p>Divide cuentas y liquida deudas fácilmente.</p>
             </div>
             <div className="feature-card">
                 <div className="icon">📍</div>
                 <h3>Itinerarios Vivos</h3>
-                <p>Planifica cada parada con tu grupo en tiempo real (Model: Itinerary).</p>
+                <p>Planifica cada parada con tu grupo en tiempo real.</p>
             </div>
             <div className="feature-card">
                 <div className="icon">💬</div>
                 <h3>Chat Grupal</h3>
-                <p>Toda la comunicación en un solo lugar (Model: Chat/Message).</p>
+                <p>Toda la comunicación en un solo lugar.</p>
             </div>
         </section>
     );
