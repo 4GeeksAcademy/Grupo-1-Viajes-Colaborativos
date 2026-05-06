@@ -10,5 +10,8 @@ export default defineConfig({
     },
     build: {
         outDir: 'dist'
+    },
+    define: {
+        'import.meta.env.VITE_BACKEND_URL': JSON.stringify('http://localhost:3001')
     }
 })

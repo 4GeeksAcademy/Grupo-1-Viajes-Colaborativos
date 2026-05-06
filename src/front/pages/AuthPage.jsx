@@ -1,3 +1,6 @@
+/**
+ * Página de autenticación: login, registro y recuperación de contraseña.
+ */
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
@@ -9,14 +12,14 @@ export const AuthPage = () => {
 
     const [isLogin, setIsLogin] = useState(true);
 
-    // --- 1. ESTADOS PARA EL FORMULARIO ---
+    // Estados del formulario
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
     const [loading, setLoading] = useState(false);
 
-    // --- ESTADOS PARA RECUPERAR CONTRASEÑA ---
+    // Estados para recuperación de contraseña
     const [showForgotModal, setShowForgotModal] = useState(false);
     const [recoveryEmail, setRecoveryEmail] = useState("");
     const [isRecovering, setIsRecovering] = useState(false);
@@ -30,7 +33,7 @@ export const AuthPage = () => {
         setErrorMsg("");
     }, [location]);
 
-    // --- 2. FUNCIÓN DE ENVÍO MANUAL ---
+    // --- 2. FUNCIÓN DE ENVÍO DEL FORMULARIO ---
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrorMsg("");

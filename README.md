@@ -1,81 +1,168 @@
-# WebApp boilerplate with React JS and Flask API
+# Expedition - Viajes Colaborativos
 
-Build web applications using React.js for the front end and python/flask for your backend API.
+Una aplicación web para planificar, organizar y disfrutar de viajes en grupo con tus amigos.
 
-- Documentation can be found here: https://4geeks.com/docs/start/react-flask-template
-- Here is a video on [how to use this template](https://www.loom.com/share/f37c6838b3f1496c95111e515e83dd9b)
-- Integrated with Pipenv for package managing.
-- Fast deployment to Render [in just a few steps here](https://4geeks.com/docs/start/deploy-to-render-com).
-- Use of .env file.
-- SQLAlchemy integration for database abstraction.
+## Características
 
-### 1) Installation:
+- **Gestión de Viajes**: Crea y administra viajes colaborativos
+- **Itinerario**: Planifica actividades día a día
+- **Gastos Compartidos**: Registra y divide gastos entre viajeros
+- **Chat en Grupo**: Comunicación en tiempo real
+- **Documentos**: Comparte archivos importantes
+- **Notificaciones**: Recibe alertas in-app y por email
+- **Autenticación**: Login con email/password o Google OAuth
 
-> If you use Github Codespaces (recommended) or Gitpod this template will already come with Python, Node and the Posgres Database installed. If you are working locally make sure to install Python 3.10, Node 
+## Tech Stack
 
-It is recomended to install the backend first, make sure you have Python 3.10, Pipenv and a database engine (Posgress recomended)
+| Capa | Tecnología |
+|------|------------|
+| Frontend | React + Vite |
+| Backend | Flask (Python) |
+| Database | SQLite / PostgreSQL |
+| Auth | JWT + Google OAuth |
+| Storage | Cloudinary |
+| Email | SMTP Gmail |
 
-1. Install the python packages: `$ pipenv install`
-2. Create a .env file based on the .env.example: `$ cp .env.example .env`
-3. Install your database engine and create your database, depending on your database you have to create a DATABASE_URL variable with one of the possible values, make sure you replace the valudes with your database information:
-
-| Engine    | DATABASE_URL                                        |
-| --------- | --------------------------------------------------- |
-| SQLite    | sqlite:////test.db                                  |
-| MySQL     | mysql://username:password@localhost:port/example    |
-| Postgress | postgres://username:password@localhost:5432/example |
-
-4. Migrate the migrations: `$ pipenv run migrate` (skip if you have not made changes to the models on the `./src/api/models.py`)
-5. Run the migrations: `$ pipenv run upgrade`
-6. Run the application: `$ pipenv run start`
-
-> Note: Codespaces users can connect to psql by typing: `psql -h localhost -U gitpod example`
-
-### Undo a migration
-
-You are also able to undo a migration by running
-
-```sh
-$ pipenv run downgrade
-```
-
-### Backend Populate Table Users
-
-To insert test users in the database execute the following command:
-
-```sh
-$ flask insert-test-users 5
-```
-
-And you will see the following message:
+## Estructura del Proyecto
 
 ```
-  Creating test users
-  test_user1@test.com created.
-  test_user2@test.com created.
-  test_user3@test.com created.
-  test_user4@test.com created.
-  test_user5@test.com created.
-  Users created successfully!
+├── src/
+│   ├── app.py              # main.py
+│   ├── wsgi.py            # WSGI entry point
+│   ├── api/
+│   │   ├── routes.py      # Endpoints de API
+│   │   ├── models.py     # Modelos de DB
+│   │   ├── utils.py      # Utilidades
+│   │   ├── admin.py      # Admin panel
+│   │   └── commands.py   # Comandos CLI
+│   └── front/
+│       ├── pages/        # 13 páginas React
+│       ├── components/   # 10 componentes
+│       └── styles/       # 12 archivos CSS
+├── migrations/           # Alembic migrations
+├── package.json          # Dependencias npm
+└── requirements.txt     # Dependencias Python
 ```
 
-### **Important note for the database and the data inside it**
+## Configuración
 
-Every Github codespace environment will have **its own database**, so if you're working with more people eveyone will have a different database and different records inside it. This data **will be lost**, so don't spend too much time manually creating records for testing, instead, you can automate adding records to your database by editing ```commands.py``` file inside ```/src/api``` folder. Edit line 32 function ```insert_test_data``` to insert the data according to your model (use the function ```insert_test_users``` above as an example). Then, all you need to do is run ```pipenv run insert-test-data```.
+### 1. Clonar y configurar
 
-### Front-End Manual Installation:
+```bash
+# Instalar dependencias Python
+pip install -r requirements.txt
 
--   Make sure you are using node version 20 and that you have already successfully installed and runned the backend.
+# Instalar dependencias npm
+npm install
+```
 
-1. Install the packages: `$ npm install`
-2. Start coding! start the webpack dev server `$ npm run start`
+### 2. Variables de entorno
 
-## Publish your website!
+Crea un archivo `.env` basado en `.env.example`:
 
-This boilerplate it's 100% read to deploy with Render.com and Heroku in a matter of minutes. Please read the [official documentation about it](https://4geeks.com/docs/start/deploy-to-render-com).
+```env
+# Base de datos
+DATABASE_URL=sqlite:///expedition.db
 
-### Contributors
+# Flask
+FLASK_APP=src/app.py
+FLASK_DEBUG=1
 
-This template was built as part of the 4Geeks Academy [Coding Bootcamp](https://4geeksacademy.com/us/coding-bootcamp) by [Alejandro Sanchez](https://twitter.com/alesanchezr) and many other contributors. Find out more about our [Full Stack Developer Course](https://4geeksacademy.com/us/coding-bootcamps/part-time-full-stack-developer), and [Data Science Bootcamp](https://4geeksacademy.com/us/coding-bootcamps/datascience-machine-learning).
+# Frontend
+VITE_BACKEND_URL=http://localhost:3001
+VITE_GOOGLE_CLIENT_ID=tu_google_client_id
 
-You can find other templates and resources like this at the [school github page](https://github.com/4geeksacademy/).
+# Email
+MAIL_USERNAME=tu@email.com
+MAIL_PASSWORD=app_password
+
+# Cloudinary
+CLOUDINARY_API_KEY=tu_api_key
+CLOUDINARY_API_SECRET=tu_api_secret
+CLOUDINARY_CLOUD_NAME=tu_cloud_name
+```
+
+### 3. Iniciar la aplicación
+
+**Backend** (puerto 3001):
+```bash
+export PYTHONPATH=src
+flask run --port 3001
+```
+
+**Frontend** (puerto 3000):
+```bash
+npm run dev
+```
+
+## API Endpoints
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/api/signup` | Registro de usuario |
+| POST | `/api/login` | Login tradicional |
+| POST | `/api/google-login` | Login con Google |
+| GET | `/api/profile` | Obtener perfil |
+| PUT | `/api/profile` | Actualizar perfil |
+| GET | `/api/trips` | Lista de viajes |
+| POST | `/api/new_trip` | Crear viaje |
+| GET | `/api/trip-detail/<id>` | Detalles del viaje |
+| POST | `/api/new-activity/<id>` | Agregar actividad |
+| POST | `/api/new-expense/<id>` | Registrar gasto |
+| POST | `/api/new-message/<id>` | Enviar mensaje |
+| POST | `/api/add-document/<id>` | Subir documento |
+
+## Base de Datos
+
+### Modelos
+
+- **User**: Usuarios registrados
+- **Trip**: Viajes
+- **Traveler**: Relación usuario-viaje
+- **Itinerary**: Actividades del itinerario
+- **Expense**: Gastos
+- **Debt**: Deudas entre usuarios
+- **Document**: Archivos compartidos
+- **Chat**: Chats por viaje
+- **Message**: Mensajes
+- **Notification**: Notificaciones in-app
+
+### Migraciones
+
+```bash
+# Crear migración
+flask db migrate -m "mensaje"
+
+# Aplicar migraciones
+flask db upgrade
+```
+
+## Despliegue
+
+### Render.com
+
+1. Conecta tu repositorio a Render
+2. Configura las variables de entorno
+3. El build command:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. El start command:
+   ```bash
+   gunicorn src.app:app --worker 1
+   ```
+
+## Desarrollo
+
+### Credenciales de prueba
+
+- **Email**: test@example.com
+- **Password**: 123456
+
+## Contribuidores
+
+- Grupo 1 - Viajes Colaborativos
+
+## Licencia
+
+ISC
