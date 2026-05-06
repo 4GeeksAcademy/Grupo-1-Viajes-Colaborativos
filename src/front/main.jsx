@@ -1,4 +1,6 @@
-// src/front/main.jsx
+/**
+ * Punto de entrada principal de React.
+ */
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css' 
@@ -7,6 +9,10 @@ import { router } from "./routes";
 import { StoreProvider } from './hooks/useGlobalReducer'; 
 import { BackendURL } from './components/BackendURL';
 
+/**
+ * Componente principal.
+ * Verifica la configuración del backend.
+ */
 const Main = () => {
     // Si no hay URL de backend, mostramos el aviso
     if(!import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_BACKEND_URL == "") {
@@ -15,7 +21,6 @@ const Main = () => {
 
     return (
         <StoreProvider> 
-            {/* RouterProvider DEBE ser el único que maneje la vista */}
             <RouterProvider router={router} />
         </StoreProvider>
     );

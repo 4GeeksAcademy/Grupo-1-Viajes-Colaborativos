@@ -69,6 +69,6 @@ def send_email_notification(subject, recipients, html_body):
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, recipients, msg.as_string())
         server.quit()
-        print(f"📧 Correo enviado con éxito a {recipients}")
+        print(f"[EMAIL] Correo enviado con exito a {recipients}")
     except Exception as e:
-        print(f"❌ Error enviando correo a {recipients}: {e}")
+        print(f"[ERROR] Error enviando correo a {recipients}: {e}")

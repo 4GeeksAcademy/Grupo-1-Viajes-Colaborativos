@@ -1,4 +1,6 @@
-// Import necessary components and functions from react-router-dom.
+/**
+ * Configuración de rutas de React Router.
+ */
 import {
     createBrowserRouter,
     createRoutesFromElements,
@@ -9,55 +11,53 @@ import { Home } from "./pages/Home";
 import { Single } from "./pages/Single";
 import { Demo } from "./pages/Demo";
 import { LandingPage } from "./pages/LandingPage";
-import { AuthPage } from "./pages/AuthPage"; // <-- Importamos la nueva página de Login/Registro
+import { AuthPage } from "./pages/AuthPage";
 import { MyTrips } from "./pages/MyTrips";
 import { NewTrip } from "./pages/NewTrip";
 import { TripDetails } from "./pages/TripDetails";
 import { Profile } from "./pages/Profile";
-import { ExploreDestination } from "./pages/ExploreDestination"; // <-- NUEVA IMPORTACIÓN
+import { ExploreDestination } from "./pages/ExploreDestination";
 import { DestinationDetails } from "./pages/DestinationDetails";
-import { VerifyEmail } from "./pages/VerifyEmail"; // 🛡️ IMPORTACIÓN DE LA NUEVA PÁGINA
+import { VerifyEmail } from "./pages/VerifyEmail";
 
 
+/**
+ * Router principal de la aplicación.
+ */
 export const router = createBrowserRouter(
     createRoutesFromElements(
-    // CreateRoutesFromElements function allows you to build route elements declaratively.
-    // Create your routes here, if you want to keep the Navbar and Footer in all views, add your new routes inside the containing Route.
-    // Root, on the contrary, create a sister Route, if you have doubts, try it!
-    // Note: keep in mind that errorElement will be the default page when you don't get a route, customize that page to make your project more attractive.
-    // Note: The child paths of the Layout element replace the Outlet component with the elements contained in the "element" attribute of these child paths.
-
-      // Root Route: All navigation will start from here.
+      // Ruta raíz con Layout (Navbar y Footer)
       <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>}>
             
-            {/* Landing Page es la vista por defecto al entrar a la web */}
+            {/* Landing Page */}
             <Route index element={<LandingPage />} />
 
-            {/* Ruta para el sistema de Autenticación (Login/Registro) */}
+            {/* Login/Registro */}
             <Route path="/login" element={<AuthPage />} />
 
-            {/* 🛡️ NUEVA RUTA PARA VERIFICAR EL CORREO */}
+            {/* Verificar email */}
             <Route path="/verify" element={<VerifyEmail />} />
 
-            {/* Ruta para el sistema de Autenticación (mytrips) */}
+            {/* Mis viajes */}
             <Route element={<MyTrips />} path="/my-trips" />
 
-            {/* Ruta para el sistema de Autenticación (newtrip) */}
+            {/* Nuevo viaje */}
             <Route path="/new-trip" element={<NewTrip />} />
 
-            {/* Cambiamos /trip/ por /trip-details/ */}
+            {/* Detalles del viaje */}
             <Route path="/trip-details/:id" element={<TripDetails />} />
 
+            {/* Perfil */}
             <Route path="/profile" element={<Profile />} />
 
-            {/* NUEVA RUTA PARA EL EXPLORADOR DE DESTINOS */}
+            {/* Explorador de destinos */}
             <Route path="/explore" element={<ExploreDestination />} />
             <Route path="/destination-details/:locationId/:locationName" element={<DestinationDetails />} />
 
-            {/* Cambiamos el path de Home a "/home" para que no choque con la Landing Page */}
+            {/* home */}
             <Route path="/home" element={<Home />} />
             
-            {/* Rutas dinámicas y de demostración */}
+            {/* Rutas de demostración */}
             <Route path="/single/:theId" element={<Single />} />
             <Route path="/demo" element={<Demo />} />
             
