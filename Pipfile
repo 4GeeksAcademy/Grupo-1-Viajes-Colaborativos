@@ -22,6 +22,7 @@ flask-cors = "*"
 google-auth = "*"
 requests = "*"
 cloudinary = "*"
+colorama = "*"
 
 [requires]
 python_version = "3.13"

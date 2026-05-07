@@ -7,26 +7,32 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 db = SQLAlchemy()
 
-# --- ENUMS ---
-
+# =============================================================================
+# ENUMS - Tipos predefinidos
+# =============================================================================
 
 class StateTypes(enum.Enum):
+    """Estados posibles de un viaje"""
     FINISHED = "finished"
     ONGOING = "ongoing"
     PLANNING = "planning"
 
 
 class CategoryTypes(enum.Enum):
+    """Categorías de gastos"""
     TRANSPORT = "transport"
     LODGING = "lodging"
     FOOD = "food"
     ACTIVITIES = "activities"
     OTHERS = "others"
 
-# --- MODELS ---
+# =============================================================================
+# MODELOS - Definiciones de tablas
+# =============================================================================
 
 
 class User(db.Model):
+    """Usuario registrado en la aplicación."""
     __tablename__ = 'user'
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(20), nullable=False)
@@ -44,31 +50,35 @@ class User(db.Model):
         "Debt", foreign_keys="[Debt.debtor_id]", back_populates="debtors")
     debts_to_receive = relationship(
         "Debt", foreign_keys="[Debt.creditor_id]", back_populates="creditors")
-    # 🔔 Relación con notificaciones
     notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
 
     def set_password(self, password: str) -> None:
+        """Hashea la contraseña"""
         self.password = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:
+        """Verifica la contraseña"""
         return check_password_hash(self.password, password)
 
     def serialize(self):
+        """Convierte a JSON para el frontend"""
         return {
             "id": self.id,
             "name": self.name,
             "last_name": self.last_name,
             "email": self.email,
-            "is_verified": self.is_verified # 🛡️ Lo enviamos al frontend
+            "is_verified": self.is_verified
         }
     
     def serialize_name(self):
+        """Solo el nombre"""
         return {
             "name": self.name
         }
 
 
 class Trip(db.Model):
+    """Viaje planeado por los usuarios."""
     __tablename__ = 'trip'
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(30), nullable=False)
@@ -79,8 +89,6 @@ class Trip(db.Model):
     ending_date: Mapped[date] = mapped_column(Date(), nullable=False)
     budget: Mapped[float] = mapped_column(Float, nullable=False)
     notes: Mapped[str] = mapped_column(String(150), nullable=True)
-    
-    # 📸 NUEVO CAMPO: Para guardar la foto de portada
     image_url: Mapped[str] = mapped_column(String(500), nullable=True)
 
     # Relationships
@@ -91,6 +99,7 @@ class Trip(db.Model):
     chats = relationship("Chat", back_populates="trips", uselist=False)
 
     def serialize(self):
+        """Convierte a JSON"""
         return {
             "id": self.id,
             "title": self.title,
@@ -104,6 +113,7 @@ class Trip(db.Model):
         }
     
     def serialize_common_trips(self):
+        """Versión resumida"""
         return {
             "id": self.id,
             "title": self.title,
@@ -116,6 +126,7 @@ class Trip(db.Model):
 
 
 class Traveler(db.Model):
+    """Relación entre usuario y viaje (participante)."""
     __tablename__ = 'traveler'
     user_id: Mapped[int] = mapped_column(ForeignKey(
         "user.id", ondelete="CASCADE"), primary_key=True)

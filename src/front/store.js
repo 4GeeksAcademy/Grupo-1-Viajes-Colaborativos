@@ -1,23 +1,32 @@
+/**
+ * Estado global de la aplicación.
+ */
+
+// =============================================================================
+// ESTADO INICIAL
+// =============================================================================
+
 export const initialStore = () => {
   return {
     message: null,
-    // --- ESTADOS PARA EL BACKEND ---
-    currentTrip: null,      // Aquí guardaremos el viaje actual
+    currentTrip: null,      // Viaje actual
     itinerary: [],          // Actividades del viaje
     expenses: [],           // Gastos del viaje
     messages: [],           // Mensajes del chat
     travelers: [],          // Compañeros de viaje
-    loading: false          // Para saber si estamos cargando datos
+    loading: false          // Indicador de carga
   }
 }
+
+// =============================================================================
+// REDUCER - Maneja los cambios de estado
+// =============================================================================
 
 export default function storeReducer(store, action = {}) {
   switch (action.type) {
     case 'set_hello':
       return { ...store, message: action.payload };
 
-    // --- NUEVOS CASES PARA LA CONEXIÓN ---
-    
     // Carga todos los detalles del viaje
     case 'load_trip_details':
       return {
@@ -29,7 +38,7 @@ export default function storeReducer(store, action = {}) {
         messages: action.payload.messages
       };
 
-    // Añadir un mensaje nuevo al chat en tiempo real
+    // Añadir un mensaje nuevo al chat
     case 'add_message':
       return {
         ...store,
@@ -44,11 +53,14 @@ export default function storeReducer(store, action = {}) {
   }
 }
 
-// --- ACTIONS (Las funciones que llamarán a tu Backend) ---
+// =============================================================================
+// ACTIONS - Funciones que llaman al Backend
+// =============================================================================
+
 export const getActions = ({ getStore, getActions, setStore }) => {
   return {
     loadTripData: async (tripId) => {
-      const token = localStorage.getItem("token"); // Asegúrate de que el token se guarde con este nombre al hacer Login
+      const token = localStorage.getItem("token");
       
       try {
         const response = await fetch(`${process.env.BACKEND_URL}/api/trip-detail/${tripId}`, {
@@ -63,7 +75,7 @@ export const getActions = ({ getStore, getActions, setStore }) => {
 
         const data = await response.json();
         
-        // ¡LA MAGIA OCURRE AQUÍ! Guardamos los datos recibidos en el estado global
+        // Guardamos los datos en el estado global
         setStore({
             currentTrip: data.trip,
             itinerary: data.itinerary,

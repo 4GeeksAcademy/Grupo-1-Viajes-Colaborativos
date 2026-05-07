@@ -1,22 +1,24 @@
+/**
+ * Página de Mis Viajes.
+ */
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/MyTrips.css";
 
 export const MyTrips = () => {
-    // 1. HERRAMIENTAS DE REACT
+    // Herramientas de React
     const navigate = useNavigate(); 
     const [activeFilter, setActiveFilter] = useState("Todos"); 
     
-    // Estados para la Base de Datos Real
+    // Estados
     const [trips, setTrips] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // 2. CONEXIÓN AL BACKEND
+    // Conexión al backend
     useEffect(() => {
         const fetchMyTrips = async () => {
             const token = localStorage.getItem("token");
             
-            // Si no hay llave, a iniciar sesión
             if (!token) {
                 navigate("/login");
                 return;
