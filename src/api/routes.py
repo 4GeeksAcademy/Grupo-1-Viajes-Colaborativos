@@ -1,6 +1,6 @@
-"""
-API Routes - Archivo principal que registra todos los blueprints
-"""
+
+# API Routes - Archivo principal que registra todos los blueprints
+
 from flask import Flask
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
@@ -8,9 +8,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def register_routes(app: Flask):
-    """
-    Registra todos los blueprints de endpoints en la aplicación
-    """
+
+    # Registra todos los blueprints de endpoints en la aplicación
+
     from api.auth import auth
     from api.users import users
     from api.trips import trips
@@ -26,3 +26,5 @@ def register_routes(app: Flask):
     app.register_blueprint(expenses, url_prefix="/api")
     app.register_blueprint(documents, url_prefix="/api")
     app.register_blueprint(messages, url_prefix="/api")
+
+register_routes()
